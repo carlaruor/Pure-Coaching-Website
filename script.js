@@ -79,3 +79,41 @@ if (activitiesCarousel && previousActivityButton && nextActivityButton) {
 
   updateCarouselControls();
 }
+
+const reviewsCarousel = document.querySelector('[data-reviews-carousel]');
+const previousReviewButton = document.querySelector('[data-reviews-previous]');
+const nextReviewButton = document.querySelector('[data-reviews-next]');
+
+if (reviewsCarousel && previousReviewButton && nextReviewButton) {
+  const updateReviewControls = () => {
+    const maximumScroll = reviewsCarousel.scrollWidth - reviewsCarousel.clientWidth;
+
+    previousReviewButton.disabled = reviewsCarousel.scrollLeft <= 1;
+    nextReviewButton.disabled = reviewsCarousel.scrollLeft >= maximumScroll - 1;
+  };
+
+  const scrollReviews = (direction) => {
+    const firstReview = reviewsCarousel.querySelector('.review-card');
+    const carouselStyles = window.getComputedStyle(reviewsCarousel);
+    const gap = Number.parseFloat(carouselStyles.columnGap) || 0;
+    const distance = firstReview.getBoundingClientRect().width + gap;
+
+    reviewsCarousel.scrollBy({
+      left: direction * distance,
+      behavior: 'smooth'
+    });
+  };
+
+  previousReviewButton.addEventListener('click', () => scrollReviews(-1));
+  nextReviewButton.addEventListener('click', () => scrollReviews(1));
+  reviewsCarousel.addEventListener('scroll', updateReviewControls, { passive: true });
+  window.addEventListener('resize', updateReviewControls);
+
+  updateReviewControls();
+}
+
+const currentYear = document.querySelector('[data-current-year]');
+
+if (currentYear) {
+  currentYear.textContent = new Date().getFullYear();
+}
