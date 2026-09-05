@@ -12,7 +12,67 @@
     <script src="script.js" defer></script>
   </head>
   <body>
-    <header></header>
+    <header class="site-header" data-header>
+      <div class="container site-header__inner">
+        <a class="site-logo" href="#" aria-label="Pure Coaching Cairns home">
+          <img
+            src="assets/logo/pure-coaching-logo.png"
+            alt="Pure Coaching Cairns"
+            width="1254"
+            height="1254"
+          >
+        </a>
+
+        <nav class="desktop-nav" aria-label="Primary navigation">
+          <ul class="nav-list">
+            <li><a class="nav-link" href="#about">About</a></li>
+            <li><a class="nav-link" href="#supports">Supports</a></li>
+            <li><a class="nav-link" href="#activities">Activities</a></li>
+            <li><a class="nav-link" href="#team">Our Team</a></li>
+            <li><a class="nav-link" href="#referrals">Referrals</a></li>
+            <li><a class="nav-link" href="#contact">Contact</a></li>
+            <li><a class="nav-link" href="#login">Login</a></li>
+          </ul>
+          <a class="button button--primary" href="#contact">Start Your Journey</a>
+        </nav>
+
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-label="Open navigation menu"
+          aria-controls="mobile-navigation"
+          aria-expanded="false"
+          data-menu-toggle
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+
+      <nav
+        class="mobile-nav"
+        id="mobile-navigation"
+        aria-label="Mobile navigation"
+        data-mobile-nav
+        hidden
+      >
+        <div class="container">
+          <ul class="mobile-nav__list">
+            <li><a class="mobile-nav__link" href="#about">About</a></li>
+            <li><a class="mobile-nav__link" href="#supports">Supports</a></li>
+            <li><a class="mobile-nav__link" href="#activities">Activities</a></li>
+            <li><a class="mobile-nav__link" href="#team">Our Team</a></li>
+            <li><a class="mobile-nav__link" href="#referrals">Referrals</a></li>
+            <li><a class="mobile-nav__link" href="#contact">Contact</a></li>
+            <li><a class="mobile-nav__link" href="#login">Login</a></li>
+          </ul>
+          <a class="button button--primary mobile-nav__cta" href="#contact">
+            Start Your Journey
+          </a>
+        </div>
+      </nav>
+    </header>
     <main></main>
     <footer></footer>
   </body>
