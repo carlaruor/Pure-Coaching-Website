@@ -47,3 +47,35 @@ window.addEventListener('resize', () => {
     closeMenu();
   }
 });
+
+const activitiesCarousel = document.querySelector('[data-activities-carousel]');
+const previousActivityButton = document.querySelector('[data-carousel-previous]');
+const nextActivityButton = document.querySelector('[data-carousel-next]');
+
+if (activitiesCarousel && previousActivityButton && nextActivityButton) {
+  const updateCarouselControls = () => {
+    const maximumScroll = activitiesCarousel.scrollWidth - activitiesCarousel.clientWidth;
+
+    previousActivityButton.disabled = activitiesCarousel.scrollLeft <= 1;
+    nextActivityButton.disabled = activitiesCarousel.scrollLeft >= maximumScroll - 1;
+  };
+
+  const scrollCarousel = (direction) => {
+    const firstCard = activitiesCarousel.querySelector('.activity-card');
+    const carouselStyles = window.getComputedStyle(activitiesCarousel);
+    const gap = Number.parseFloat(carouselStyles.columnGap) || 0;
+    const distance = firstCard.getBoundingClientRect().width + gap;
+
+    activitiesCarousel.scrollBy({
+      left: direction * distance,
+      behavior: 'smooth'
+    });
+  };
+
+  previousActivityButton.addEventListener('click', () => scrollCarousel(-1));
+  nextActivityButton.addEventListener('click', () => scrollCarousel(1));
+  activitiesCarousel.addEventListener('scroll', updateCarouselControls, { passive: true });
+  window.addEventListener('resize', updateCarouselControls);
+
+  updateCarouselControls();
+}
