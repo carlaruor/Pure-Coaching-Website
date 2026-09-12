@@ -1,119 +1,132 @@
 'use strict';
 
-const header = document.querySelector('[data-header]');
-const menuToggle = document.querySelector('[data-menu-toggle]');
-const mobileNav = document.querySelector('[data-mobile-nav]');
+const DESKTOP_BREAKPOINT = 1024;
+const SCROLL_EDGE_TOLERANCE = 1;
 
-const closeMenu = () => {
-  menuToggle.setAttribute('aria-expanded', 'false');
-  menuToggle.setAttribute('aria-label', 'Open navigation menu');
-  mobileNav.hidden = true;
-};
+function initMobileNavigation() {
+  const menuToggle = document.querySelector('[data-menu-toggle]');
+  const mobileNav = document.querySelector('[data-mobile-nav]');
 
-menuToggle.addEventListener('click', () => {
-  const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
-
-  if (isOpen) {
-    closeMenu();
+  if (!menuToggle || !mobileNav) {
     return;
   }
 
-  menuToggle.setAttribute('aria-expanded', 'true');
-  menuToggle.setAttribute('aria-label', 'Close navigation menu');
-  mobileNav.hidden = false;
-});
+  const closeMenu = (returnFocus = false) => {
+    menuToggle.setAttribute('aria-expanded', 'false');
+    menuToggle.setAttribute('aria-label', 'Open navigation menu');
+    mobileNav.hidden = true;
 
-mobileNav.addEventListener('click', (event) => {
-  if (event.target.closest('a')) {
-    closeMenu();
-  }
-});
-
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && !mobileNav.hidden) {
-    closeMenu();
-    menuToggle.focus();
-  }
-});
-
-window.addEventListener(
-  'scroll',
-  () => header.classList.toggle('is-scrolled', window.scrollY > 0),
-  { passive: true }
-);
-
-window.addEventListener('resize', () => {
-  if (window.innerWidth >= 1024 && !mobileNav.hidden) {
-    closeMenu();
-  }
-});
-
-const activitiesCarousel = document.querySelector('[data-activities-carousel]');
-const previousActivityButton = document.querySelector('[data-carousel-previous]');
-const nextActivityButton = document.querySelector('[data-carousel-next]');
-
-if (activitiesCarousel && previousActivityButton && nextActivityButton) {
-  const updateCarouselControls = () => {
-    const maximumScroll = activitiesCarousel.scrollWidth - activitiesCarousel.clientWidth;
-
-    previousActivityButton.disabled = activitiesCarousel.scrollLeft <= 1;
-    nextActivityButton.disabled = activitiesCarousel.scrollLeft >= maximumScroll - 1;
+    if (returnFocus) {
+      menuToggle.focus();
+    }
   };
 
-  const scrollCarousel = (direction) => {
-    const firstCard = activitiesCarousel.querySelector('.activity-card');
-    const carouselStyles = window.getComputedStyle(activitiesCarousel);
-    const gap = Number.parseFloat(carouselStyles.columnGap) || 0;
-    const distance = firstCard.getBoundingClientRect().width + gap;
+  menuToggle.addEventListener('click', () => {
+    const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
 
-    activitiesCarousel.scrollBy({
-      left: direction * distance,
+    if (isOpen) {
+      closeMenu();
+      return;
+    }
+
+    menuToggle.setAttribute('aria-expanded', 'true');
+    menuToggle.setAttribute('aria-label', 'Close navigation menu');
+    mobileNav.hidden = false;
+  });
+
+  mobileNav.addEventListener('click', (event) => {
+    if (event.target.closest('a')) {
+      closeMenu();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !mobileNav.hidden) {
+      closeMenu(true);
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= DESKTOP_BREAKPOINT && !mobileNav.hidden) {
+      closeMenu();
+    }
+  });
+}
+
+function initStickyHeader() {
+  const header = document.querySelector('[data-header]');
+
+  if (!header) {
+    return;
+  }
+
+  const updateHeader = () => {
+    header.classList.toggle('is-scrolled', window.scrollY > 0);
+  };
+
+  window.addEventListener('scroll', updateHeader, { passive: true });
+  updateHeader();
+}
+
+function initCarousel(carousel) {
+  const track = carousel.querySelector('[data-carousel-track]');
+  const previousButton = carousel.querySelector('[data-carousel-previous]');
+  const nextButton = carousel.querySelector('[data-carousel-next]');
+
+  if (!track || !previousButton || !nextButton || !track.firstElementChild) {
+    return null;
+  }
+
+  const updateControls = () => {
+    const maximumScroll = track.scrollWidth - track.clientWidth;
+
+    previousButton.disabled = track.scrollLeft <= SCROLL_EDGE_TOLERANCE;
+    nextButton.disabled = track.scrollLeft >= maximumScroll - SCROLL_EDGE_TOLERANCE;
+  };
+
+  const scrollByItem = (direction) => {
+    const trackStyles = window.getComputedStyle(track);
+    const gap = Number.parseFloat(trackStyles.columnGap) || 0;
+    const itemWidth = track.firstElementChild.getBoundingClientRect().width;
+
+    track.scrollBy({
+      left: direction * (itemWidth + gap),
       behavior: 'smooth'
     });
   };
 
-  previousActivityButton.addEventListener('click', () => scrollCarousel(-1));
-  nextActivityButton.addEventListener('click', () => scrollCarousel(1));
-  activitiesCarousel.addEventListener('scroll', updateCarouselControls, { passive: true });
-  window.addEventListener('resize', updateCarouselControls);
+  previousButton.addEventListener('click', () => scrollByItem(-1));
+  nextButton.addEventListener('click', () => scrollByItem(1));
+  track.addEventListener('scroll', updateControls, { passive: true });
+  updateControls();
 
-  updateCarouselControls();
+  return updateControls;
 }
 
-const reviewsCarousel = document.querySelector('[data-reviews-carousel]');
-const previousReviewButton = document.querySelector('[data-reviews-previous]');
-const nextReviewButton = document.querySelector('[data-reviews-next]');
+function setCurrentYear() {
+  const currentYear = document.querySelector('[data-current-year]');
 
-if (reviewsCarousel && previousReviewButton && nextReviewButton) {
-  const updateReviewControls = () => {
-    const maximumScroll = reviewsCarousel.scrollWidth - reviewsCarousel.clientWidth;
+  if (currentYear) {
+    currentYear.textContent = new Date().getFullYear();
+  }
+}
 
-    previousReviewButton.disabled = reviewsCarousel.scrollLeft <= 1;
-    nextReviewButton.disabled = reviewsCarousel.scrollLeft >= maximumScroll - 1;
-  };
+function init() {
+  initMobileNavigation();
+  initStickyHeader();
 
-  const scrollReviews = (direction) => {
-    const firstReview = reviewsCarousel.querySelector('.review-card');
-    const carouselStyles = window.getComputedStyle(reviewsCarousel);
-    const gap = Number.parseFloat(carouselStyles.columnGap) || 0;
-    const distance = firstReview.getBoundingClientRect().width + gap;
+  const carouselUpdates = Array.from(
+    document.querySelectorAll('[data-carousel]'),
+    initCarousel
+  ).filter(Boolean);
 
-    reviewsCarousel.scrollBy({
-      left: direction * distance,
-      behavior: 'smooth'
+  if (carouselUpdates.length) {
+    window.addEventListener('resize', () => {
+      carouselUpdates.forEach((updateControls) => updateControls());
     });
-  };
+  }
 
-  previousReviewButton.addEventListener('click', () => scrollReviews(-1));
-  nextReviewButton.addEventListener('click', () => scrollReviews(1));
-  reviewsCarousel.addEventListener('scroll', updateReviewControls, { passive: true });
-  window.addEventListener('resize', updateReviewControls);
-
-  updateReviewControls();
+  setCurrentYear();
 }
 
-const currentYear = document.querySelector('[data-current-year]');
-
-if (currentYear) {
-  currentYear.textContent = new Date().getFullYear();
-}
+init();
