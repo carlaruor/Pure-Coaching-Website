@@ -67,6 +67,20 @@
               <a class="button button--primary" href="#child-safety-enquiry">Make a Child Safety Enquiry →</a>
               <a class="button button--secondary button--blue-accent" href="#contact">Talk to Our Team</a>
             </div>
+            <ul class="child-supporting-list child-supporting-list--hero" aria-label="Our approach to Child Safety support">
+              <li>
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.6 2.9 8.3 7 10 4.1-1.7 7-5.4 7-10V6l-7-3Z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                Consistent support
+              </li>
+              <li>
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-9 8l-5 2 1-4a8 8 0 1 1 13-6Z"></path><path d="M8 11h8m-8 4h5"></path></svg>
+                Clear communication
+              </li>
+              <li>
+                <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.7-4.2 3.1-6.3 7-6.3s6.3 2.1 7 6.3"></path></svg>
+                Individualised approach
+              </li>
+            </ul>
           </div>
 
           <div class="child-hero__visual">
@@ -78,25 +92,8 @@
                 height="1024"
               >
             </div>
-            <aside class="child-hero__reassurance" aria-label="Our approach to Child Safety support">
-              <ul>
-                <li>
-                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.6 2.9 8.3 7 10 4.1-1.7 7-5.4 7-10V6l-7-3Z"></path><path d="m9 12 2 2 4-4"></path></svg>
-                  Consistent support
-                </li>
-                <li>
-                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-9 8l-5 2 1-4a8 8 0 1 1 13-6Z"></path><path d="M8 11h8m-8 4h5"></path></svg>
-                  Clear communication
-                </li>
-                <li>
-                  <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.7-4.2 3.1-6.3 7-6.3s6.3 2.1 7 6.3"></path></svg>
-                  Individualised approach
-                </li>
-              </ul>
-            </aside>
           </div>
         </div>
-        <span id="child-safety-enquiry" class="anchor-target" aria-hidden="true"></span>
       </section>
 
       <section class="child-approach" aria-labelledby="child-approach-title">
@@ -163,36 +160,93 @@
           <div class="child-everyday__header">
             <div>
               <p class="section-eyebrow">Support in everyday life</p>
-              <h2 class="section-title" id="child-everyday-title">
-                <span>Positive support.</span>
-                <span>Real experiences.</span>
-              </h2>
+              <h2 class="section-title" id="child-everyday-title">Positive support. Real experiences.</h2>
             </div>
             <p class="section-description">
-              Support can take place in everyday environments and be shaped around
-              the young person's interests, routines and individual needs.
+              From community activities to everyday life skills, support can take
+              place in real-world environments and be shaped around each young
+              person's interests and goals.
             </p>
           </div>
 
-          <div class="child-everyday__composition">
-            <div class="child-everyday__media">
-              <img
-                src="assets/images/child-safety/support-everyday-life.webp"
-                alt="Young person and support worker sharing a high five during an outdoor group activity"
-                width="1800"
-                height="1350"
-              >
+          <div class="child-carousel carousel" data-carousel>
+            <div class="carousel__controls" aria-label="Child Safety support carousel controls">
+              <button type="button" aria-label="Previous support images" data-carousel-previous>
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
+              </button>
+              <button type="button" aria-label="Next support images" data-carousel-next>
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+              </button>
             </div>
-            <div class="child-everyday__labels" aria-label="Examples of everyday support">
-              <ul>
-                <li>Community Access</li>
-                <li>Daily Living Skills</li>
-                <li>Health &amp; Wellbeing</li>
-                <li>Social Connection</li>
-                <li>Confidence</li>
-                <li>New Experiences</li>
-              </ul>
+            <div class="child-carousel__track carousel__track" role="region" aria-label="Child Safety support experiences" data-carousel-track tabindex="0">
+              <figure class="child-carousel__item">
+                <img src="assets/images/child-safety/child-satefy-image1.webp" alt="Support worker walking outdoors with a young person" width="1024" height="1536">
+              </figure>
+              <figure class="child-carousel__item">
+                <img src="assets/images/child-safety/child-satefy-image2.webp" alt="Young person preparing vegetables with support in a kitchen" width="1577" height="860">
+              </figure>
+              <figure class="child-carousel__item">
+                <img src="assets/images/child-safety/child-satefy-image3.webp" alt="Young person reading a map with support during an outdoor activity" width="1147" height="860">
+              </figure>
+              <figure class="child-carousel__item">
+                <img src="assets/images/child-safety/child-satefy-image4.webp" alt="Young person connecting with a Pure Coaching mentor outdoors" width="1536" height="1024">
+              </figure>
+              <figure class="child-carousel__item">
+                <img src="assets/images/child-safety/child-satefy-image5.webp" alt="Young person and support worker sharing a high five during a group activity" width="1800" height="1350">
+              </figure>
             </div>
+            <div class="carousel__pagination" aria-label="Choose a support image">
+              <button type="button" aria-label="Show support image 1" aria-current="true" data-carousel-dot></button>
+              <button type="button" aria-label="Show support image 2" data-carousel-dot></button>
+              <button type="button" aria-label="Show support image 3" data-carousel-dot></button>
+              <button type="button" aria-label="Show support image 4" data-carousel-dot></button>
+              <button type="button" aria-label="Show support image 5" data-carousel-dot></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="child-enquiry" id="child-safety-enquiry" aria-labelledby="child-enquiry-title">
+        <div class="container">
+          <div class="child-enquiry__surface">
+            <div class="child-enquiry__layout">
+              <div class="child-enquiry__intro">
+                <p class="section-eyebrow">Child Safety enquiry</p>
+                <h2 class="section-title" id="child-enquiry-title">
+                  <span>Let's work together</span>
+                  <span>to support young people.</span>
+                </h2>
+                <p class="section-description">
+                  If you're a Case Manager, carer, family member or professional,
+                  we'd love to hear from you. Get in touch to discuss a referral or
+                  make a Child Safety enquiry.
+                </p>
+              </div>
+
+              <div class="child-enquiry__options">
+                <article class="child-enquiry__option" id="child-safety-enquiry-form">
+                  <span class="child-enquiry__icon">
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8 4h8m-7 0v3h6V4"></path><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="m8 13 2.2 2.2L16 9.5"></path></svg>
+                  </span>
+                  <h3>Make an enquiry</h3>
+                  <p>Complete a short enquiry form and our team will be in touch.</p>
+                  <a class="button button--primary" href="#child-safety-enquiry-form">Make an Enquiry →</a>
+                </article>
+                <article class="child-enquiry__option">
+                  <span class="child-enquiry__icon">
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h3l1.5 4-2 1.5a15 15 0 0 0 6 6l1.5-2 4 1.5v3c0 2.2-1.8 4-4 4C9.3 21 3 14.7 3 7c0-2.2 1.8-4 4-4Z"></path></svg>
+                  </span>
+                  <h3>Talk to our team</h3>
+                  <p>Prefer to speak with someone directly? We're here to help.</p>
+                  <a class="button button--secondary button--blue-accent" href="#contact">Contact Us →</a>
+                </article>
+              </div>
+            </div>
+
+            <p class="child-enquiry__reassurance">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.6 2.9 8.3 7 10 4.1-1.7 7-5.4 7-10V6l-7-3Z"></path><path d="m9 12 2 2 4-4"></path></svg>
+              We are committed to creating safe, supportive and positive experiences for all children and young people.
+            </p>
           </div>
         </div>
       </section>

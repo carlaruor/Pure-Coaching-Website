@@ -72,6 +72,7 @@ function initCarousel(carousel) {
   const track = carousel.querySelector('[data-carousel-track]');
   const previousButton = carousel.querySelector('[data-carousel-previous]');
   const nextButton = carousel.querySelector('[data-carousel-next]');
+  const paginationDots = Array.from(carousel.querySelectorAll('[data-carousel-dot]'));
 
   if (!track || !previousButton || !nextButton || !track.firstElementChild) {
     return null;
@@ -82,6 +83,19 @@ function initCarousel(carousel) {
 
     previousButton.disabled = track.scrollLeft <= SCROLL_EDGE_TOLERANCE;
     nextButton.disabled = track.scrollLeft >= maximumScroll - SCROLL_EDGE_TOLERANCE;
+
+    if (paginationDots.length) {
+      const progress = maximumScroll > 0 ? track.scrollLeft / maximumScroll : 0;
+      const activeIndex = Math.round(progress * (paginationDots.length - 1));
+
+      paginationDots.forEach((dot, index) => {
+        if (index === activeIndex) {
+          dot.setAttribute('aria-current', 'true');
+        } else {
+          dot.removeAttribute('aria-current');
+        }
+      });
+    }
   };
 
   const scrollByItem = (direction) => {
@@ -97,6 +111,20 @@ function initCarousel(carousel) {
 
   previousButton.addEventListener('click', () => scrollByItem(-1));
   nextButton.addEventListener('click', () => scrollByItem(1));
+  paginationDots.forEach((dot, index) => {
+    dot.addEventListener('click', () => {
+      const item = track.children[index];
+
+      if (!item) {
+        return;
+      }
+
+      track.scrollTo({
+        left: item.offsetLeft - track.firstElementChild.offsetLeft,
+        behavior: 'smooth'
+      });
+    });
+  });
   track.addEventListener('scroll', updateControls, { passive: true });
   updateControls();
 
