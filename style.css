@@ -9,6 +9,7 @@
   --color-background: #f5f7f9;
   --color-white: #ffffff;
   --color-surface: #f8f9fa;
+  --color-blue-tint: #eff8fd;
   --color-border: #dde2e7;
   --color-border-strong: #c9d0d7;
 
@@ -379,6 +380,10 @@ button {
   stroke-width: 1.8;
 }
 
+.hero__trust li:nth-child(even) svg {
+  color: var(--color-blue);
+}
+
 .approach {
   padding-block: clamp(80px, 8vw, 112px);
   background-color: var(--color-surface);
@@ -404,6 +409,10 @@ button {
   height: 2px;
   background-color: var(--color-orange);
   content: "";
+}
+
+.approach .section-eyebrow {
+  color: var(--color-blue-dark);
 }
 
 .approach__title {
@@ -456,6 +465,11 @@ button {
   stroke-width: 1.7;
 }
 
+.approach__pillar:nth-child(even) .approach__icon {
+  color: var(--color-blue-dark);
+  background-color: color-mix(in srgb, var(--color-blue) 16%, var(--color-white));
+}
+
 .approach__pillar h3 {
   color: var(--color-navy);
   font-size: 1.125rem;
@@ -503,13 +517,13 @@ button {
   display: inline-flex;
   align-items: center;
   gap: var(--space-xs);
-  color: var(--color-navy);
+  color: var(--color-blue-dark);
   font-weight: 700;
   white-space: nowrap;
 }
 
 .activities-showcase__link:hover {
-  color: var(--color-orange-dark);
+  color: var(--color-navy);
 }
 
 .activities-showcase__link svg {
@@ -560,9 +574,9 @@ button {
 }
 
 .carousel__controls button:hover:not(:disabled) {
-  border-color: var(--color-orange);
-  color: var(--color-orange-dark);
-  background-color: var(--color-surface);
+  border-color: var(--color-blue-dark);
+  color: var(--color-blue-dark);
+  background-color: var(--color-blue-tint);
 }
 
 .carousel__controls button:disabled {
@@ -896,13 +910,13 @@ button {
   min-height: 44px;
   align-items: center;
   margin-top: 14px;
-  color: var(--color-navy);
+  color: var(--color-blue-dark);
   font-size: 0.875rem;
   font-weight: 750;
 }
 
 .reviews-summary > a:hover {
-  color: var(--color-orange-dark);
+  color: var(--color-navy);
 }
 
 .reviews-carousel__wrapper {
@@ -951,7 +965,7 @@ button {
 }
 
 .review-card footer span {
-  color: var(--color-muted);
+  color: var(--color-blue-dark);
   font-size: 0.75rem;
 }
 
@@ -1035,7 +1049,7 @@ button {
 
 .site-footer__group li a:hover,
 .site-footer__bottom a:hover {
-  color: var(--color-orange);
+  color: var(--color-blue);
 }
 
 .site-footer__contact address {
@@ -1074,11 +1088,12 @@ button {
 }
 
 .site-footer__contact dd a:hover {
-  color: var(--color-orange);
+  color: var(--color-blue);
 }
 
 .site-footer__reviews-link {
   margin-top: 14px;
+  color: var(--color-blue);
   font-size: 0.875rem;
 }
 
@@ -1101,8 +1116,8 @@ button {
 }
 
 .site-footer__socials a:hover {
-  border-color: var(--color-orange);
-  color: var(--color-orange);
+  border-color: var(--color-blue);
+  color: var(--color-blue);
 }
 
 .site-footer__socials svg {
@@ -1152,6 +1167,10 @@ button {
 
 .content-section--surface {
   background-color: var(--color-surface);
+}
+
+.page-private-support .content-section--surface {
+  background-color: var(--color-blue-tint);
 }
 
 .section-header {
@@ -1300,6 +1319,16 @@ button {
   color: var(--color-muted);
   font-size: 0.92rem;
   line-height: 1.6;
+}
+
+.package-inclusions li:nth-child(2) .icon-box {
+  color: var(--color-blue-dark);
+  background-color: color-mix(in srgb, var(--color-blue) 16%, var(--color-white));
+}
+
+.split-intro .section-eyebrow,
+.process .section-eyebrow {
+  color: var(--color-blue-dark);
 }
 
 .packages {
@@ -1466,7 +1495,7 @@ button {
   right: 10%;
   left: 10%;
   height: 1px;
-  background-color: var(--color-border-strong);
+  background-color: var(--color-blue);
   content: "";
 }
 
@@ -1588,13 +1617,13 @@ button {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
-  color: var(--color-white);
+  color: var(--color-blue);
   font-weight: 700;
   transition: color var(--transition-fast);
 }
 
 .private-enquiry__actions > a:not(.button):hover {
-  color: var(--color-orange);
+  color: var(--color-white);
 }
 
 .site-footer a[aria-current="page"] {
