@@ -14,6 +14,7 @@ function initIntakeForm() {
   const confirmation = document.querySelector('[data-form-confirmation]');
   const review = form.querySelector('[data-form-review]');
   const context = document.querySelector('[data-form-context]');
+  const finalStep = steps.length;
   const state = { step: 1, support: '', intent: '' };
 
   form.querySelectorAll('[data-error-for]').forEach((error) => {
@@ -33,6 +34,30 @@ function initIntakeForm() {
     const control = field(name);
     return control ? String(control.value).trim() : '';
   };
+
+  function validateEmail(email, control) {
+    if (!control.validity.valid) return false;
+
+    const parts = email.split('@');
+    if (parts.length !== 2 || !parts[0]) return false;
+
+    const domainParts = parts[1].split('.');
+    return domainParts.length >= 2 && domainParts.every((part) => (
+      part.length > 0
+      && /^[a-z0-9-]+$/i.test(part)
+      && !part.startsWith('-')
+      && !part.endsWith('-')
+    ));
+  }
+
+  function normaliseAustralianPhone(phone) {
+    return phone.replace(/[\s()-]/g, '');
+  }
+
+  function validateAustralianPhone(phone) {
+    const normalisedPhone = normaliseAustralianPhone(phone);
+    return /^(?:04\d{8}|0[2378]\d{8}|\+614\d{8}|\+61[2378]\d{8})$/.test(normalisedPhone);
+  }
 
   function setError(name, message) {
     const error = form.querySelector(`[data-error-for="${name}"]`);
@@ -94,15 +119,19 @@ function initIntakeForm() {
 
     step.querySelectorAll('input[required], select[required], textarea[required]').forEach((control) => {
       if (control.closest('[hidden]') || control.type === 'radio' || control.type === 'checkbox') return;
-      if (!control.validity.valid) {
+      const isInvalidEmail = control.type === 'email' && !validateEmail(control.value.trim(), control);
+      const isInvalidPhone = control.type === 'tel' && !validateAustralianPhone(control.value.trim());
+
+      if (!control.validity.valid || isInvalidEmail || isInvalidPhone) {
         let message = `Please enter your ${control.labels?.[0]?.textContent.toLowerCase() || 'information'}.`;
-        if (control.type === 'email' && control.validity.typeMismatch) message = 'Please enter a valid email address.';
+        if (control.type === 'email') message = 'Please enter a valid email address, for example name@example.com.';
+        if (control.type === 'tel') message = 'Please enter a valid Australian mobile or landline number.';
         setError(control.name, message);
         firstInvalid ||= control;
       }
     });
 
-    if (stepNumber === 5 && !field('consent').checked) {
+    if (stepNumber === finalStep && !field('consent').checked) {
       setError('consent', 'Please confirm that we may contact you about this enquiry.');
       firstInvalid ||= field('consent');
     }
@@ -116,7 +145,9 @@ function initIntakeForm() {
     return true;
   }
 
-  function showStep(stepNumber) {
+  function showStep(stepNumber, { manageFocus = true, scroll = true } = {}) {
+    if (stepNumber < 1 || stepNumber > finalStep) return;
+
     state.step = stepNumber;
     steps.forEach((step, index) => { step.hidden = index + 1 !== stepNumber; });
     progressItems.forEach((item, index) => {
@@ -127,12 +158,12 @@ function initIntakeForm() {
       else item.removeAttribute('aria-current');
     });
     backButton.hidden = stepNumber === 1;
-    nextButton.hidden = stepNumber === 5;
-    submitButton.hidden = stepNumber !== 5;
+    nextButton.hidden = stepNumber === finalStep;
+    submitButton.hidden = stepNumber !== finalStep;
     status.hidden = true;
-    if (stepNumber === 5) renderReview();
-    steps[stepNumber - 1].querySelector('h2').focus({ preventScroll: true });
-    document.querySelector('.intake__surface').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (stepNumber === finalStep) renderReview();
+    if (manageFocus) steps[stepNumber - 1].querySelector('h2').focus({ preventScroll: true });
+    if (scroll) document.querySelector('.intake__surface').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function addReviewGroup(title, stepNumber, rows) {
@@ -191,8 +222,12 @@ function initIntakeForm() {
     updateConditionals();
   }
 
-  nextButton.addEventListener('click', () => { if (validateStep(state.step)) showStep(state.step + 1); });
-  backButton.addEventListener('click', () => showStep(state.step - 1));
+  nextButton.addEventListener('click', () => {
+    if (state.step < finalStep && validateStep(state.step)) showStep(state.step + 1);
+  });
+  backButton.addEventListener('click', () => {
+    if (state.step > 1) showStep(state.step - 1);
+  });
   form.addEventListener('change', (event) => {
     updateConditionals();
     const error = form.querySelector(`[data-error-for="${event.target.name}"]`);
@@ -201,7 +236,7 @@ function initIntakeForm() {
   });
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    if (!validateStep(5)) return;
+    if (!validateStep(finalStep)) return;
     // Future backend/API submission should be connected here.
     form.hidden = true;
     document.querySelector('.intake-progress').hidden = true;
@@ -212,7 +247,7 @@ function initIntakeForm() {
 
   steps.forEach((step) => step.querySelector('h2').setAttribute('tabindex', '-1'));
   applyUrlContext();
-  showStep(1);
+  showStep(1, { manageFocus: false, scroll: false });
 }
 
 initIntakeForm();

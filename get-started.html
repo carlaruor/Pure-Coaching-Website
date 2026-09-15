@@ -59,12 +59,12 @@
                   </div><p class="field-error" data-error-for="contactFor"></p>
                 </fieldset>
                 <div class="form-grid">
-                  <div class="field field--full"><label for="role">What best describes you?</label><select id="role" name="role" required><option value="">Select an option</option><option>Participant / person seeking support</option><option>Parent or family member</option><option>Carer</option><option>Support Coordinator</option><option>Case Manager</option><option>Child Safety professional</option><option>Other professional</option><option>Other</option></select><p class="field-error" data-error-for="role"></p></div>
+                  <div class="field field--full"><label for="role">What best describes you?</label><select id="role" name="role" required><option value="" disabled>Select an option</option><option>Participant / person seeking support</option><option>Parent or family member</option><option>Carer</option><option>Support Coordinator</option><option>Case Manager</option><option>Child Safety professional</option><option>Other professional</option><option>Other</option></select><p class="field-error" data-error-for="role"></p></div>
                   <div class="field field--full" data-role-other hidden><label for="roleOther">Please describe</label><input id="roleOther" name="roleOther" type="text" autocomplete="organization-title"><p class="field-error" data-error-for="roleOther"></p></div>
                   <div class="field"><label for="firstName">First name</label><input id="firstName" name="firstName" type="text" autocomplete="given-name" required><p class="field-error" data-error-for="firstName"></p></div>
                   <div class="field"><label for="lastName">Last name</label><input id="lastName" name="lastName" type="text" autocomplete="family-name" required><p class="field-error" data-error-for="lastName"></p></div>
                   <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" required><p class="field-error" data-error-for="email"></p></div>
-                  <div class="field"><label for="phone">Phone</label><input id="phone" name="phone" type="tel" autocomplete="tel" required><p class="field-error" data-error-for="phone"></p></div>
+                  <div class="field"><label for="phone">Phone</label><input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="0412 345 678" required><p class="field-error" data-error-for="phone"></p></div>
                 </div>
               </section>
 
@@ -93,7 +93,7 @@
                 <p class="form-step__number">Step 4 of 5</p><h2 id="form-step-4-title">Tell us a little more</h2>
                 <div class="field field--full"><label for="message">How can we help?</label><p class="field-help" id="message-help">Tell us a little about the support you're looking for, the person's goals, or anything you'd like us to know.</p><textarea id="message" name="message" rows="6" aria-describedby="message-help" required></textarea><p class="field-error" data-error-for="message"></p></div>
                 <fieldset class="form-group" data-required-group="preferredContact"><legend>How would you prefer us to contact you?</legend><div class="choice-grid choice-grid--three"><label class="choice"><input type="radio" name="preferredContact" value="Phone"><span><strong>Phone</strong></span></label><label class="choice"><input type="radio" name="preferredContact" value="Email"><span><strong>Email</strong></span></label><label class="choice"><input type="radio" name="preferredContact" value="Either"><span><strong>Either</strong></span></label></div><p class="field-error" data-error-for="preferredContact"></p></fieldset>
-                <div class="field field--full"><label for="contactTime">Best time to contact you <span>(optional)</span></label><select id="contactTime" name="contactTime"><option value="">Select an option</option><option>Morning</option><option>Afternoon</option><option>Either</option><option>Other</option></select></div>
+                <div class="field field--full"><label for="contactTime">Best time to contact you <span>(optional)</span></label><select id="contactTime" name="contactTime"><option value="">Select a time</option><option>Morning</option><option>Afternoon</option><option>Either</option><option>Other</option></select></div>
                 <div class="field field--full" data-time-other hidden><label for="contactTimeOther">Please describe the best time</label><input id="contactTimeOther" name="contactTimeOther" type="text"><p class="field-error" data-error-for="contactTimeOther"></p></div>
               </section>
 
