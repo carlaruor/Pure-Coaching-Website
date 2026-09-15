@@ -2228,11 +2228,12 @@ button {
 
 .about-approach__layout {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
-  gap: clamp(56px, 8vw, 112px);
-  align-items: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(44px, 7vw, 88px);
+  align-items: stretch;
 }
 
+.about-approach__content,
 .about-approach__intro {
   max-width: 570px;
 }
@@ -2254,6 +2255,7 @@ button {
 }
 
 .about-principles {
+  margin-top: 30px;
   list-style: none;
   border-top: 1px solid var(--color-border-strong);
 }
@@ -2268,7 +2270,7 @@ button {
 
 .about-principles__number {
   padding-top: 3px;
-  color: var(--color-orange-dark);
+  color: var(--color-blue-dark);
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -2288,17 +2290,30 @@ button {
   line-height: 1.6;
 }
 
+.about-approach__media {
+  min-height: 560px;
+  overflow: hidden;
+  border-radius: var(--radius-large);
+  background-color: var(--color-border);
+}
+
+.about-approach__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
 .about-team {
   padding: clamp(72px, 9vw, 120px) 0;
   background-color: color-mix(in srgb, var(--color-blue) 7%, var(--color-background));
 }
 
-.about-team__intro {
+.about-team__feature {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 0.7fr);
-  gap: clamp(40px, 8vw, 112px);
-  align-items: end;
-  margin-bottom: clamp(36px, 5vw, 58px);
+  grid-template-columns: minmax(280px, 0.7fr) minmax(0, 1.3fr);
+  gap: clamp(42px, 6vw, 84px);
+  align-items: center;
 }
 
 .about-team__intro .section-eyebrow {
@@ -2308,6 +2323,7 @@ button {
 
 .about-team__intro .section-description {
   max-width: 590px;
+  margin-top: 20px;
 }
 
 .about-video {
@@ -2373,8 +2389,8 @@ button {
 
 .team-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(20px, 3vw, 36px);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 26px);
   list-style: none;
 }
 
@@ -2427,7 +2443,7 @@ button {
 .service-areas {
   position: relative;
   overflow: hidden;
-  padding: clamp(64px, 7vw, 88px) 0;
+  padding: clamp(42px, 5vw, 58px) 0;
   background-color: color-mix(in srgb, var(--color-blue) 14%, var(--color-white));
 }
 
@@ -2447,8 +2463,8 @@ button {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
-  gap: clamp(48px, 8vw, 112px);
+  grid-template-columns: minmax(0, 0.95fr) minmax(420px, 1.05fr);
+  gap: clamp(38px, 6vw, 84px);
   align-items: center;
 }
 
@@ -2462,34 +2478,57 @@ button {
 }
 
 .service-areas__intro .section-title span {
-  display: block;
+  display: inline;
+}
+
+.service-areas__intro .section-title {
+  font-size: clamp(1.8rem, 3vw, 2.65rem);
 }
 
 .service-areas__intro .section-description {
   max-width: 560px;
-  margin-top: 18px;
+  margin-top: 12px;
+  font-size: 0.98rem;
 }
 
 .service-areas__coverage ul {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 26px;
+  gap: 7px 0;
+  margin-bottom: 18px;
   list-style: none;
 }
 
 .service-areas__coverage li {
-  padding: 7px 12px;
-  border: 1px solid color-mix(in srgb, var(--color-blue-dark) 26%, transparent);
-  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
   color: var(--color-blue-dark);
-  background-color: rgb(255 255 255 / 62%);
-  font-size: 0.88rem;
+  font-size: 0.94rem;
   font-weight: 700;
 }
 
-.service-areas__coverage .button span {
-  margin-left: 4px;
+.service-areas__coverage li:not(:last-child)::after {
+  margin: 0 10px;
+  color: color-mix(in srgb, var(--color-blue-dark) 44%, transparent);
+  content: "·";
+}
+
+.service-areas__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 0;
+  color: var(--color-orange-dark);
+  background: transparent;
+  font-weight: 750;
+  cursor: pointer;
+  transition: color var(--transition-fast), gap var(--transition-fast);
+}
+
+.service-areas__action:hover {
+  gap: 10px;
+  color: var(--color-orange);
 }
 
 body.has-modal-open {
@@ -4220,27 +4259,42 @@ body.has-modal-open {
   }
 
   .about-approach__layout {
-    grid-template-columns: 1fr;
-    gap: 48px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 36px;
   }
 
   .about-approach__intro {
     max-width: 680px;
   }
 
-  .about-team__intro {
-    grid-template-columns: 1fr;
-    gap: 20px;
-    align-items: start;
+  .about-approach__media {
+    min-height: 520px;
+  }
+
+  .about-team__feature {
+    grid-template-columns: minmax(250px, 0.78fr) minmax(0, 1.22fr);
+    gap: 32px;
   }
 
   .about-team__intro .section-description {
     max-width: 680px;
   }
 
+  .team-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .team-member {
+    grid-column: span 2;
+  }
+
+  .team-member:nth-child(4) {
+    grid-column: 2 / span 2;
+  }
+
   .service-areas__layout {
     grid-template-columns: 1fr;
-    gap: 34px;
+    gap: 24px;
   }
 
   .service-areas__coverage {
@@ -4294,6 +4348,7 @@ body.has-modal-open {
   }
 
   .about-approach__layout {
+    grid-template-columns: 1fr;
     gap: 38px;
   }
 
@@ -4307,12 +4362,19 @@ body.has-modal-open {
     padding: 22px 0;
   }
 
+  .about-approach__media {
+    min-height: 0;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-medium);
+  }
+
   .about-team {
     padding: 64px 0;
   }
 
-  .about-team__intro {
-    margin-bottom: 32px;
+  .about-team__feature {
+    grid-template-columns: 1fr;
+    gap: 30px;
   }
 
   .about-video {
@@ -4333,21 +4395,28 @@ body.has-modal-open {
     gap: 28px 16px;
   }
 
+  .team-member,
+  .team-member:nth-child(4) {
+    grid-column: auto;
+  }
+
+  .team-member:last-child {
+    grid-column: 1 / -1;
+    width: calc(50% - 8px);
+    justify-self: center;
+  }
+
   .team-member__photo {
     margin-bottom: 14px;
     border-radius: var(--radius-medium);
   }
 
   .service-areas {
-    padding: 58px 0;
+    padding: 38px 0;
   }
 
   .service-areas__intro .section-title span {
     display: inline;
-  }
-
-  .service-areas__coverage .button {
-    width: 100%;
   }
 
   .modal {
@@ -4383,6 +4452,11 @@ body.has-modal-open {
 @media (max-width: 479px) {
   .team-grid {
     grid-template-columns: 1fr;
+  }
+
+  .team-member:last-child {
+    grid-column: auto;
+    width: 100%;
   }
 
   .service-modal__groups ul {
