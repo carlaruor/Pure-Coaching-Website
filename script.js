@@ -139,6 +139,62 @@ function setCurrentYear() {
   }
 }
 
+function initModal(modal) {
+  const openButtons = Array.from(document.querySelectorAll(`[data-modal-open="${modal.id}"]`));
+  const closeButtons = Array.from(modal.querySelectorAll('[data-modal-close]'));
+  const dialog = modal.querySelector('[role="dialog"]');
+  const focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  let returnFocusTo = null;
+
+  if (!openButtons.length || !dialog) {
+    return;
+  }
+
+  const closeModal = () => {
+    modal.hidden = true;
+    document.body.classList.remove('has-modal-open');
+    openButtons.forEach((button) => button.setAttribute('aria-expanded', 'false'));
+    returnFocusTo?.focus();
+    returnFocusTo = null;
+  };
+
+  const openModal = (trigger) => {
+    returnFocusTo = trigger;
+    modal.hidden = false;
+    document.body.classList.add('has-modal-open');
+    trigger.setAttribute('aria-expanded', 'true');
+    modal.querySelector('.modal__close')?.focus();
+  };
+
+  openButtons.forEach((button) => button.addEventListener('click', () => openModal(button)));
+  closeButtons.forEach((button) => button.addEventListener('click', closeModal));
+
+  modal.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeModal();
+      return;
+    }
+
+    if (event.key !== 'Tab') return;
+
+    const focusableElements = Array.from(dialog.querySelectorAll(focusableSelector));
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (!firstElement || !lastElement) {
+      event.preventDefault();
+      dialog.focus();
+    } else if (event.shiftKey && document.activeElement === firstElement) {
+      event.preventDefault();
+      lastElement.focus();
+    } else if (!event.shiftKey && document.activeElement === lastElement) {
+      event.preventDefault();
+      firstElement.focus();
+    }
+  });
+}
+
 function init() {
   initMobileNavigation();
   initStickyHeader();
@@ -153,6 +209,8 @@ function init() {
       carouselUpdates.forEach((updateControls) => updateControls());
     });
   }
+
+  document.querySelectorAll('[data-modal]').forEach(initModal);
 
   setCurrentYear();
 }
