@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Get started with Pure Coaching Cairns. Enquire about Private Support, NDIS support, referrals or Child Safety support through one simple form.">
+    <title>Get Started | Pure Coaching Cairns</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+    <script src="get-started.js" defer></script>
+  </head>
+  <body class="page-get-started">
+    <header class="site-header" data-header>
+      <div class="container site-header__inner">
+        <a class="site-logo" href="index.html" aria-label="Pure Coaching Cairns home"><img src="assets/logo/pure-coaching-logo.png" alt="Pure Coaching Cairns" width="1254" height="1254"></a>
+        <nav class="desktop-nav" aria-label="Primary navigation">
+          <ul class="nav-list">
+            <li><a class="nav-link" href="index.html#about">About</a></li><li><a class="nav-link" href="index.html#supports">Supports</a></li><li><a class="nav-link" href="index.html#activities">Activities</a></li><li><a class="nav-link" href="index.html#team">Our Team</a></li><li><a class="nav-link" href="index.html#referrals">Referrals</a></li><li><a class="nav-link" href="#contact">Contact</a></li><li><a class="nav-link" href="index.html#login">Login</a></li>
+          </ul>
+          <a class="button button--primary" href="get-started.html?intent=general" aria-current="page">Start Your Journey</a>
+        </nav>
+        <button class="menu-toggle" type="button" aria-label="Open navigation menu" aria-controls="mobile-navigation" aria-expanded="false" data-menu-toggle><span></span><span></span><span></span></button>
+      </div>
+      <nav class="mobile-nav" id="mobile-navigation" aria-label="Mobile navigation" data-mobile-nav hidden>
+        <div class="container"><ul class="mobile-nav__list"><li><a class="mobile-nav__link" href="index.html#about">About</a></li><li><a class="mobile-nav__link" href="index.html#supports">Supports</a></li><li><a class="mobile-nav__link" href="index.html#activities">Activities</a></li><li><a class="mobile-nav__link" href="index.html#team">Our Team</a></li><li><a class="mobile-nav__link" href="index.html#referrals">Referrals</a></li><li><a class="mobile-nav__link" href="#contact">Contact</a></li><li><a class="mobile-nav__link" href="index.html#login">Login</a></li></ul><a class="button button--primary mobile-nav__cta" href="get-started.html?intent=general" aria-current="page">Start Your Journey</a></div>
+      </nav>
+    </header>
+
+    <main class="intake-page">
+      <section class="intake-intro" aria-labelledby="intake-title">
+        <div class="container">
+          <p class="section-eyebrow">Get started</p>
+          <h1 id="intake-title">Tell us how we can help.</h1>
+          <p>Whether you're looking for support for yourself, referring someone else or simply exploring your options, we'll guide you through the next steps.</p>
+        </div>
+      </section>
+
+      <section class="intake" aria-label="Pure Coaching enquiry form">
+        <div class="container">
+          <div class="intake__surface">
+            <p class="intake__context" data-form-context hidden></p>
+            <ol class="intake-progress" aria-label="Form progress">
+              <li data-progress-step="1"><span>01</span> About you</li>
+              <li data-progress-step="2"><span>02</span> Support</li>
+              <li data-progress-step="3"><span>03</span> About the person</li>
+              <li data-progress-step="4"><span>04</span> Tell us more</li>
+              <li data-progress-step="5"><span>05</span> Review</li>
+            </ol>
+
+            <form data-intake-form novalidate>
+              <p class="form-status" data-form-status role="alert" hidden></p>
+
+              <section class="form-step" data-form-step="1" aria-labelledby="form-step-1-title">
+                <p class="form-step__number">Step 1 of 5</p><h2 id="form-step-1-title">About you</h2>
+                <fieldset class="form-group" data-required-group="contactFor"><legend>Who are you contacting us for?</legend>
+                  <div class="choice-grid choice-grid--two">
+                    <label class="choice"><input type="radio" name="contactFor" value="Myself"><span><strong>Myself</strong></span></label>
+                    <label class="choice"><input type="radio" name="contactFor" value="Someone else"><span><strong>Someone else</strong></span></label>
+                  </div><p class="field-error" data-error-for="contactFor"></p>
+                </fieldset>
+                <div class="form-grid">
+                  <div class="field field--full"><label for="role">What best describes you?</label><select id="role" name="role" required><option value="">Select an option</option><option>Participant / person seeking support</option><option>Parent or family member</option><option>Carer</option><option>Support Coordinator</option><option>Case Manager</option><option>Child Safety professional</option><option>Other professional</option><option>Other</option></select><p class="field-error" data-error-for="role"></p></div>
+                  <div class="field field--full" data-role-other hidden><label for="roleOther">Please describe</label><input id="roleOther" name="roleOther" type="text" autocomplete="organization-title"><p class="field-error" data-error-for="roleOther"></p></div>
+                  <div class="field"><label for="firstName">First name</label><input id="firstName" name="firstName" type="text" autocomplete="given-name" required><p class="field-error" data-error-for="firstName"></p></div>
+                  <div class="field"><label for="lastName">Last name</label><input id="lastName" name="lastName" type="text" autocomplete="family-name" required><p class="field-error" data-error-for="lastName"></p></div>
+                  <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" required><p class="field-error" data-error-for="email"></p></div>
+                  <div class="field"><label for="phone">Phone</label><input id="phone" name="phone" type="tel" autocomplete="tel" required><p class="field-error" data-error-for="phone"></p></div>
+                </div>
+              </section>
+
+              <section class="form-step" data-form-step="2" aria-labelledby="form-step-2-title" hidden>
+                <p class="form-step__number">Step 2 of 5</p><h2 id="form-step-2-title">What are you contacting us about?</h2>
+                <fieldset class="form-group" data-required-group="support"><legend class="sr-only">Choose a support pathway</legend>
+                  <div class="choice-grid choice-grid--support">
+                    <label class="choice"><input type="radio" name="support" value="private"><span><strong>Private Support</strong><small>Pay directly for personalised Pure Coaching support.</small></span></label>
+                    <label class="choice"><input type="radio" name="support" value="ndis"><span><strong>NDIS Support</strong><small>Use an existing NDIS plan to access support.</small></span></label>
+                    <label class="choice"><input type="radio" name="support" value="child-safety"><span><strong>Child Safety</strong><small>Support arranged through Child Safety or related services.</small></span></label>
+                    <label class="choice"><input type="radio" name="support" value="unsure"><span><strong>I'm not sure</strong><small>Tell us what you're looking for and we'll help you work out the best option.</small></span></label>
+                  </div><p class="field-error" data-error-for="support"></p>
+                </fieldset>
+                <fieldset class="form-group conditional-panel" data-ndis-question hidden data-required-group="ndisPlan"><legend>Do you currently have an NDIS plan?</legend><div class="choice-grid choice-grid--three"><label class="choice"><input type="radio" name="ndisPlan" value="Yes"><span><strong>Yes</strong></span></label><label class="choice"><input type="radio" name="ndisPlan" value="No"><span><strong>No</strong></span></label><label class="choice"><input type="radio" name="ndisPlan" value="I'm not sure"><span><strong>I'm not sure</strong></span></label></div><p class="field-error" data-error-for="ndisPlan"></p></fieldset>
+                <p class="form-note" data-private-note hidden>Private Support is paid directly and does not require an NDIS plan.</p>
+                <p class="form-note" data-child-note hidden>You can use this form to make an initial Child Safety enquiry or referral.</p>
+              </section>
+
+              <section class="form-step" data-form-step="3" aria-labelledby="form-step-3-title" hidden>
+                <p class="form-step__number">Step 3 of 5</p><h2 id="form-step-3-title">About the person</h2>
+                <fieldset class="form-group" data-person-fields hidden><legend>Person you're enquiring about</legend><div class="form-grid"><div class="field"><label for="personFirstName">First name</label><input id="personFirstName" name="personFirstName" type="text" autocomplete="off"><p class="field-error" data-error-for="personFirstName"></p></div><div class="field"><label for="personLastName">Last name</label><input id="personLastName" name="personLastName" type="text" autocomplete="off"><p class="field-error" data-error-for="personLastName"></p></div></div></fieldset>
+                <fieldset class="form-group" data-required-group="ageRange"><legend>Age range</legend><div class="choice-grid choice-grid--age"><label class="choice"><input type="radio" name="ageRange" value="Under 12"><span><strong>Under 12</strong></span></label><label class="choice"><input type="radio" name="ageRange" value="12–17"><span><strong>12–17</strong></span></label><label class="choice"><input type="radio" name="ageRange" value="18–24"><span><strong>18–24</strong></span></label><label class="choice"><input type="radio" name="ageRange" value="25+"><span><strong>25+</strong></span></label><label class="choice"><input type="radio" name="ageRange" value="Prefer not to say"><span><strong>Prefer not to say</strong></span></label></div><p class="field-error" data-error-for="ageRange"></p></fieldset>
+              </section>
+
+              <section class="form-step" data-form-step="4" aria-labelledby="form-step-4-title" hidden>
+                <p class="form-step__number">Step 4 of 5</p><h2 id="form-step-4-title">Tell us a little more</h2>
+                <div class="field field--full"><label for="message">How can we help?</label><p class="field-help" id="message-help">Tell us a little about the support you're looking for, the person's goals, or anything you'd like us to know.</p><textarea id="message" name="message" rows="6" aria-describedby="message-help" required></textarea><p class="field-error" data-error-for="message"></p></div>
+                <fieldset class="form-group" data-required-group="preferredContact"><legend>How would you prefer us to contact you?</legend><div class="choice-grid choice-grid--three"><label class="choice"><input type="radio" name="preferredContact" value="Phone"><span><strong>Phone</strong></span></label><label class="choice"><input type="radio" name="preferredContact" value="Email"><span><strong>Email</strong></span></label><label class="choice"><input type="radio" name="preferredContact" value="Either"><span><strong>Either</strong></span></label></div><p class="field-error" data-error-for="preferredContact"></p></fieldset>
+                <div class="field field--full"><label for="contactTime">Best time to contact you <span>(optional)</span></label><select id="contactTime" name="contactTime"><option value="">Select an option</option><option>Morning</option><option>Afternoon</option><option>Either</option><option>Other</option></select></div>
+                <div class="field field--full" data-time-other hidden><label for="contactTimeOther">Please describe the best time</label><input id="contactTimeOther" name="contactTimeOther" type="text"><p class="field-error" data-error-for="contactTimeOther"></p></div>
+              </section>
+
+              <section class="form-step" data-form-step="5" aria-labelledby="form-step-5-title" hidden>
+                <p class="form-step__number">Step 5 of 5</p><h2 id="form-step-5-title">Review your enquiry</h2>
+                <div class="form-review" data-form-review></div>
+                <label class="consent"><input type="checkbox" name="consent" required><span>I consent to Pure Coaching contacting me about this enquiry. <a href="#">Privacy Policy</a></span></label><p class="field-error" data-error-for="consent"></p>
+              </section>
+
+              <div class="form-actions"><button class="button button--secondary" type="button" data-form-back hidden>Back</button><button class="button button--primary" type="button" data-form-next>Continue</button><button class="button button--primary" type="submit" data-form-submit hidden>Send Enquiry →</button></div>
+            </form>
+
+            <div class="form-confirmation" data-form-confirmation hidden tabindex="-1"><span class="form-confirmation__icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m7 12 3 3 7-7"></path><circle cx="12" cy="12" r="9"></circle></svg></span><h2>Thanks for getting in touch.</h2><p>Our team will review your enquiry and contact you using your preferred contact method.</p></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer"><div class="container"><div class="site-footer__main"><div class="site-footer__brand"><a class="site-footer__logo" href="index.html" aria-label="Pure Coaching Cairns home"><img src="assets/logo/pure-coaching-logo.png" alt="Pure Coaching Cairns" width="1254" height="1254"></a><p>Personalised, goal-focused support helping people build confidence, independence and meaningful everyday lives across Cairns &amp; FNQ.</p><a class="site-footer__cta" href="get-started.html?intent=general">Start Your Journey <span aria-hidden="true">→</span></a></div><nav class="site-footer__group" aria-labelledby="form-footer-explore"><h2 id="form-footer-explore">Explore</h2><ul><li><a href="index.html#about">About</a></li><li><a href="index.html#supports">Supports</a></li><li><a href="index.html#activities">Activities</a></li><li><a href="index.html#team">Our Team</a></li><li><a href="index.html#referrals">Referrals</a></li><li><a href="#contact">Contact</a></li></ul></nav><nav class="site-footer__group" aria-labelledby="form-footer-started"><h2 id="form-footer-started">Get Started</h2><ul><li><a href="private-support.html">Private Support</a></li><li><a href="ndis-support.html">NDIS Support</a></li><li><a href="child-safety.html">Child Safety</a></li></ul></nav><div class="site-footer__group site-footer__contact" id="contact"><h2>Contact</h2><address><p>Cairns City, Queensland, Australia</p><dl><div><dt>Phone</dt><dd><a href="tel:+61407234842">0407 234 842</a></dd></div><div><dt>Email</dt><dd>Email details to be added</dd></div></dl></address><a class="site-footer__reviews-link" href="https://www.google.com/search?q=pure+coaching" target="_blank" rel="noopener noreferrer">Google Reviews <span aria-hidden="true">→</span></a><nav class="site-footer__socials" aria-label="Social media"><a href="https://www.facebook.com/profile.php?id=61590555206375" target="_blank" rel="noopener noreferrer" aria-label="Pure Coaching Cairns on Facebook"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14 8h3V4h-3c-3 0-5 2-5 5v3H6v4h3v5h4v-5h3l1-4h-4V9c0-.6.4-1 1-1Z"></path></svg></a><a href="https://www.instagram.com/cairnspurecoaching/" target="_blank" rel="noopener noreferrer" aria-label="Pure Coaching Cairns on Instagram"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1"></circle></svg></a></nav></div></div><div class="site-footer__bottom"><div><p>© <span data-current-year>2026</span> Pure Coaching Cairns</p><p class="site-footer__note">Pure Coaching provides disability support services in Cairns and Far North Queensland.</p></div><nav aria-label="Legal"><a href="#">Privacy Policy</a><a href="#">Terms &amp; Conditions</a></nav></div></div></footer>
+  </body>
+</html>
