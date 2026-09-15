@@ -35,30 +35,6 @@ function initIntakeForm() {
     return control ? String(control.value).trim() : '';
   };
 
-  function validateEmail(email, control) {
-    if (!control.validity.valid) return false;
-
-    const parts = email.split('@');
-    if (parts.length !== 2 || !parts[0]) return false;
-
-    const domainParts = parts[1].split('.');
-    return domainParts.length >= 2 && domainParts.every((part) => (
-      part.length > 0
-      && /^[a-z0-9-]+$/i.test(part)
-      && !part.startsWith('-')
-      && !part.endsWith('-')
-    ));
-  }
-
-  function normaliseAustralianPhone(phone) {
-    return phone.replace(/[\s()-]/g, '');
-  }
-
-  function validateAustralianPhone(phone) {
-    const normalisedPhone = normaliseAustralianPhone(phone);
-    return /^(?:04\d{8}|0[2378]\d{8}|\+614\d{8}|\+61[2378]\d{8})$/.test(normalisedPhone);
-  }
-
   function setError(name, message) {
     const error = form.querySelector(`[data-error-for="${name}"]`);
     const control = field(name);
@@ -119,7 +95,7 @@ function initIntakeForm() {
 
     step.querySelectorAll('input[required], select[required], textarea[required]').forEach((control) => {
       if (control.closest('[hidden]') || control.type === 'radio' || control.type === 'checkbox') return;
-      const isInvalidEmail = control.type === 'email' && !validateEmail(control.value.trim(), control);
+      const isInvalidEmail = control.type === 'email' && !validateEmailAddress(control.value.trim(), control);
       const isInvalidPhone = control.type === 'tel' && !validateAustralianPhone(control.value.trim());
 
       if (!control.validity.valid || isInvalidEmail || isInvalidPhone) {

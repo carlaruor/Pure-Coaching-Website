@@ -3,6 +3,30 @@
 const DESKTOP_BREAKPOINT = 1024;
 const SCROLL_EDGE_TOLERANCE = 1;
 
+function validateEmailAddress(email, control) {
+  if (control && !control.validity.valid) return false;
+
+  const parts = email.split('@');
+  if (parts.length !== 2 || !parts[0]) return false;
+
+  const domainParts = parts[1].split('.');
+  return domainParts.length >= 2 && domainParts.every((part) => (
+    part.length > 0
+    && /^[a-z0-9-]+$/i.test(part)
+    && !part.startsWith('-')
+    && !part.endsWith('-')
+  ));
+}
+
+function normaliseAustralianPhone(phone) {
+  return phone.replace(/[\s()-]/g, '');
+}
+
+function validateAustralianPhone(phone) {
+  const normalisedPhone = normaliseAustralianPhone(phone);
+  return /^(?:04\d{8}|0[2378]\d{8}|\+614\d{8}|\+61[2378]\d{8})$/.test(normalisedPhone);
+}
+
 function initMobileNavigation() {
   const menuToggle = document.querySelector('[data-menu-toggle]');
   const mobileNav = document.querySelector('[data-mobile-nav]');
@@ -195,6 +219,85 @@ function initModal(modal) {
   });
 }
 
+function initDisclosure(disclosure) {
+  const trigger = disclosure.querySelector('[data-disclosure-trigger]');
+  const panel = disclosure.querySelector('[data-disclosure-panel]');
+  const closeButton = disclosure.querySelector('[data-disclosure-close]');
+
+  if (!trigger || !panel) return;
+
+  const setOpen = (isOpen) => {
+    trigger.setAttribute('aria-expanded', String(isOpen));
+    panel.hidden = !isOpen;
+
+    if (isOpen) {
+      panel.querySelector('[data-disclosure-heading]')?.focus({ preventScroll: true });
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+      trigger.focus();
+    }
+  };
+
+  trigger.addEventListener('click', () => setOpen(panel.hidden));
+  closeButton?.addEventListener('click', () => setOpen(false));
+}
+
+function initInterestForm(form) {
+  const status = form.querySelector('[data-interest-status]');
+  const confirmation = form.parentElement.querySelector('[data-interest-confirmation]');
+
+  form.querySelectorAll('[data-interest-error]').forEach((error) => {
+    const control = form.elements.namedItem(error.dataset.interestError);
+    error.id = `interest-${error.dataset.interestError}-error`;
+    control?.setAttribute('aria-describedby', error.id);
+  });
+
+  const clearError = (control) => {
+    const error = form.querySelector(`[data-interest-error="${control.name}"]`);
+    if (error) error.textContent = '';
+    control.removeAttribute('aria-invalid');
+  };
+
+  const setError = (control, message) => {
+    const error = form.querySelector(`[data-interest-error="${control.name}"]`);
+    if (error) error.textContent = message;
+    control.setAttribute('aria-invalid', 'true');
+  };
+
+  form.addEventListener('input', (event) => clearError(event.target));
+  form.addEventListener('change', (event) => clearError(event.target));
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    status.hidden = true;
+    form.querySelectorAll('[aria-invalid="true"]').forEach(clearError);
+    let firstInvalid = null;
+
+    form.querySelectorAll('input[required]').forEach((control) => {
+      let message = '';
+      if (!control.validity.valid) message = `Please enter your ${control.labels?.[0]?.textContent.toLowerCase() || 'information'}.`;
+      if (control.type === 'email' && !validateEmailAddress(control.value.trim(), control)) message = 'Please enter a valid email address, for example name@example.com.';
+      if (control.type === 'tel' && !validateAustralianPhone(control.value.trim())) message = 'Please enter a valid Australian mobile or landline number.';
+
+      if (message) {
+        setError(control, message);
+        firstInvalid ||= control;
+      }
+    });
+
+    if (firstInvalid) {
+      status.textContent = 'Please check the highlighted information before continuing.';
+      status.hidden = false;
+      firstInvalid.focus();
+      return;
+    }
+
+    // Future backend/API and optional resume upload should be connected here.
+    form.hidden = true;
+    confirmation.hidden = false;
+    confirmation.focus();
+  });
+}
+
 function init() {
   initMobileNavigation();
   initStickyHeader();
@@ -211,6 +314,8 @@ function init() {
   }
 
   document.querySelectorAll('[data-modal]').forEach(initModal);
+  document.querySelectorAll('[data-disclosure]').forEach(initDisclosure);
+  document.querySelectorAll('[data-interest-form]').forEach(initInterestForm);
 
   setCurrentYear();
 }

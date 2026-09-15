@@ -2691,6 +2691,162 @@ body.has-modal-open {
   color: var(--color-orange);
 }
 
+.join-team {
+  padding: clamp(58px, 7vw, 82px) 0;
+  color: var(--color-white);
+  background-color: var(--color-navy);
+}
+
+.join-team__prompt {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(40px, 8vw, 110px);
+  align-items: center;
+}
+
+.join-team__intro {
+  max-width: 760px;
+}
+
+.join-team__intro .section-eyebrow {
+  margin-bottom: 14px;
+  color: var(--color-blue);
+}
+
+.join-team__intro h2 {
+  font-size: clamp(2rem, 4vw, 3.7rem);
+  letter-spacing: -0.04em;
+  line-height: 1.04;
+}
+
+.join-team__intro h2 span {
+  display: block;
+}
+
+.join-team__intro > p:last-child {
+  max-width: 680px;
+  margin-top: 17px;
+  color: rgb(255 255 255 / 72%);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.join-team__prompt > .button {
+  min-width: 218px;
+}
+
+.join-team__form-panel[hidden] {
+  display: none;
+}
+
+.join-team__form-panel {
+  max-width: 940px;
+  margin: 46px auto 0;
+  padding: clamp(26px, 4vw, 44px);
+  border-radius: var(--radius-large);
+  color: var(--color-text);
+  background-color: var(--color-white);
+  animation: reveal-interest-form 220ms ease-out;
+}
+
+.join-team__form-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 30px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.join-team__form-header h3,
+.interest-confirmation h3 {
+  color: var(--color-navy);
+  font-size: clamp(1.5rem, 3vw, 2.15rem);
+  line-height: 1.2;
+}
+
+.join-team__form-header p {
+  max-width: 620px;
+  margin-top: 7px;
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+
+.join-team__form-header > button {
+  min-height: 40px;
+  flex: 0 0 auto;
+  color: var(--color-blue-dark);
+  background: transparent;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.join-team__form-header > button:hover {
+  color: var(--color-orange-dark);
+}
+
+.interest-form {
+  max-width: 820px;
+  margin-top: 4px;
+}
+
+.interest-form > .field {
+  margin-top: 30px;
+}
+
+.field--file input[type="file"] {
+  min-height: 52px;
+  padding: 7px;
+  cursor: pointer;
+}
+
+.field--file input[type="file"]::file-selector-button {
+  min-height: 36px;
+  margin-right: 12px;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: var(--radius-small);
+  color: var(--color-navy);
+  background-color: var(--color-blue-tint);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.interest-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border);
+}
+
+.interest-confirmation[hidden] {
+  display: none;
+}
+
+.interest-confirmation {
+  padding: 30px 0 10px;
+  text-align: center;
+}
+
+.interest-confirmation p {
+  margin-top: 8px;
+  color: var(--color-muted);
+}
+
+@keyframes reveal-interest-form {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .form-review {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4411,6 +4567,37 @@ body.has-modal-open {
     border-radius: var(--radius-medium);
   }
 
+  .join-team {
+    padding: 52px 0;
+  }
+
+  .join-team__prompt {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+
+  .join-team__intro h2 span {
+    display: inline;
+  }
+
+  .join-team__prompt > .button {
+    width: 100%;
+  }
+
+  .join-team__form-panel {
+    margin-top: 34px;
+    border-radius: var(--radius-medium);
+  }
+
+  .join-team__form-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .interest-form__actions .button {
+    width: 100%;
+  }
+
   .service-areas {
     padding: 38px 0;
   }
@@ -4473,6 +4660,7 @@ body.has-modal-open {
   *::before,
   *::after {
     scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
 }

@@ -225,6 +225,76 @@
           </div>
         </div>
       </section>
+
+      <section class="join-team" aria-labelledby="join-team-title" data-disclosure>
+        <div class="container">
+          <div class="join-team__prompt">
+            <div class="join-team__intro">
+              <p class="section-eyebrow">Join our team</p>
+              <h2 id="join-team-title">
+                <span>Think you'd be a good fit</span>
+                <span>for Pure Coaching?</span>
+              </h2>
+              <p>We're always interested in hearing from people who bring genuine connection, reliability and a positive approach to support.</p>
+            </div>
+            <button class="button button--primary" type="button" aria-expanded="false" aria-controls="interest-form-panel" data-disclosure-trigger>
+              Express Your Interest <span aria-hidden="true">→</span>
+            </button>
+          </div>
+
+          <div class="join-team__form-panel" id="interest-form-panel" data-disclosure-panel hidden>
+            <div class="join-team__form-header">
+              <div>
+                <h3 tabindex="-1" data-disclosure-heading>Expression of Interest</h3>
+                <p>Tell us a little about yourself, your experience and why you'd be interested in joining Pure Coaching.</p>
+              </div>
+              <button type="button" data-disclosure-close>Close form</button>
+            </div>
+
+            <form class="interest-form" data-interest-form novalidate>
+              <input type="hidden" name="submissionType" value="employment_expression_of_interest">
+              <p class="form-status" data-interest-status role="alert" hidden></p>
+              <div class="form-grid">
+                <div class="field"><label for="interest-first-name">First name</label><input id="interest-first-name" name="firstName" type="text" autocomplete="given-name" required><p class="field-error" data-interest-error="firstName"></p></div>
+                <div class="field"><label for="interest-last-name">Last name</label><input id="interest-last-name" name="lastName" type="text" autocomplete="family-name" required><p class="field-error" data-interest-error="lastName"></p></div>
+                <div class="field"><label for="interest-email">Email</label><input id="interest-email" name="email" type="email" autocomplete="email" required><p class="field-error" data-interest-error="email"></p></div>
+                <div class="field"><label for="interest-phone">Phone</label><input id="interest-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="0412 345 678" required><p class="field-error" data-interest-error="phone"></p></div>
+              </div>
+
+              <fieldset class="form-group">
+                <legend>Do you have previous experience in disability or youth support?</legend>
+                <div class="choice-grid choice-grid--two">
+                  <label class="choice"><input type="radio" name="previousExperience" value="Yes"><span><strong>Yes</strong></span></label>
+                  <label class="choice"><input type="radio" name="previousExperience" value="No"><span><strong>No</strong></span></label>
+                </div>
+              </fieldset>
+
+              <div class="field field--full">
+                <label for="interest-experience">Tell us about your experience</label>
+                <p class="field-help" id="interest-experience-help">This could include disability support, youth work, community services or other relevant experience.</p>
+                <textarea id="interest-experience" name="experience" rows="5" aria-describedby="interest-experience-help"></textarea>
+              </div>
+              <div class="field field--full">
+                <label for="interest-reason">Why are you interested in working with Pure Coaching?</label>
+                <textarea id="interest-reason" name="interestReason" rows="5"></textarea>
+              </div>
+              <div class="field field--full field--file">
+                <label for="interest-resume">Resume <span>(optional)</span></label>
+                <p class="field-help" id="interest-resume-help">PDF or Word document. File storage will be connected before launch.</p>
+                <input id="interest-resume" name="resume" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-describedby="interest-resume-help">
+              </div>
+              <div class="interest-form__actions">
+                <button class="button button--primary" type="submit">Send Expression of Interest →</button>
+              </div>
+            </form>
+
+            <div class="interest-confirmation" data-interest-confirmation hidden tabindex="-1">
+              <h3>Expression of Interest ready.</h3>
+              <p>The real submission service will be connected before launch.</p>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
     <footer class="site-footer">
