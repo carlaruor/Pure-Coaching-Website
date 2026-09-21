@@ -3,60 +3,683 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Explore personalised private support, NDIS support and child safety support with Pure Coaching in Cairns.">
+    <meta
+      name="description"
+      content="Explore personalised private support, NDIS support and child safety support with Pure Coaching in Cairns."
+    >
     <title>Pure Coaching Cairns | Find Your Support</title>
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
   </head>
-  <body class="page-home">
-    <main class="gateway" aria-labelledby="gateway-title">
-      <div class="gateway__intro">
-        <img class="gateway__logo" src="assets/logo/pure-coaching-logo.png" alt="Pure Coaching Cairns" width="1254" height="1254">
-        <h1 id="gateway-title">How can we support you?</h1>
-      </div>
-      <div class="gateway__panels">
-        <a class="gateway__panel gateway__panel--private" href="private-support.html" aria-labelledby="private-title" aria-describedby="private-description">
-          <div class="gateway__media" aria-hidden="true">
-            <video data-gateway-video muted loop playsinline preload="auto" tabindex="-1">
-              <source src="assets/videos/video_private_support.mp4" type="video/mp4">
-            </video>
-          </div>
-          <div class="gateway__overlay" aria-hidden="true"></div>
-          <div class="gateway__content">
-            <h2 id="private-title">Private Support</h2>
-            <p id="private-description">Personalised support, accessed directly.</p>
-            <span class="gateway__explore">Explore <span aria-hidden="true">→</span></span>
-          </div>
+  <body>
+    <header class="site-header" data-header>
+      <div class="container site-header__inner">
+        <a class="site-logo" href="#" aria-label="Pure Coaching Cairns home">
+          <img
+            src="assets/logo/pure-coaching-logo.png"
+            alt="Pure Coaching Cairns"
+            width="1254"
+            height="1254"
+          >
         </a>
 
-        <a class="gateway__panel gateway__panel--ndis" href="ndis-support.html" aria-labelledby="ndis-title" aria-describedby="ndis-description">
-          <div class="gateway__media" aria-hidden="true">
-            <video data-gateway-video muted loop playsinline preload="auto" tabindex="-1">
-              <source src="assets/videos/video_ndis_support.mp4" type="video/mp4">
-            </video>
-          </div>
-          <div class="gateway__overlay" aria-hidden="true"></div>
-          <div class="gateway__content">
-            <h2 id="ndis-title">NDIS Support</h2>
-            <p id="ndis-description">Personalised support through your NDIS plan.</p>
-            <span class="gateway__explore">Explore <span aria-hidden="true">→</span></span>
-          </div>
-        </a>
+        <nav class="desktop-nav" aria-label="Primary navigation">
+          <ul class="nav-list">
+            <li><a class="nav-link" href="about.html">About Us</a></li>
+            <li><a class="nav-link" href="#supports">Supports</a></li>
+            <li><a class="nav-link" href="#activities">Activities</a></li>
+            <li><a class="nav-link" href="#referrals">Referrals</a></li>
+            <li><a class="nav-link" href="#contact">Contact</a></li>
+            <li><a class="nav-link" href="#login">Login</a></li>
+          </ul>
+          <a class="button button--primary" href="get-started.html?intent=general">Start Your Journey</a>
+        </nav>
 
-        <a class="gateway__panel gateway__panel--child" href="child-safety.html" aria-labelledby="child-title" aria-describedby="child-description">
-          <div class="gateway__media" aria-hidden="true">
-            <video data-gateway-video muted loop playsinline preload="auto" tabindex="-1">
-              <source src="assets/videos/video_child_safety.mp4" type="video/mp4">
-            </video>
-          </div>
-          <div class="gateway__overlay" aria-hidden="true"></div>
-          <div class="gateway__content">
-            <h2 id="child-title">Child Safety</h2>
-            <p id="child-description">Support for children and young people.</p>
-            <span class="gateway__explore">Explore <span aria-hidden="true">→</span></span>
-          </div>
-        </a>
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-label="Open navigation menu"
+          aria-controls="mobile-navigation"
+          aria-expanded="false"
+          data-menu-toggle
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
+
+      <nav
+        class="mobile-nav"
+        id="mobile-navigation"
+        aria-label="Mobile navigation"
+        data-mobile-nav
+        hidden
+      >
+        <div class="container">
+          <ul class="mobile-nav__list">
+            <li><a class="mobile-nav__link" href="about.html">About Us</a></li>
+            <li><a class="mobile-nav__link" href="#supports">Supports</a></li>
+            <li><a class="mobile-nav__link" href="#activities">Activities</a></li>
+            <li><a class="mobile-nav__link" href="#referrals">Referrals</a></li>
+            <li><a class="mobile-nav__link" href="#contact">Contact</a></li>
+            <li><a class="mobile-nav__link" href="#login">Login</a></li>
+          </ul>
+          <a class="button button--primary mobile-nav__cta" href="get-started.html?intent=general">
+            Start Your Journey
+          </a>
+        </div>
+      </nav>
+    </header>
+    <main>
+      <section class="pathway-hero" aria-labelledby="pathway-hero-title">
+        <div class="container pathway-hero__intro">
+          <h1 class="section-title" id="pathway-hero-title">
+            <span>Choose the support path</span>
+            <span class="pathway-hero__title-accent">that works for you.</span>
+          </h1>
+        </div>
+        <div class="pathway-hero__panels">
+          <a class="pathway-hero__panel pathway-hero__panel--private" href="private-support.html" aria-labelledby="private-title" aria-describedby="private-description">
+            <div class="pathway-hero__media" aria-hidden="true">
+              <!-- A dedicated first-frame cover can be placed here, before the video. -->
+              <video data-pathway-hero-video muted loop playsinline preload="auto" tabindex="-1">
+                <source src="assets/videos/video_private_support.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="pathway-hero__content">
+              <h2 id="private-title">Private Support</h2>
+              <p id="private-description">Personalised support, accessed directly.</p>
+              <span class="pathway-hero__explore">Explore <span aria-hidden="true">→</span></span>
+            </div>
+          </a>
+
+          <a class="pathway-hero__panel pathway-hero__panel--ndis" href="ndis-support.html" aria-labelledby="ndis-title" aria-describedby="ndis-description">
+            <div class="pathway-hero__media" aria-hidden="true">
+              <!-- A dedicated first-frame cover can be placed here, before the video. -->
+              <video data-pathway-hero-video muted loop playsinline preload="auto" tabindex="-1">
+                <source src="assets/videos/video_ndis_support.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="pathway-hero__content">
+              <h2 id="ndis-title">NDIS Support</h2>
+              <p id="ndis-description">Personalised support through your NDIS plan.</p>
+              <span class="pathway-hero__explore">Explore <span aria-hidden="true">→</span></span>
+            </div>
+          </a>
+
+          <a class="pathway-hero__panel pathway-hero__panel--child" href="child-safety.html" aria-labelledby="child-title" aria-describedby="child-description">
+            <div class="pathway-hero__media" aria-hidden="true">
+              <!-- A dedicated first-frame cover can be placed here, before the video. -->
+              <video data-pathway-hero-video muted loop playsinline preload="auto" tabindex="-1">
+                <source src="assets/videos/video_child_safety.mp4" type="video/mp4">
+              </video>
+            </div>
+            <div class="pathway-hero__content">
+              <h2 id="child-title">Child Safety</h2>
+              <p id="child-description">Support for children and young people.</p>
+              <span class="pathway-hero__explore">Explore <span aria-hidden="true">→</span></span>
+            </div>
+          </a>
+        </div>
+        <a class="pathway-hero__scroll-cue" href="#about">
+          <span>Our Approach</span>
+          <span aria-hidden="true">↓</span>
+        </a>
+      </section>
+
+      <section class="approach" id="about" aria-labelledby="approach-title">
+        <div class="container">
+          <div class="approach__intro">
+            <div>
+              <p class="approach__eyebrow section-eyebrow">Our approach</p>
+              <h2 class="approach__title section-title" id="approach-title">
+                <span>Support built around the person.</span>
+                <span>Not the program.</span>
+              </h2>
+            </div>
+            <p class="approach__lead">
+              Pure Coaching is shaped around each person's goals, interests and
+              everyday life. Support can be practical, active, social or skill-based
+              — depending on what helps the person move forward.
+            </p>
+          </div>
+
+          <ul class="approach__pillars">
+            <li class="approach__pillar">
+              <span class="approach__icon">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <circle cx="12" cy="8" r="3.5"></circle>
+                  <path d="M5.5 20c.7-4 3-6 6.5-6s5.8 2 6.5 6"></path>
+                  <path d="m18 5 .6 1.4L20 7l-1.4.6L18 9l-.6-1.4L16 7l1.4-.6L18 5Z"></path>
+                </svg>
+              </span>
+              <h3>Personalised</h3>
+              <p>Support shaped around individual goals, interests and needs.</p>
+            </li>
+            <li class="approach__pillar">
+              <span class="approach__icon">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="m13.5 2-8 12h6l-1 8 8-12h-6l1-8Z"></path>
+                </svg>
+              </span>
+              <h3>Active &amp; Engaging</h3>
+              <p>
+                Support can happen in the gym, outdoors, in the community or through
+                everyday life.
+              </p>
+            </li>
+            <li class="approach__pillar">
+              <span class="approach__icon">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <circle cx="11" cy="13" r="8"></circle>
+                  <circle cx="11" cy="13" r="4"></circle>
+                  <path d="m14 10 7-7m0 0h-5m5 0v5"></path>
+                </svg>
+              </span>
+              <h3>Goal Focused</h3>
+              <p>
+                Every session can contribute toward confidence, skills and
+                independence.
+              </p>
+            </li>
+            <li class="approach__pillar">
+              <span class="approach__icon">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M20.5 8.5c0 5-8.5 10-8.5 10s-8.5-5-8.5-10A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 8.5 2.5Z"></path>
+                </svg>
+              </span>
+              <h3>Real Connection</h3>
+              <p>Genuine mentoring, encouragement and consistent support.</p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="activities-showcase" id="supports" aria-labelledby="activities-title">
+        <div class="container">
+          <div class="activities-showcase__header">
+            <div class="activities-showcase__intro">
+              <p class="activities-showcase__eyebrow section-eyebrow">Support in action</p>
+              <h2 class="section-title" id="activities-title">Real Experiences. Real Life.</h2>
+              <p class="section-description">
+                Support with Pure Coaching can look different for everyone. These are
+                some of the ways we help participants build confidence, independence,
+                skills and meaningful everyday experiences.
+              </p>
+            </div>
+            <div class="activities-showcase__tools">
+              <a class="activities-showcase__link" href="#supports">
+                Explore Our Supports
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M5 12h14m-5-5 5 5-5 5"></path>
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <div class="activities-carousel__wrapper carousel" data-carousel>
+            <div class="carousel__controls" aria-label="Activity carousel controls">
+              <button type="button" aria-label="Previous activities" data-carousel-previous>
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="m15 18-6-6 6-6"></path>
+                </svg>
+              </button>
+              <button type="button" aria-label="Next activities" data-carousel-next>
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="m9 18 6-6-6-6"></path>
+                </svg>
+              </button>
+            </div>
+            <div
+              class="activities-carousel carousel__track"
+              role="region"
+              aria-label="Support and activity categories"
+              data-carousel-track
+              tabindex="0"
+            >
+            <article class="activity-card">
+              <img src="assets/images/activities/fitness-wellbeing.webp" alt="Fitness and wellbeing support" width="1672" height="941">
+              <div class="activity-card__content">
+                <span class="activity-card__icon">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 9v6m-3-4v2m6-6v10m9-8v6m3-4v2m-6-6v10M6 12h12"></path></svg>
+                </span>
+                <h3>Fitness &amp; Wellbeing</h3>
+              </div>
+            </article>
+            <article class="activity-card">
+              <img src="assets/images/activities/life-skills.webp" alt="Practical life skills support" width="1672" height="941">
+              <div class="activity-card__content">
+                <span class="activity-card__icon">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8"></path><path d="M5 10v10h14V10M9 20v-6h6v6"></path></svg>
+                </span>
+                <h3>Life Skills</h3>
+              </div>
+            </article>
+            <article class="activity-card">
+              <img src="assets/images/activities/social-activities.webp" alt="Social and community activities" width="1672" height="941">
+              <div class="activity-card__content">
+                <span class="activity-card__icon">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="9" r="2"></circle><path d="M3 20c.5-4 2.5-6 6-6s5.5 2 6 6m0-5c3 0 4.7 1.7 5 5"></path></svg>
+                </span>
+                <h3>Social Activities</h3>
+              </div>
+            </article>
+            <article class="activity-card">
+              <img src="assets/images/activities/outdoor-adventure.webp" alt="Outdoor and adventure support activities" width="1672" height="941">
+              <div class="activity-card__content">
+                <span class="activity-card__icon">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m3 20 6-10 3 5 3-4 6 9H3Z"></path><path d="m7.5 12.5 1.5 1 1.5-1.5"></path></svg>
+                </span>
+                <h3>Outdoor &amp; Adventure Activities</h3>
+              </div>
+            </article>
+            <article class="activity-card">
+              <img src="assets/images/activities/driving-independence.webp" alt="Driving and independence support" width="1672" height="941">
+              <div class="activity-card__content">
+                <span class="activity-card__icon">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m5 17-2-2v-4l2-5h14l2 5v4l-2 2H5Z"></path><circle cx="7" cy="13" r="1"></circle><circle cx="17" cy="13" r="1"></circle><path d="M5 17v2m14-2v2M4 10h16"></path></svg>
+                </span>
+                <h3>Driving &amp; Independence</h3>
+              </div>
+            </article>
+            <article class="activity-card">
+              <img src="assets/images/activities/travel-transport.webp" alt="Travel and transport support" width="1672" height="941">
+              <div class="activity-card__content">
+                <span class="activity-card__icon">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 17h14l2-3V7c0-2-2-3-9-3S3 5 3 7v7l2 3Z"></path><path d="M5 17v3m14-3v3M3 11h18"></path><circle cx="7" cy="14" r="1"></circle><circle cx="17" cy="14" r="1"></circle></svg>
+                </span>
+                <h3>Travel &amp; Transport</h3>
+              </div>
+            </article>
+            <article class="activity-card">
+              <img src="assets/images/activities/domestic-support.webp" alt="Domestic and household support" width="1672" height="941">
+              <div class="activity-card__content">
+                <span class="activity-card__icon">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8"></path><path d="M5 10v10h14V10"></path><path d="M9 15h6"></path></svg>
+                </span>
+                <h3>Domestic Support</h3>
+              </div>
+            </article>
+            <article class="activity-card">
+              <img src="assets/images/activities/employment-assistance.webp" alt="Employment assistance and workplace support" width="1672" height="941">
+              <div class="activity-card__content">
+                <span class="activity-card__icon">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M9 7V4h6v3m-12 6h18m-11 0v2h4v-2"></path></svg>
+                </span>
+                <h3>Employment Assistance</h3>
+              </div>
+            </article>
+            <article class="activity-card">
+              <img src="assets/images/activities/mentoring.webp" alt="One-to-one mentoring and guidance" width="1672" height="941">
+              <div class="activity-card__content">
+                <span class="activity-card__icon">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-9 8l-5 2 1-4a8 8 0 1 1 13-6Z"></path><path d="M8 11h8m-8 4h5"></path></svg>
+                </span>
+                <h3>Mentoring</h3>
+              </div>
+            </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="pathways" aria-labelledby="pathways-title">
+        <div class="container">
+          <div class="pathways__intro">
+            <p class="pathways__eyebrow section-eyebrow">Get started</p>
+            <h2 class="pathways__title" id="pathways-title">
+              <span>Choose the support path</span>
+              <span class="pathways__title-accent">that works for you.</span>
+            </h2>
+            <p class="pathways__lead section-description">
+              There’s more than one way to access Pure Coaching. Choose the option
+              that best matches your situation and take the next step.
+            </p>
+          </div>
+
+          <div class="pathways__grid">
+            <a class="pathway-card pathway-card--private" href="private-support.html">
+              <img
+                class="pathway-card__image"
+                src="assets/images/pathways/private-support.webp"
+                alt="Personalised private support with Pure Coaching"
+                hidden
+              >
+              <div class="pathway-card__content">
+                <span class="pathway-card__icon">
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="3.5"></circle>
+                    <path d="M5 20c.7-4.2 3.1-6.3 7-6.3s6.3 2.1 7 6.3"></path>
+                  </svg>
+                </span>
+                <h3>Private Support</h3>
+                <p>
+                  Pay directly for personalised Pure Coaching support.
+                  <strong>No NDIS plan required.</strong>
+                </p>
+                <span class="pathway-card__cta">
+                  Explore Private Support
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M5 12h14m-5-5 5 5-5 5"></path>
+                  </svg>
+                </span>
+              </div>
+            </a>
+
+            <a class="pathway-card pathway-card--ndis" href="ndis-support.html">
+              <img
+                class="pathway-card__image"
+                src="assets/images/pathways/ndis-support.webp"
+                alt="Personalised NDIS support with Pure Coaching"
+                hidden
+              >
+              <div class="pathway-card__content">
+                <span class="pathway-card__icon">
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="m8.5 12 2.2 2.2 4.8-4.8"></path>
+                  </svg>
+                </span>
+                <h3>NDIS Support</h3>
+                <p>
+                  Use your NDIS funding to access personalised, goal-focused support.
+                </p>
+                <span class="pathway-card__cta">
+                  Access NDIS Support
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M5 12h14m-5-5 5 5-5 5"></path>
+                  </svg>
+                </span>
+              </div>
+            </a>
+
+            <a class="pathway-card pathway-card--child-safety" href="child-safety.html">
+              <img
+                class="pathway-card__image"
+                src="assets/images/pathways/child-safety.webp"
+                alt="Support for children and young people through Child Safety"
+                hidden
+              >
+              <div class="pathway-card__content">
+                <span class="pathway-card__icon">
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M12 3 5 6v5c0 4.6 2.9 8.3 7 10 4.1-1.7 7-5.4 7-10V6l-7-3Z"></path>
+                    <circle cx="12" cy="10" r="2"></circle>
+                    <path d="M8.5 16c.5-2 1.7-3 3.5-3s3 1 3.5 3"></path>
+                  </svg>
+                </span>
+                <h3>Child Safety</h3>
+                <p>
+                  Professional support for children and young people arranged through
+                  Child Safety organisations.
+                </p>
+                <span class="pathway-card__cta">
+                  Child Safety Enquiries
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <path d="M5 12h14m-5-5 5 5-5 5"></path>
+                  </svg>
+                </span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="reviews-strip" aria-labelledby="reviews-title">
+        <svg class="review-star-symbol" aria-hidden="true">
+          <symbol id="review-star" viewBox="0 0 20 20">
+            <path d="m10 1.5 2.6 5.3 5.9.9-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.9L10 1.5Z"></path>
+          </symbol>
+        </svg>
+        <div class="container reviews-strip__layout">
+          <div class="reviews-summary">
+            <div class="review-stars" aria-hidden="true">
+              <svg viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+              <svg viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+              <svg viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+              <svg viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+              <svg viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+            </div>
+            <h2 id="reviews-title">Google Reviews</h2>
+            <p>5-star experiences from participants and families.</p>
+            <a
+              href="https://www.google.com/search?sca_esv=51e5b8c12527c24c&amp;sxsrf=APpeQnsqARdGT69_LNDU-XiNskXxw4rj3Q:1788582136106&amp;q=pure+coaching&amp;si=APenkKm7iecQ4G6P-TsbSMFKIQtv3EFIqRAFw-i8uEbk55Z-_6yduf7EqIe1mF7uLGboWz4KiTYbbIQenCGUbylfJuv5DZ37agKbdMhDjEnTi3z7tc9ud_c%3D&amp;uds=AJ5uw1-4w3rW8QLAeBTvAuCjnp-gh3ITGwuB2Qk85v5_w0bbTnr_MWty1jCx5r4e7Se5VB_Aoq7P9XbYZ5MrOX7-C2OXoeS0kPCKOAswkN004Sa-HjipUmo&amp;sa=X&amp;ved=2ahUKEwjO3P7Wy9aWAxWDkOEIHZmoLbwQ3PALegQIKxAF&amp;biw=1440&amp;bih=669&amp;dpr=2"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Read all Google Reviews <span aria-hidden="true">→</span>
+            </a>
+          </div>
+
+          <div class="reviews-carousel__wrapper carousel" data-carousel>
+            <div class="carousel__controls" aria-label="Review carousel controls">
+              <button type="button" aria-label="Previous reviews" data-carousel-previous>
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="m15 18-6-6 6-6"></path>
+                </svg>
+              </button>
+              <button type="button" aria-label="Next reviews" data-carousel-next>
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="m9 18 6-6-6-6"></path>
+                </svg>
+              </button>
+            </div>
+
+            <div
+              class="carousel__track"
+              role="region"
+              aria-label="Google reviews"
+              data-carousel-track
+              tabindex="0"
+            >
+              <article class="review-card">
+                <div class="review-stars" role="img" aria-label="5 out of 5 stars">
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                </div>
+                <blockquote>
+                  <p>My daughter and I have had nothing but positive experiences with Pure-Coaching. Great communication and the most beautiful, caring, proactive support worker for my daughter.</p>
+                </blockquote>
+                <footer><cite>Anita McFarlane</cite><span>Google Review</span></footer>
+              </article>
+
+              <article class="review-card">
+                <div class="review-stars" role="img" aria-label="5 out of 5 stars">
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                </div>
+                <blockquote>
+                  <p>We have had such a positive experience with this company and the support they provide to my nephew. The team have been incredibly caring, understanding and supportive, and it’s clear that they genuinely care about the people they work with.</p>
+                </blockquote>
+                <footer><cite>Tahnee King</cite><span>Google Review</span></footer>
+              </article>
+
+              <article class="review-card">
+                <div class="review-stars" role="img" aria-label="5 out of 5 stars">
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                </div>
+                <blockquote>
+                  <p>Absolutely fantastic experience with Pure Coaching Cairns! Professional, supportive and genuinely passionate about helping people achieve their goals. Highly recommend to anyone looking for quality coaching and a positive, encouraging experience!</p>
+                </blockquote>
+                <footer><cite>Jessica Smith</cite><span>Google Review</span></footer>
+              </article>
+
+              <article class="review-card">
+                <div class="review-stars" role="img" aria-label="5 out of 5 stars">
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                </div>
+                <blockquote>
+                  <p>We have been with Pure Coaching for over 12 months now and have seen a substantial improvement in our daughter’s ability. I highly recommend Pure Coaching as an NDIS provider. Great team, good communication and well managed organisation.</p>
+                </blockquote>
+                <footer><cite>Andrew Pyke</cite><span>Google Review</span></footer>
+              </article>
+
+              <article class="review-card">
+                <div class="review-stars" role="img" aria-label="5 out of 5 stars">
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                </div>
+                <blockquote>
+                  <p>The Pure Coaching staff are amazing. I travelled to Cairns and used their support work services while I was there. The team made me feel very welcome and helped me enjoy my time in Cairns. I had a great experience and would happily recommend Pure Coaching to anyone looking for friendly and reliable support.</p>
+                </blockquote>
+                <footer><cite>Michael Clarke</cite><span>Google Review</span></footer>
+              </article>
+
+              <article class="review-card">
+                <div class="review-stars" role="img" aria-label="5 out of 5 stars">
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                </div>
+                <blockquote>
+                  <p>Honestly such a great company from awesome coaching techniques to very professional and punctual staff, would reccomend 10/10</p>
+                </blockquote>
+                <footer><cite>Nathan Wood</cite><span>Google Review</span></footer>
+              </article>
+
+              <article class="review-card">
+                <div class="review-stars" role="img" aria-label="5 out of 5 stars">
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><use href="#review-star"></use></svg>
+                </div>
+                <blockquote>
+                  <p>Since moving to Cairns I have heard nothing but positive things about Pure Coaching. The staff I have met have been so warm, welcoming and friendly.</p>
+                </blockquote>
+                <footer><cite>Luke Hennessey</cite><span>Google Review</span></footer>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
+    <footer class="site-footer">
+      <div class="container">
+        <div class="site-footer__main">
+          <div class="site-footer__brand">
+            <a class="site-footer__logo" href="#" aria-label="Pure Coaching Cairns home">
+              <img
+                src="assets/logo/pure-coaching-logo.png"
+                alt="Pure Coaching Cairns"
+                width="1254"
+                height="1254"
+              >
+            </a>
+            <p>
+              Personalised, goal-focused support helping people build confidence,
+              independence and meaningful everyday lives across Cairns &amp; FNQ.
+            </p>
+            <a class="site-footer__cta" href="get-started.html?intent=general">
+              Start Your Journey <span aria-hidden="true">→</span>
+            </a>
+          </div>
+
+          <nav class="site-footer__group" aria-labelledby="footer-explore">
+            <h2 id="footer-explore">Explore</h2>
+            <ul>
+              <li><a href="about.html">About Us</a></li>
+              <li><a href="#supports">Supports</a></li>
+              <li><a href="#activities">Activities</a></li>
+              <li><a href="#referrals">Referrals</a></li>
+              <li><a href="#contact">Contact</a></li>
+            </ul>
+          </nav>
+
+          <nav class="site-footer__group" aria-labelledby="footer-get-started">
+            <h2 id="footer-get-started">Get Started</h2>
+            <ul>
+              <li><a href="private-support.html">Private Support</a></li>
+              <li><a href="ndis-support.html">NDIS Support</a></li>
+              <li><a href="child-safety.html">Child Safety</a></li>
+            </ul>
+          </nav>
+
+          <div class="site-footer__group site-footer__contact" id="contact">
+            <h2>Contact</h2>
+            <address>
+              <p>Cairns City, Queensland, Australia</p>
+              <dl>
+                <div>
+                  <dt>Phone</dt>
+                  <dd><a href="tel:+61407234842">0407 234 842</a></dd>
+                </div>
+                <div>
+                  <dt>Email</dt>
+                  <dd>Email details to be added</dd>
+                </div>
+              </dl>
+            </address>
+            <a
+              class="site-footer__reviews-link"
+              href="https://www.google.com/search?sca_esv=51e5b8c12527c24c&amp;sxsrf=APpeQnsqARdGT69_LNDU-XiNskXxw4rj3Q:1788582136106&amp;q=pure+coaching&amp;si=APenkKm7iecQ4G6P-TsbSMFKIQtv3EFIqRAFw-i8uEbk55Z-_6yduf7EqIe1mF7uLGboWz4KiTYbbIQenCGUbylfJuv5DZ37agKbdMhDjEnTi3z7tc9ud_c%3D&amp;uds=AJ5uw1-4w3rW8QLAeBTvAuCjnp-gh3ITGwuB2Qk85v5_w0bbTnr_MWty1jCx5r4e7Se5VB_Aoq7P9XbYZ5MrOX7-C2OXoeS0kPCKOAswkN004Sa-HjipUmo&amp;sa=X&amp;ved=2ahUKEwjO3P7Wy9aWAxWDkOEIHZmoLbwQ3PALegQIKxAF&amp;biw=1440&amp;bih=669&amp;dpr=2"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Google Reviews <span aria-hidden="true">→</span>
+            </a>
+            <nav class="site-footer__socials" aria-label="Social media">
+              <a
+                href="https://www.facebook.com/profile.php?id=61590555206375"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Pure Coaching Cairns on Facebook"
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M14 8h3V4h-3c-3 0-5 2-5 5v3H6v4h3v5h4v-5h3l1-4h-4V9c0-.6.4-1 1-1Z"></path>
+                </svg>
+              </a>
+              <a
+                href="https://www.instagram.com/cairnspurecoaching/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Pure Coaching Cairns on Instagram"
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="18" height="18" rx="5"></rect>
+                  <circle cx="12" cy="12" r="4"></circle>
+                  <circle cx="17.5" cy="6.5" r="1"></circle>
+                </svg>
+              </a>
+            </nav>
+          </div>
+        </div>
+
+        <div class="site-footer__bottom">
+          <div>
+            <p>© <span data-current-year>2026</span> Pure Coaching Cairns</p>
+            <p class="site-footer__note">
+              Pure Coaching provides disability support services in Cairns and Far
+              North Queensland.
+            </p>
+          </div>
+          <nav aria-label="Legal">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms &amp; Conditions</a>
+          </nav>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>

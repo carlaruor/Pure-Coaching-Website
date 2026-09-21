@@ -298,10 +298,10 @@ function initInterestForm(form) {
   });
 }
 
-function initGatewayVideos() {
-  const pathways = Array.from(document.querySelectorAll('.gateway__panel'), (panel) => ({
+function initPathwayHeroVideos() {
+  const pathways = Array.from(document.querySelectorAll('.pathway-hero__panel'), (panel) => ({
     panel,
-    video: panel.querySelector('[data-gateway-video]')
+    video: panel.querySelector('[data-pathway-hero-video]')
   })).filter(({ video }) => video);
 
   if (!pathways.length) return;
@@ -350,7 +350,7 @@ function initGatewayVideos() {
     resetVideo(pathway.video);
   };
 
-  // Transfer directly to the next link, without an intermediate equal-width state.
+  // Transfer the shared active state directly to the next pathway link.
   const leave = (pathway, nextTarget, keyboard = false) => {
     const next = pathways.find(({ panel }) => panel.contains(nextTarget));
     if (next && (!keyboard || next.panel.matches(':focus-visible'))) {
@@ -390,7 +390,7 @@ function initGatewayVideos() {
 function init() {
   initMobileNavigation();
   initStickyHeader();
-  initGatewayVideos();
+  initPathwayHeroVideos();
 
   const carouselUpdates = Array.from(
     document.querySelectorAll('[data-carousel]'),
