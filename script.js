@@ -317,14 +317,21 @@ function initGatewayVideos() {
 
   const pauseAll = () => {
     activePathway = null;
-    pathways.forEach(({ video }) => resetVideo(video));
+    pathways.forEach(({ panel, video }) => {
+      panel.classList.remove('is-active');
+      resetVideo(video);
+    });
   };
 
   const activate = async (pathway) => {
-    if (reducedMotion.matches || document.hidden) return;
+    if (document.hidden || activePathway === pathway) return;
 
     activePathway = pathway;
-    pathways.forEach(({ video }) => resetVideo(video));
+    pathways.forEach((item) => {
+      item.panel.classList.toggle('is-active', item === pathway);
+      resetVideo(item.video);
+    });
+    if (reducedMotion.matches) return;
 
     try {
       await pathway.video.play();
@@ -339,7 +346,18 @@ function initGatewayVideos() {
 
   const deactivate = (pathway) => {
     if (activePathway === pathway) activePathway = null;
+    pathway.panel.classList.remove('is-active');
     resetVideo(pathway.video);
+  };
+
+  // Transfer directly to the next link, without an intermediate equal-width state.
+  const leave = (pathway, nextTarget, keyboard = false) => {
+    const next = pathways.find(({ panel }) => panel.contains(nextTarget));
+    if (next && (!keyboard || next.panel.matches(':focus-visible'))) {
+      activate(next);
+    } else {
+      deactivate(pathway);
+    }
   };
 
   pathways.forEach((pathway) => {
@@ -351,14 +369,14 @@ function initGatewayVideos() {
       if (hoverPointer.matches && event.pointerType !== 'touch') activate(pathway);
     });
     panel.addEventListener('pointerleave', (event) => {
-      if (event.pointerType !== 'touch') deactivate(pathway);
+      if (hoverPointer.matches && event.pointerType !== 'touch') leave(pathway, event.relatedTarget);
     });
     panel.addEventListener('focus', () => {
       // Keyboard focus also works with an attached keyboard on a touch device.
       // Pointer/tap focus must not turn navigation into a playback interaction.
       if (panel.matches(':focus-visible')) activate(pathway);
     });
-    panel.addEventListener('blur', () => deactivate(pathway));
+    panel.addEventListener('blur', (event) => leave(pathway, event.relatedTarget, true));
   });
 
   reducedMotion.addEventListener('change', pauseAll);
