@@ -298,9 +298,78 @@ function initInterestForm(form) {
   });
 }
 
+function initGatewayVideos() {
+  const pathways = Array.from(document.querySelectorAll('.gateway__panel'), (panel) => ({
+    panel,
+    video: panel.querySelector('[data-gateway-video]')
+  })).filter(({ video }) => video);
+
+  if (!pathways.length) return;
+
+  const hoverPointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let activePathway = null;
+
+  const pauseAll = () => {
+    activePathway = null;
+    pathways.forEach(({ video }) => video.pause());
+  };
+
+  const activate = async (pathway) => {
+    if (reducedMotion.matches || document.hidden) return;
+
+    activePathway = pathway;
+    pathways.forEach(({ video }) => {
+      if (video !== pathway.video) video.pause();
+    });
+
+    try {
+      await pathway.video.play();
+      // Playback may finish starting after the pointer/focus has already moved.
+      if (activePathway !== pathway || reducedMotion.matches || document.hidden) {
+        pathway.video.pause();
+      }
+    } catch {
+      // A blocked or interrupted play attempt must never interfere with the link.
+    }
+  };
+
+  const deactivate = (pathway) => {
+    if (activePathway === pathway) activePathway = null;
+    pathway.video.pause();
+  };
+
+  pathways.forEach((pathway) => {
+    const { panel, video } = pathway;
+    video.muted = true;
+    video.pause();
+
+    panel.addEventListener('pointerenter', (event) => {
+      if (hoverPointer.matches && event.pointerType !== 'touch') activate(pathway);
+    });
+    panel.addEventListener('pointerleave', (event) => {
+      if (event.pointerType !== 'touch') deactivate(pathway);
+    });
+    panel.addEventListener('focus', () => {
+      // Keyboard focus also works with an attached keyboard on a touch device.
+      // Pointer/tap focus must not turn navigation into a playback interaction.
+      if (panel.matches(':focus-visible')) activate(pathway);
+    });
+    panel.addEventListener('blur', () => deactivate(pathway));
+  });
+
+  reducedMotion.addEventListener('change', pauseAll);
+  hoverPointer.addEventListener('change', pauseAll);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) pauseAll();
+  });
+  window.addEventListener('pagehide', pauseAll);
+}
+
 function init() {
   initMobileNavigation();
   initStickyHeader();
+  initGatewayVideos();
 
   const carouselUpdates = Array.from(
     document.querySelectorAll('[data-carousel]'),
