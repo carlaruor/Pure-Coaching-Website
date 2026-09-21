@@ -310,24 +310,27 @@ function initGatewayVideos() {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let activePathway = null;
 
+  const resetVideo = (video) => {
+    video.pause();
+    video.currentTime = 0;
+  };
+
   const pauseAll = () => {
     activePathway = null;
-    pathways.forEach(({ video }) => video.pause());
+    pathways.forEach(({ video }) => resetVideo(video));
   };
 
   const activate = async (pathway) => {
     if (reducedMotion.matches || document.hidden) return;
 
     activePathway = pathway;
-    pathways.forEach(({ video }) => {
-      if (video !== pathway.video) video.pause();
-    });
+    pathways.forEach(({ video }) => resetVideo(video));
 
     try {
       await pathway.video.play();
       // Playback may finish starting after the pointer/focus has already moved.
       if (activePathway !== pathway || reducedMotion.matches || document.hidden) {
-        pathway.video.pause();
+        resetVideo(pathway.video);
       }
     } catch {
       // A blocked or interrupted play attempt must never interfere with the link.
@@ -336,13 +339,13 @@ function initGatewayVideos() {
 
   const deactivate = (pathway) => {
     if (activePathway === pathway) activePathway = null;
-    pathway.video.pause();
+    resetVideo(pathway.video);
   };
 
   pathways.forEach((pathway) => {
     const { panel, video } = pathway;
     video.muted = true;
-    video.pause();
+    resetVideo(video);
 
     panel.addEventListener('pointerenter', (event) => {
       if (hoverPointer.matches && event.pointerType !== 'touch') activate(pathway);
