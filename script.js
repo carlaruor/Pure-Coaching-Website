@@ -84,8 +84,27 @@ function initStickyHeader() {
     return;
   }
 
+  const isHomepage = document.body.classList.contains('page-home');
+  let revealed = null;
+
   const updateHeader = () => {
     header.classList.toggle('is-scrolled', window.scrollY > 0);
+    if (!isHomepage) return;
+
+    // Separate reveal/hide thresholds avoid flicker from small scroll movements.
+    const nextRevealed = window.scrollY > (revealed ? 8 : 48);
+    if (nextRevealed === revealed) return;
+    revealed = nextRevealed;
+
+    if (!revealed) {
+      if (header.contains(document.activeElement)) {
+        document.querySelector('.pathway-hero__scroll-cue')?.focus({ preventScroll: true });
+      }
+      const menuToggle = header.querySelector('[data-menu-toggle]');
+      if (menuToggle?.getAttribute('aria-expanded') === 'true') menuToggle.click();
+    }
+    header.inert = !revealed;
+    header.classList.toggle('is-revealed', revealed);
   };
 
   window.addEventListener('scroll', updateHeader, { passive: true });
@@ -298,9 +317,101 @@ function initInterestForm(form) {
   });
 }
 
+function initPathwayHeroVideos() {
+  const pathways = Array.from(document.querySelectorAll('.pathway-hero__panel'), (panel) => ({
+    panel,
+    video: panel.querySelector('[data-pathway-hero-video]')
+  })).filter(({ video }) => video);
+
+  if (!pathways.length) return;
+
+  const hoverPointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let activePathway = null;
+
+  const pauseAll = () => {
+    activePathway = null;
+    pathways.forEach(({ panel, video }) => {
+      panel.classList.remove('is-active');
+      video.pause();
+    });
+  };
+
+  const activate = async (pathway) => {
+    if (document.hidden || activePathway === pathway) return;
+
+    activePathway = pathway;
+    pathways.forEach((item) => {
+      item.panel.classList.toggle('is-active', item === pathway);
+      if (item !== pathway) item.video.pause();
+    });
+    if (reducedMotion.matches) return;
+
+    try {
+      await pathway.video.play();
+      // Playback may finish starting after the pointer/focus has already moved.
+      if (activePathway !== pathway || reducedMotion.matches || document.hidden) {
+        pathway.video.pause();
+      }
+    } catch {
+      // A blocked or interrupted play attempt must never interfere with the link.
+    }
+  };
+
+  const deactivate = (pathway) => {
+    if (activePathway === pathway) activePathway = null;
+    pathway.panel.classList.remove('is-active');
+    pathway.video.pause();
+  };
+
+  // Transfer the shared active state directly to the next pathway link.
+  const leave = (pathway, nextTarget, keyboard = false) => {
+    const next = pathways.find(({ panel }) => panel.contains(nextTarget));
+    if (next && (!keyboard || next.panel.matches(':focus-visible'))) {
+      activate(next);
+    } else {
+      deactivate(pathway);
+    }
+  };
+
+  pathways.forEach((pathway) => {
+    const { panel, video } = pathway;
+    video.muted = true;
+    video.pause();
+    video.currentTime = 0;
+
+    video.addEventListener('ended', () => {
+      // Only natural completion rewinds; hover/focus changes retain the frame.
+      video.pause();
+      video.currentTime = 0;
+    });
+
+    panel.addEventListener('pointerenter', (event) => {
+      if (hoverPointer.matches && event.pointerType !== 'touch') activate(pathway);
+    });
+    panel.addEventListener('pointerleave', (event) => {
+      if (hoverPointer.matches && event.pointerType !== 'touch') leave(pathway, event.relatedTarget);
+    });
+    panel.addEventListener('focus', () => {
+      // Keyboard focus also works with an attached keyboard on a touch device.
+      // Pointer/tap focus must not turn navigation into a playback interaction.
+      if (panel.matches(':focus-visible')) activate(pathway);
+    });
+    panel.addEventListener('blur', (event) => leave(pathway, event.relatedTarget, true));
+  });
+
+  reducedMotion.addEventListener('change', pauseAll);
+  hoverPointer.addEventListener('change', pauseAll);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) pauseAll();
+  });
+  window.addEventListener('pagehide', pauseAll);
+}
+
 function init() {
   initMobileNavigation();
   initStickyHeader();
+  initPathwayHeroVideos();
 
   const carouselUpdates = Array.from(
     document.querySelectorAll('[data-carousel]'),
