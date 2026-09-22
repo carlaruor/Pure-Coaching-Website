@@ -3371,6 +3371,18 @@ body.has-modal-open {
   object-position: 55% center;
 }
 
+.ndis-connections__note {
+  margin-top: var(--space-md);
+  color: var(--color-text);
+  font-size: 0.9375rem;
+}
+
+.ndis-connections__content .button {
+  max-width: 100%;
+  margin-top: var(--space-xl);
+  white-space: normal;
+}
+
 .ndis-connections__content {
   max-width: 620px;
 }
@@ -3389,38 +3401,8 @@ body.has-modal-open {
   margin-top: var(--space-lg);
 }
 
-.ndis-connections__pathways {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 30px;
-  margin-top: clamp(36px, 4vw, 48px);
-  border-top: 1px solid var(--color-border);
-  list-style: none;
-}
 
-.ndis-connections__pathways li {
-  display: flex;
-  min-height: 66px;
-  align-items: center;
-  gap: 13px;
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-navy);
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.045em;
-  text-transform: uppercase;
-}
 
-.ndis-connections__pathways svg {
-  flex: 0 0 auto;
-  width: 25px;
-  height: 25px;
-  fill: none;
-  stroke: var(--color-blue-dark);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.7;
-}
 
 .ndis-access {
   scroll-margin-top: 80px;
@@ -3693,9 +3675,6 @@ body.has-modal-open {
     gap: 52px;
   }
 
-  .ndis-connections__pathways {
-    grid-template-columns: 1fr;
-  }
 
 }
 
@@ -4204,10 +4183,6 @@ body.has-modal-open {
   }
 
 
-  .ndis-connections__pathways {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0 20px;
-  }
 
   .ndis-access__pathways {
     gap: 0;
