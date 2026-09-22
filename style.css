@@ -1245,13 +1245,7 @@ button {
 }
 
 .page-hero--ndis {
-  background:
-    linear-gradient(
-      115deg,
-      var(--color-blue-tint) 0%,
-      color-mix(in srgb, var(--color-blue) 8%, var(--color-white)) 45%,
-      var(--color-white) 100%
-    );
+  background: var(--color-white);
 }
 
 .page-hero--ndis .section-eyebrow {
@@ -1303,10 +1297,6 @@ button {
   stroke-width: 1.8;
 }
 
-.page-hero--ndis .page-hero__media {
-  border: 1px solid color-mix(in srgb, var(--color-blue) 50%, var(--color-white));
-  box-shadow: 16px 16px 0 color-mix(in srgb, var(--color-blue) 24%, var(--color-white));
-}
 
 .child-hero {
   position: relative;
@@ -3138,7 +3128,7 @@ body.has-modal-open {
 .process-list__eyebrow {
   margin-top: var(--space-sm);
   color: var(--color-orange-dark);
-  font-size: 0.72rem;
+  font-size: 0.99rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -3278,11 +3268,6 @@ body.has-modal-open {
   max-width: 520px;
 }
 
-.ndis-journey__action {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: clamp(36px, 4vw, 52px);
-}
 
 .ndis-connections {
   overflow: hidden;
@@ -3303,16 +3288,6 @@ body.has-modal-open {
   aspect-ratio: 4 / 3;
 }
 
-.ndis-connections__media::before {
-  position: absolute;
-  top: 24px;
-  right: -20px;
-  bottom: -20px;
-  left: 24px;
-  border-radius: var(--radius-large);
-  background-color: color-mix(in srgb, var(--color-blue) 34%, var(--color-white));
-  content: "";
-}
 
 .ndis-connections__media img {
   position: relative;
@@ -4051,10 +4026,6 @@ body.has-modal-open {
     border-radius: 48px var(--radius-large) var(--radius-large) var(--radius-large);
   }
 
-  .page-hero--ndis .page-hero__media {
-    width: calc(100% - 12px);
-    box-shadow: 12px 12px 0 color-mix(in srgb, var(--color-blue) 24%, var(--color-white));
-  }
 
   .page-hero__actions .button {
     flex: 1 1 220px;
@@ -4155,17 +4126,11 @@ body.has-modal-open {
   }
 
   .ndis-connections__media {
-    width: calc(100% - 12px);
+    width: 100%;
     max-height: 360px;
     aspect-ratio: 4 / 3;
   }
 
-  .ndis-connections__media::before {
-    top: 12px;
-    right: -12px;
-    bottom: -12px;
-    left: 12px;
-  }
 
   .ndis-connections__pathways {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4186,14 +4151,7 @@ body.has-modal-open {
     border-left: 0;
   }
 
-  .ndis-journey__action {
-    justify-content: stretch;
-    margin-top: 40px;
-  }
 
-  .ndis-journey__action .button {
-    width: 100%;
-  }
 
   .ndis-access__pathway .button {
     width: 100%;
