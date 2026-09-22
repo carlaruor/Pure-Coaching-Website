@@ -329,16 +329,11 @@ function initPathwayHeroVideos() {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let activePathway = null;
 
-  const resetVideo = (video) => {
-    video.pause();
-    video.currentTime = 0;
-  };
-
   const pauseAll = () => {
     activePathway = null;
     pathways.forEach(({ panel, video }) => {
       panel.classList.remove('is-active');
-      resetVideo(video);
+      video.pause();
     });
   };
 
@@ -348,7 +343,7 @@ function initPathwayHeroVideos() {
     activePathway = pathway;
     pathways.forEach((item) => {
       item.panel.classList.toggle('is-active', item === pathway);
-      resetVideo(item.video);
+      if (item !== pathway) item.video.pause();
     });
     if (reducedMotion.matches) return;
 
@@ -356,7 +351,7 @@ function initPathwayHeroVideos() {
       await pathway.video.play();
       // Playback may finish starting after the pointer/focus has already moved.
       if (activePathway !== pathway || reducedMotion.matches || document.hidden) {
-        resetVideo(pathway.video);
+        pathway.video.pause();
       }
     } catch {
       // A blocked or interrupted play attempt must never interfere with the link.
@@ -366,7 +361,7 @@ function initPathwayHeroVideos() {
   const deactivate = (pathway) => {
     if (activePathway === pathway) activePathway = null;
     pathway.panel.classList.remove('is-active');
-    resetVideo(pathway.video);
+    pathway.video.pause();
   };
 
   // Transfer the shared active state directly to the next pathway link.
@@ -382,7 +377,14 @@ function initPathwayHeroVideos() {
   pathways.forEach((pathway) => {
     const { panel, video } = pathway;
     video.muted = true;
-    resetVideo(video);
+    video.pause();
+    video.currentTime = 0;
+
+    video.addEventListener('ended', () => {
+      // Only natural completion rewinds; hover/focus changes retain the frame.
+      video.pause();
+      video.currentTime = 0;
+    });
 
     panel.addEventListener('pointerenter', (event) => {
       if (hoverPointer.matches && event.pointerType !== 'touch') activate(pathway);
