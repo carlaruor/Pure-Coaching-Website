@@ -3243,9 +3243,86 @@ body.has-modal-open {
   color: var(--color-orange);
 }
 
+.ndis-support-areas {
+  padding-block: clamp(56px, 6vw, 80px);
+  background-color: var(--color-blue-tint);
+}
+
+.ndis-support-areas__intro {
+  max-width: 780px;
+  margin-bottom: var(--space-xl);
+}
+
+.ndis-support-areas__intro .section-eyebrow {
+  color: var(--color-blue-dark);
+}
+
+.ndis-support-areas__intro .section-title {
+  margin-block: var(--space-sm) var(--space-lg);
+}
+
+.ndis-support-carousel {
+  --carousel-control-size: 44px;
+  --carousel-control-offset: -16px;
+  --carousel-icon-size: 20px;
+}
+
+.ndis-support-carousel .carousel__controls {
+  top: clamp(90px, 9vw, 130px);
+}
+
+.ndis-support-carousel__track {
+  gap: var(--space-lg);
+}
+
+.ndis-support-area {
+  flex: 0 0 29%;
+  min-width: 0;
+}
+
+.ndis-support-area img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  height: auto;
+  object-fit: cover;
+  border-radius: var(--radius-medium);
+}
+
+.ndis-support-area h3 {
+  margin-block: var(--space-lg) var(--space-xs);
+  color: var(--color-navy);
+  font-size: 1.1875rem;
+  line-height: 1.3;
+}
+
+.ndis-support-area p {
+  color: var(--color-text);
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 1023px) {
+  .ndis-support-area {
+    flex-basis: 42%;
+  }
+}
+
+@media (max-width: 639px) {
+  .ndis-support-area {
+    flex-basis: 78%;
+  }
+
+  .ndis-support-carousel {
+    --carousel-control-offset: -12px;
+  }
+
+  .ndis-support-carousel__track {
+    gap: var(--space-md);
+  }
+}
+
 .ndis-journey {
   padding-block: clamp(76px, 7vw, 100px);
-  background-color: var(--color-blue-tint);
+  background-color: var(--color-white);
 }
 
 .ndis-journey__intro {
@@ -3272,7 +3349,7 @@ body.has-modal-open {
 .ndis-connections {
   overflow: hidden;
   padding-block: clamp(64px, 6vw, 84px);
-  background-color: var(--color-white);
+  background-color: var(--color-blue-tint);
 }
 
 .ndis-connections__layout {
@@ -3353,7 +3430,7 @@ body.has-modal-open {
 .ndis-access {
   scroll-margin-top: 80px;
   padding-block: clamp(80px, 8vw, 112px);
-  background-color: var(--color-background);
+  background-color: var(--color-white);
 }
 
 .ndis-access__header {
