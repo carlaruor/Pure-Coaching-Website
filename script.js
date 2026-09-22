@@ -84,8 +84,27 @@ function initStickyHeader() {
     return;
   }
 
+  const isHomepage = document.body.classList.contains('page-home');
+  let revealed = null;
+
   const updateHeader = () => {
     header.classList.toggle('is-scrolled', window.scrollY > 0);
+    if (!isHomepage) return;
+
+    // Separate reveal/hide thresholds avoid flicker from small scroll movements.
+    const nextRevealed = window.scrollY > (revealed ? 8 : 48);
+    if (nextRevealed === revealed) return;
+    revealed = nextRevealed;
+
+    if (!revealed) {
+      if (header.contains(document.activeElement)) {
+        document.querySelector('.pathway-hero__scroll-cue')?.focus({ preventScroll: true });
+      }
+      const menuToggle = header.querySelector('[data-menu-toggle]');
+      if (menuToggle?.getAttribute('aria-expanded') === 'true') menuToggle.click();
+    }
+    header.inert = !revealed;
+    header.classList.toggle('is-revealed', revealed);
   };
 
   window.addEventListener('scroll', updateHeader, { passive: true });
