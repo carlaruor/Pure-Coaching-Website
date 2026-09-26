@@ -1916,11 +1916,6 @@ button {
   margin-top: var(--space-xl);
 }
 
-[data-ndis-question] legend {
-  margin-bottom: var(--space-md);
-  line-height: 1.6;
-}
-
 [data-plan-document-note] {
   line-height: 1.7;
 }
@@ -2097,6 +2092,24 @@ button {
   padding: 18px;
   border-left: 3px solid var(--color-blue);
   background-color: var(--color-blue-tint);
+}
+
+/* A floated legend participates inside the fieldset's padded background
+   instead of the browser's special border-straddling legend layout. */
+.conditional-panel {
+  min-inline-size: 0;
+}
+
+.conditional-panel > legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin-bottom: var(--space-md);
+  line-height: 1.6;
+}
+
+.conditional-panel > legend + * {
+  clear: both;
 }
 
 .field-error {
