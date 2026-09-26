@@ -1245,13 +1245,7 @@ button {
 }
 
 .page-hero--ndis {
-  background:
-    linear-gradient(
-      115deg,
-      var(--color-blue-tint) 0%,
-      color-mix(in srgb, var(--color-blue) 8%, var(--color-white)) 45%,
-      var(--color-white) 100%
-    );
+  background: var(--color-white);
 }
 
 .page-hero--ndis .section-eyebrow {
@@ -1303,10 +1297,6 @@ button {
   stroke-width: 1.8;
 }
 
-.page-hero--ndis .page-hero__media {
-  border: 1px solid color-mix(in srgb, var(--color-blue) 50%, var(--color-white));
-  box-shadow: 16px 16px 0 color-mix(in srgb, var(--color-blue) 24%, var(--color-white));
-}
 
 .child-hero {
   position: relative;
@@ -1910,6 +1900,31 @@ button {
   line-height: 1.15;
 }
 
+/* Keep the contextual Support step readable without changing other steps. */
+[data-form-step="2"] [data-support-eyebrow] {
+  margin-top: var(--space-lg);
+  margin-bottom: var(--space-sm);
+}
+
+[data-support-introduction] {
+  margin-top: var(--space-md);
+  max-width: 60ch;
+  line-height: 1.7;
+}
+
+[data-form-step="2"] [data-ndis-question] {
+  margin-top: var(--space-xl);
+}
+
+[data-plan-document-note] {
+  line-height: 1.7;
+}
+
+[data-plan-document-note] strong {
+  display: block;
+  margin-bottom: var(--space-xs);
+}
+
 .form-group,
 .form-grid,
 .form-step > .field {
@@ -2077,6 +2092,24 @@ button {
   padding: 18px;
   border-left: 3px solid var(--color-blue);
   background-color: var(--color-blue-tint);
+}
+
+/* A floated legend participates inside the fieldset's padded background
+   instead of the browser's special border-straddling legend layout. */
+.conditional-panel {
+  min-inline-size: 0;
+}
+
+.conditional-panel > legend {
+  float: left;
+  width: 100%;
+  padding: 0;
+  margin-bottom: var(--space-md);
+  line-height: 1.6;
+}
+
+.conditional-panel > legend + * {
+  clear: both;
 }
 
 .field-error {
@@ -3138,7 +3171,7 @@ body.has-modal-open {
 .process-list__eyebrow {
   margin-top: var(--space-sm);
   color: var(--color-orange-dark);
-  font-size: 0.72rem;
+  font-size: 0.99rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -3253,9 +3286,81 @@ body.has-modal-open {
   color: var(--color-orange);
 }
 
+.ndis-support-areas {
+  padding-block: clamp(56px, 6vw, 80px);
+  background-color: var(--color-blue-tint);
+}
+
+.ndis-support-areas__intro {
+  max-width: 780px;
+  margin-bottom: var(--space-xl);
+}
+
+.ndis-support-areas__intro .section-eyebrow {
+  color: var(--color-blue-dark);
+}
+
+.ndis-support-areas__intro .section-title {
+  margin-block: var(--space-sm) var(--space-lg);
+}
+
+.ndis-support-carousel {
+  --carousel-control-size: 44px;
+  --carousel-control-offset: -16px;
+  --carousel-icon-size: 20px;
+}
+
+.ndis-support-carousel .carousel__controls {
+  top: 90px;
+}
+
+.ndis-support-carousel__track {
+  gap: 12px;
+  padding-bottom: 8px;
+}
+
+.ndis-support-area {
+  flex: 0 0 clamp(220px, 19vw, 250px);
+  min-width: 0;
+}
+
+.ndis-support-area__visual {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+  border-radius: var(--radius-large);
+  background-color: var(--color-border);
+}
+
+.ndis-support-area img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ndis-support-area h3 {
+  position: absolute;
+  inset: auto 0 0;
+  padding: var(--space-sm) var(--space-md);
+  color: var(--color-white);
+  background-color: color-mix(in srgb, var(--color-orange) 85%, transparent);
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+@media (max-width: 639px) {
+  .ndis-support-area {
+    flex-basis: min(72vw, 250px);
+  }
+
+  .ndis-support-carousel {
+    --carousel-control-offset: -12px;
+  }
+}
+
 .ndis-journey {
   padding-block: clamp(76px, 7vw, 100px);
-  background-color: var(--color-blue-tint);
+  background-color: var(--color-white);
 }
 
 .ndis-journey__intro {
@@ -3278,16 +3383,11 @@ body.has-modal-open {
   max-width: 520px;
 }
 
-.ndis-journey__action {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: clamp(36px, 4vw, 52px);
-}
 
 .ndis-connections {
   overflow: hidden;
   padding-block: clamp(64px, 6vw, 84px);
-  background-color: var(--color-white);
+  background-color: var(--color-blue-tint);
 }
 
 .ndis-connections__layout {
@@ -3303,16 +3403,6 @@ body.has-modal-open {
   aspect-ratio: 4 / 3;
 }
 
-.ndis-connections__media::before {
-  position: absolute;
-  top: 24px;
-  right: -20px;
-  bottom: -20px;
-  left: 24px;
-  border-radius: var(--radius-large);
-  background-color: color-mix(in srgb, var(--color-blue) 34%, var(--color-white));
-  content: "";
-}
 
 .ndis-connections__media img {
   position: relative;
@@ -3322,6 +3412,18 @@ body.has-modal-open {
   border-radius: var(--radius-large);
   object-fit: cover;
   object-position: 55% center;
+}
+
+.ndis-connections__note {
+  margin-top: var(--space-md);
+  color: var(--color-text);
+  font-size: 0.9375rem;
+}
+
+.ndis-connections__content .button {
+  max-width: 100%;
+  margin-top: var(--space-xl);
+  white-space: normal;
 }
 
 .ndis-connections__content {
@@ -3342,43 +3444,13 @@ body.has-modal-open {
   margin-top: var(--space-lg);
 }
 
-.ndis-connections__pathways {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 30px;
-  margin-top: clamp(36px, 4vw, 48px);
-  border-top: 1px solid var(--color-border);
-  list-style: none;
-}
 
-.ndis-connections__pathways li {
-  display: flex;
-  min-height: 66px;
-  align-items: center;
-  gap: 13px;
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-navy);
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.045em;
-  text-transform: uppercase;
-}
 
-.ndis-connections__pathways svg {
-  flex: 0 0 auto;
-  width: 25px;
-  height: 25px;
-  fill: none;
-  stroke: var(--color-blue-dark);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.7;
-}
 
 .ndis-access {
   scroll-margin-top: 80px;
   padding-block: clamp(80px, 8vw, 112px);
-  background-color: var(--color-background);
+  background-color: var(--color-white);
 }
 
 .ndis-access__header {
@@ -3646,9 +3718,6 @@ body.has-modal-open {
     gap: 52px;
   }
 
-  .ndis-connections__pathways {
-    grid-template-columns: 1fr;
-  }
 
 }
 
@@ -4051,10 +4120,6 @@ body.has-modal-open {
     border-radius: 48px var(--radius-large) var(--radius-large) var(--radius-large);
   }
 
-  .page-hero--ndis .page-hero__media {
-    width: calc(100% - 12px);
-    box-shadow: 12px 12px 0 color-mix(in srgb, var(--color-blue) 24%, var(--color-white));
-  }
 
   .page-hero__actions .button {
     flex: 1 1 220px;
@@ -4155,22 +4220,12 @@ body.has-modal-open {
   }
 
   .ndis-connections__media {
-    width: calc(100% - 12px);
+    width: 100%;
     max-height: 360px;
     aspect-ratio: 4 / 3;
   }
 
-  .ndis-connections__media::before {
-    top: 12px;
-    right: -12px;
-    bottom: -12px;
-    left: 12px;
-  }
 
-  .ndis-connections__pathways {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0 20px;
-  }
 
   .ndis-access__pathways {
     gap: 0;
@@ -4186,14 +4241,7 @@ body.has-modal-open {
     border-left: 0;
   }
 
-  .ndis-journey__action {
-    justify-content: stretch;
-    margin-top: 40px;
-  }
 
-  .ndis-journey__action .button {
-    width: 100%;
-  }
 
   .ndis-access__pathway .button {
     width: 100%;
@@ -4466,4 +4514,68 @@ body.has-modal-open {
 
 .page-home .site-header.is-revealed ~ main .pathway-hero__logo {
   opacity: 0;
+}
+
+
+/* Optional documents in the adaptive intake form. */
+.form-documents {
+  margin-top: 30px;
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--color-border);
+}
+
+.form-documents > p,
+.form-documents .field {
+  margin-top: var(--space-md);
+}
+
+.form-documents input[type="file"] {
+  padding: 8px;
+  min-width: 0;
+  font-size: .875rem;
+}
+
+.form-documents input::file-selector-button {
+  padding: 8px 12px;
+  margin-right: 10px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+  color: var(--color-navy);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.document-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.document-list li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  padding-block: var(--space-xs);
+}
+
+.document-list span {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.document-list button {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-navy);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.form-review dd {
+  overflow-wrap: anywhere;
 }
