@@ -80,6 +80,25 @@
                   </div><p class="field-error" data-error-for="support"></p>
                 </fieldset>
                 <fieldset class="form-group conditional-panel" data-ndis-question hidden data-required-group="ndisPlan"><legend>Do you currently have an NDIS plan?</legend><div class="choice-grid choice-grid--three"><label class="choice"><input type="radio" name="ndisPlan" value="Yes"><span><strong>Yes</strong></span></label><label class="choice"><input type="radio" name="ndisPlan" value="No"><span><strong>No</strong></span></label><label class="choice"><input type="radio" name="ndisPlan" value="I'm not sure"><span><strong>I'm not sure</strong></span></label></div><p class="field-error" data-error-for="ndisPlan"></p></fieldset>
+                <div data-ndis-plan-details hidden>
+                  <fieldset class="form-group" data-required-group="fundingManagement"><legend>How is your NDIS funding managed?</legend><div class="choice-grid choice-grid--two">
+                    <label class="choice"><input type="radio" name="fundingManagement" value="Self-managed" disabled><span><strong>Self-managed</strong></span></label>
+                    <label class="choice"><input type="radio" name="fundingManagement" value="Plan-managed" disabled><span><strong>Plan-managed</strong></span></label>
+                    <label class="choice"><input type="radio" name="fundingManagement" value="NDIA-managed (Agency-managed)" disabled><span><strong>NDIA-managed (Agency-managed)</strong></span></label>
+                    <label class="choice"><input type="radio" name="fundingManagement" value="A combination of these" disabled><span><strong>A combination of these</strong></span></label>
+                    <label class="choice"><input type="radio" name="fundingManagement" value="I'm not sure" disabled><span><strong>I'm not sure</strong></span></label>
+                  </div><p class="field-error" data-error-for="fundingManagement"></p></fieldset>
+                  <fieldset class="form-group" data-coordinator-question hidden data-required-group="supportCoordinator"><legend>Do you currently have a Support Coordinator?</legend><div class="choice-grid choice-grid--three">
+                    <label class="choice"><input type="radio" name="supportCoordinator" value="Yes" disabled><span><strong>Yes</strong></span></label>
+                    <label class="choice"><input type="radio" name="supportCoordinator" value="No" disabled><span><strong>No</strong></span></label>
+                    <label class="choice"><input type="radio" name="supportCoordinator" value="I'm not sure" disabled><span><strong>I'm not sure</strong></span></label>
+                  </div><p class="field-error" data-error-for="supportCoordinator"></p></fieldset>
+                  <fieldset class="form-group conditional-panel" data-coordinator-change hidden data-required-group="changeCoordinator"><legend>Are you looking to change Support Coordinators?</legend><div class="choice-grid choice-grid--three">
+                    <label class="choice"><input type="radio" name="changeCoordinator" value="Yes" disabled><span><strong>Yes</strong></span></label>
+                    <label class="choice"><input type="radio" name="changeCoordinator" value="No" disabled><span><strong>No</strong></span></label>
+                    <label class="choice"><input type="radio" name="changeCoordinator" value="I'm not sure" disabled><span><strong>I'm not sure</strong></span></label>
+                  </div><p class="field-error" data-error-for="changeCoordinator"></p></fieldset>
+                </div>
                 <p class="form-note" data-plan-document-note hidden><strong>Have your plan or reports available?</strong>You'll have the option to attach them later. This is completely optional.</p>
                 <p class="form-note" data-private-note hidden>Private Support is paid directly and does not require an NDIS plan.</p>
                 <p class="form-note" data-child-note hidden>You can use this form to make an initial Child Safety enquiry or referral.</p>
