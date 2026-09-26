@@ -17,6 +17,8 @@ function initIntakeForm() {
   const finalStep = steps.length;
   const state = { step: 1, support: '', fixedSupport: '', intent: '' };
 
+  const isSupportCoordination = () => state.support === 'ndis' && state.intent === 'support-coordination';
+  const ndisEnquiryLabel = () => isSupportCoordination() ? 'Support Coordination Enquiry' : 'NDIS Support Enquiry';
   const documentSection = form.querySelector('[data-ndis-documents]');
   const documentConfig = {
     maxSizeMB: 10,
@@ -116,6 +118,23 @@ function initIntakeForm() {
     status.hidden = true;
   }
 
+  function setConditionalFields(container, visible) {
+    const wasVisible = !container.hidden;
+    container.hidden = !visible;
+    container.querySelectorAll('input').forEach((control) => {
+      control.disabled = !visible;
+      if (!visible) {
+        if (control.type === 'radio') control.checked = false;
+        else control.value = '';
+        control.removeAttribute('aria-invalid');
+      }
+    });
+    if (!visible) {
+      container.querySelectorAll('.field-error').forEach((error) => { error.textContent = ''; });
+      if (wasVisible) review.replaceChildren();
+    }
+  }
+
   function updateConditionals() {
     const roleOther = document.querySelector('[data-role-other]');
     const personFields = document.querySelector('[data-person-fields]');
@@ -143,7 +162,12 @@ function initIntakeForm() {
     personFields.hidden = contactFor !== 'Someone else';
     field('personFirstName').required = !personFields.hidden;
     field('personLastName').required = !personFields.hidden;
-    ndisQuestion.hidden = support !== 'ndis';
+    const coordination = isSupportCoordination();
+    setConditionalFields(ndisQuestion, support === 'ndis' && !coordination);
+    const hasPlan = support === 'ndis' && (coordination || selected('ndisPlan')?.value === 'Yes');
+    setConditionalFields(form.querySelector('[data-ndis-plan-details]'), hasPlan);
+    setConditionalFields(form.querySelector('[data-coordinator-question]'), coordination);
+    setConditionalFields(form.querySelector('[data-coordinator-change]'), coordination && selected('supportCoordinator')?.value === 'Yes');
     documentSection.hidden = support !== 'ndis';
     const disabilityFields = form.querySelector('[data-ndis-disabilities]');
     disabilityFields.hidden = support !== 'ndis';
@@ -173,12 +197,15 @@ function initIntakeForm() {
       contactFor: "Please select who you're contacting us for.",
       support: 'Please choose a support option.',
       ndisPlan: 'Please select an NDIS plan option.',
+      fundingManagement: 'Please select how your NDIS funding is managed.',
+      supportCoordinator: 'Please select a Support Coordinator option.',
+      changeCoordinator: 'Please select whether you are looking to change Support Coordinators.',
       ageRange: 'Please select an age range.',
       preferredContact: 'Please choose a preferred contact method.'
     };
 
     step.querySelectorAll('[data-required-group]').forEach((group) => {
-      if (group.hidden) return;
+      if (group.closest('[hidden]')) return;
       const name = group.dataset.requiredGroup;
       if (!selected(name)) {
         setError(name, radioMessages[name]);
@@ -264,7 +291,19 @@ function initIntakeForm() {
       ['Contacting for', contactFor], ['Role', contactFor === 'Myself' ? '' : (value('role') === 'Other' ? value('roleOther') : value('role'))],
       ['Name', `${value('firstName')} ${value('lastName')}`], ['Email', value('email')], ['Phone', value('phone')]
     ]);
-    addReviewGroup('Support', 2, [['Support pathway', supportLabels[state.support]], ['NDIS plan', state.support === 'ndis' ? selected('ndisPlan')?.value : '']]);
+    const coordination = isSupportCoordination();
+    addReviewGroup('Support', 2, [
+      ['Support pathway', supportLabels[state.support]],
+      ['Intent', state.support === 'ndis' ? ndisEnquiryLabel() : ''],
+      ['NDIS plan', state.support === 'ndis' && !coordination ? selected('ndisPlan')?.value : '']
+    ]);
+    if (state.support === 'ndis' && (coordination || selected('ndisPlan')?.value === 'Yes')) {
+      addReviewGroup('NDIS plan details', 2, [
+        ['Funding management', selected('fundingManagement')?.value],
+        ['Current Support Coordinator', coordination ? selected('supportCoordinator')?.value : ''],
+        ['Looking to change Support Coordinators', coordination && selected('supportCoordinator')?.value === 'Yes' ? selected('changeCoordinator')?.value : '']
+      ]);
+    }
     if (state.support === 'ndis' && Object.values(documents).some((files) => files.length)) {
       addReviewGroup('Supporting documents', 4, Object.entries(documents).flatMap(([name, files]) =>
         files.map((file) => [documentConfig.fields[name].label, file.name])));
@@ -297,18 +336,22 @@ function initIntakeForm() {
         introduction: "You're making a Child Safety enquiry. We'll collect a few details so our team can understand what you're looking for and get in touch."
       }
     };
-    const allowedIntent = ['enquiry', 'enrolment', 'referral', 'general'];
+    const allowedIntent = ['enquiry', 'enrolment', 'referral', 'general', 'support-coordination'];
     state.fixedSupport = Object.hasOwn(pathways, support) ? support : '';
     state.support = state.fixedSupport;
     state.intent = allowedIntent.includes(intent) ? intent : '';
-    if (state.fixedSupport === 'ndis' && state.intent === 'enquiry') {
+    if (isSupportCoordination()) {
       form.querySelector('#message-help').textContent = "Tell us a little about your situation and what you'd like help with. Don't worry if you're not sure what support you need yet — just tell us what you know.";
     }
     const choices = form.querySelector('[data-required-group="support"]');
     choices.hidden = Boolean(state.fixedSupport);
     choices.disabled = Boolean(state.fixedSupport);
     if (state.fixedSupport) {
-      const pathway = pathways[state.fixedSupport];
+      const pathway = isSupportCoordination() ? {
+        label: 'Support Coordination',
+        heading: "Let's understand where you're at.",
+        introduction: 'Tell us a little about your current situation so we can understand how we may be able to help.'
+      } : pathways[state.fixedSupport];
       const eyebrow = form.querySelector('[data-support-eyebrow]');
       const introduction = form.querySelector('[data-support-introduction]');
       eyebrow.textContent = pathway.label;
@@ -316,7 +359,7 @@ function initIntakeForm() {
       form.querySelector('#form-step-2-title').textContent = pathway.heading;
       introduction.textContent = pathway.introduction;
       introduction.hidden = false;
-      context.textContent = pathway.label + ' enquiry';
+      context.textContent = state.support === 'ndis' ? ndisEnquiryLabel() : pathway.label + ' enquiry';
       context.hidden = false;
     }
     if (state.intent === 'referral') form.querySelector('input[name="contactFor"][value="Someone else"]').checked = true;
