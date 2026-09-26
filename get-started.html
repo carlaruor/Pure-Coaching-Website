@@ -59,7 +59,7 @@
                   </div><p class="field-error" data-error-for="contactFor"></p>
                 </fieldset>
                 <div class="form-grid">
-                  <div class="field field--full"><label for="role">What best describes you?</label><select id="role" name="role" required><option value="" disabled>Select an option</option><option>Participant / person seeking support</option><option>Parent or family member</option><option>Carer</option><option>Support Coordinator</option><option>Case Manager</option><option>Child Safety professional</option><option>Other professional</option><option>Other</option></select><p class="field-error" data-error-for="role"></p></div>
+                  <div class="field field--full" data-role-field><label for="role">What best describes you?</label><select id="role" name="role" required><option value="" disabled>Select an option</option><option>Participant / person seeking support</option><option>Parent or family member</option><option>Carer</option><option>Support Coordinator</option><option>Case Manager</option><option>Child Safety professional</option><option>Other professional</option><option>Other</option></select><p class="field-error" data-error-for="role"></p></div>
                   <div class="field field--full" data-role-other hidden><label for="roleOther">Please describe</label><input id="roleOther" name="roleOther" type="text" autocomplete="organization-title"><p class="field-error" data-error-for="roleOther"></p></div>
                   <div class="field"><label for="firstName">First name</label><input id="firstName" name="firstName" type="text" autocomplete="given-name" required><p class="field-error" data-error-for="firstName"></p></div>
                   <div class="field"><label for="lastName">Last name</label><input id="lastName" name="lastName" type="text" autocomplete="family-name" required><p class="field-error" data-error-for="lastName"></p></div>
@@ -69,7 +69,8 @@
               </section>
 
               <section class="form-step" data-form-step="2" aria-labelledby="form-step-2-title" hidden>
-                <p class="form-step__number">Step 2 of 5</p><h2 id="form-step-2-title">What are you contacting us about?</h2>
+                <p class="form-step__number">Step 2 of 5</p><p class="section-eyebrow" data-support-eyebrow hidden></p><h2 id="form-step-2-title">What are you contacting us about?</h2>
+                <p data-support-introduction hidden></p>
                 <fieldset class="form-group" data-required-group="support"><legend class="sr-only">Choose a support pathway</legend>
                   <div class="choice-grid choice-grid--support">
                     <label class="choice"><input type="radio" name="support" value="private"><span><strong>Private Support</strong><small>Pay directly for personalised Pure Coaching support.</small></span></label>
@@ -79,6 +80,7 @@
                   </div><p class="field-error" data-error-for="support"></p>
                 </fieldset>
                 <fieldset class="form-group conditional-panel" data-ndis-question hidden data-required-group="ndisPlan"><legend>Do you currently have an NDIS plan?</legend><div class="choice-grid choice-grid--three"><label class="choice"><input type="radio" name="ndisPlan" value="Yes"><span><strong>Yes</strong></span></label><label class="choice"><input type="radio" name="ndisPlan" value="No"><span><strong>No</strong></span></label><label class="choice"><input type="radio" name="ndisPlan" value="I'm not sure"><span><strong>I'm not sure</strong></span></label></div><p class="field-error" data-error-for="ndisPlan"></p></fieldset>
+                <p class="form-note" data-plan-document-note hidden><strong>Have your plan or reports available?</strong>You'll have the option to attach them later. This is completely optional.</p>
                 <p class="form-note" data-private-note hidden>Private Support is paid directly and does not require an NDIS plan.</p>
                 <p class="form-note" data-child-note hidden>You can use this form to make an initial Child Safety enquiry or referral.</p>
               </section>
@@ -86,6 +88,16 @@
               <section class="form-step" data-form-step="3" aria-labelledby="form-step-3-title" hidden>
                 <p class="form-step__number">Step 3 of 5</p><h2 id="form-step-3-title">About the person</h2>
                 <fieldset class="form-group" data-person-fields hidden><legend>Person you're enquiring about</legend><div class="form-grid"><div class="field"><label for="personFirstName">First name</label><input id="personFirstName" name="personFirstName" type="text" autocomplete="off"><p class="field-error" data-error-for="personFirstName"></p></div><div class="field"><label for="personLastName">Last name</label><input id="personLastName" name="personLastName" type="text" autocomplete="off"><p class="field-error" data-error-for="personLastName"></p></div></div></fieldset>
+                <div class="form-grid" data-ndis-disabilities hidden>
+                  <div class="field field--full">
+                    <label for="primaryDisability">Primary Disability <span>(optional)</span></label>
+                    <input id="primaryDisability" name="primaryDisability" type="text" autocomplete="off" disabled>
+                  </div>
+                  <div class="field field--full">
+                    <label for="secondaryDisabilities">Secondary Disability or disabilities <span>(optional)</span></label>
+                    <textarea id="secondaryDisabilities" name="secondaryDisabilities" rows="3" autocomplete="off" disabled></textarea>
+                  </div>
+                </div>
                 <fieldset class="form-group" data-required-group="ageRange"><legend>Age range</legend><div class="choice-grid choice-grid--age"><label class="choice"><input type="radio" name="ageRange" value="Under 12"><span><strong>Under 12</strong></span></label><label class="choice"><input type="radio" name="ageRange" value="12–17"><span><strong>12–17</strong></span></label><label class="choice"><input type="radio" name="ageRange" value="18–24"><span><strong>18–24</strong></span></label><label class="choice"><input type="radio" name="ageRange" value="25+"><span><strong>25+</strong></span></label><label class="choice"><input type="radio" name="ageRange" value="Prefer not to say"><span><strong>Prefer not to say</strong></span></label></div><p class="field-error" data-error-for="ageRange"></p></fieldset>
               </section>
 
@@ -95,6 +107,24 @@
                 <fieldset class="form-group" data-required-group="preferredContact"><legend>How would you prefer us to contact you?</legend><div class="choice-grid choice-grid--three"><label class="choice"><input type="radio" name="preferredContact" value="Phone"><span><strong>Phone</strong></span></label><label class="choice"><input type="radio" name="preferredContact" value="Email"><span><strong>Email</strong></span></label><label class="choice"><input type="radio" name="preferredContact" value="Either"><span><strong>Either</strong></span></label></div><p class="field-error" data-error-for="preferredContact"></p></fieldset>
                 <div class="field field--full"><label for="contactTime">Best time to contact you <span>(optional)</span></label><select id="contactTime" name="contactTime"><option value="">Select a time</option><option>Morning</option><option>Afternoon</option><option>Either</option><option>Other</option></select></div>
                 <div class="field field--full" data-time-other hidden><label for="contactTimeOther">Please describe the best time</label><input id="contactTimeOther" name="contactTimeOther" type="text"><p class="field-error" data-error-for="contactTimeOther"></p></div>
+                <div class="form-documents" data-ndis-documents hidden>
+                  <h3>Supporting documents</h3>
+                  <p>If you have these documents available, you can attach them to help our team understand your support needs. You can also provide them later.</p>
+                  <div class="field">
+                    <label for="ndisPlanDocument">NDIS Plan <span>(optional)</span></label>
+                    <p class="field-help" id="ndisPlanDocument-help">Optional — attach your current NDIS Plan if available. PDF, DOC or DOCX, up to 10 MB per file.</p>
+                    <input type="file" id="ndisPlanDocument" name="ndisPlanDocument" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-describedby="ndisPlanDocument-help" disabled>
+                    <p class="field-error" data-error-for="ndisPlanDocument" aria-live="polite"></p>
+                    <ul class="document-list" data-document-list="ndisPlanDocument" aria-live="polite"></ul>
+                  </div>
+                  <div class="field">
+                    <label for="supportingReports">Supporting Reports <span>(optional)</span></label>
+                    <p class="field-help" id="supportingReports-help">Optional — attach up to 3 relevant reports, such as reports from your psychologist, occupational therapist, physiotherapist or other relevant professionals. PDF, DOC or DOCX, up to 10 MB per file.</p>
+                    <input type="file" id="supportingReports" name="supportingReports" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple aria-describedby="supportingReports-help" disabled>
+                    <p class="field-error" data-error-for="supportingReports" aria-live="polite"></p>
+                    <ul class="document-list" data-document-list="supportingReports" aria-live="polite"></ul>
+                  </div>
+                </div>
               </section>
 
               <section class="form-step" data-form-step="5" aria-labelledby="form-step-5-title" hidden>
@@ -103,10 +133,10 @@
                 <label class="consent"><input type="checkbox" name="consent" required><span>I consent to Pure Coaching contacting me about this enquiry. <a href="#">Privacy Policy</a></span></label><p class="field-error" data-error-for="consent"></p>
               </section>
 
-              <div class="form-actions"><button class="button button--secondary" type="button" data-form-back hidden>Back</button><button class="button button--primary" type="button" data-form-next>Continue</button><button class="button button--primary" type="submit" data-form-submit hidden>Send Enquiry →</button></div>
+              <div class="form-actions"><button class="button button--secondary" type="button" data-form-back hidden>Back</button><button class="button button--primary" type="button" data-form-next>Continue</button><button class="button button--primary" type="submit" data-form-submit hidden>Finish preview →</button></div>
             </form>
 
-            <div class="form-confirmation" data-form-confirmation hidden tabindex="-1"><span class="form-confirmation__icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m7 12 3 3 7-7"></path><circle cx="12" cy="12" r="9"></circle></svg></span><h2>Thanks for getting in touch.</h2><p>Our team will review your enquiry and contact you using your preferred contact method.</p></div>
+            <div class="form-confirmation" data-form-confirmation hidden tabindex="-1"><span class="form-confirmation__icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m7 12 3 3 7-7"></path><circle cx="12" cy="12" r="9"></circle></svg></span><h2>Enquiry preview complete.</h2><p>The submission service is not connected yet. Your enquiry and documents have not been sent to Pure Coaching. To discuss support, please call <a href="tel:+61407234842">0407 234 842</a>.</p></div>
           </div>
         </div>
       </section>

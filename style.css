@@ -1900,6 +1900,36 @@ button {
   line-height: 1.15;
 }
 
+/* Keep the contextual Support step readable without changing other steps. */
+[data-form-step="2"] [data-support-eyebrow] {
+  margin-top: var(--space-lg);
+  margin-bottom: var(--space-sm);
+}
+
+[data-support-introduction] {
+  margin-top: var(--space-md);
+  max-width: 60ch;
+  line-height: 1.7;
+}
+
+[data-form-step="2"] [data-ndis-question] {
+  margin-top: var(--space-xl);
+}
+
+[data-ndis-question] legend {
+  margin-bottom: var(--space-md);
+  line-height: 1.6;
+}
+
+[data-plan-document-note] {
+  line-height: 1.7;
+}
+
+[data-plan-document-note] strong {
+  display: block;
+  margin-bottom: var(--space-xs);
+}
+
 .form-group,
 .form-grid,
 .form-step > .field {
@@ -4471,4 +4501,68 @@ body.has-modal-open {
 
 .page-home .site-header.is-revealed ~ main .pathway-hero__logo {
   opacity: 0;
+}
+
+
+/* Optional documents in the adaptive intake form. */
+.form-documents {
+  margin-top: 30px;
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--color-border);
+}
+
+.form-documents > p,
+.form-documents .field {
+  margin-top: var(--space-md);
+}
+
+.form-documents input[type="file"] {
+  padding: 8px;
+  min-width: 0;
+  font-size: .875rem;
+}
+
+.form-documents input::file-selector-button {
+  padding: 8px 12px;
+  margin-right: 10px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-small);
+  background: var(--color-surface);
+  color: var(--color-navy);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.document-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.document-list li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  padding-block: var(--space-xs);
+}
+
+.document-list span {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.document-list button {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-navy);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.form-review dd {
+  overflow-wrap: anywhere;
 }
