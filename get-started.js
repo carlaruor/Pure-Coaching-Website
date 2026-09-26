@@ -301,6 +301,9 @@ function initIntakeForm() {
     state.fixedSupport = Object.hasOwn(pathways, support) ? support : '';
     state.support = state.fixedSupport;
     state.intent = allowedIntent.includes(intent) ? intent : '';
+    if (state.fixedSupport === 'ndis' && state.intent === 'enquiry') {
+      form.querySelector('#message-help').textContent = "Tell us a little about your situation and what you'd like help with. Don't worry if you're not sure what support you need yet — just tell us what you know.";
+    }
     const choices = form.querySelector('[data-required-group="support"]');
     choices.hidden = Boolean(state.fixedSupport);
     choices.disabled = Boolean(state.fixedSupport);
