@@ -831,9 +831,26 @@ button {
   background-color: var(--color-white);
 }
 
+.page-home {
+  --home-section-white: var(--color-white);
+  --home-section-blue: var(--color-blue-tint);
+}
+
+.page-home .home-section--white {
+  --home-section-background: var(--home-section-white);
+
+  background-color: var(--home-section-background);
+}
+
+.page-home .home-section--blue {
+  --home-section-background: var(--home-section-blue);
+
+  background-color: var(--home-section-background);
+}
+
 .brand-watermark {
   position: absolute;
-  z-index: 0;
+  z-index: 1;
   top: var(--brand-watermark-y);
   left: var(--brand-watermark-x);
   width: var(--brand-watermark-size);
@@ -845,24 +862,28 @@ button {
   user-select: none;
 }
 
-.home-brand-zone > section {
+.home-brand-zone > .home-section {
   position: relative;
-  z-index: 1;
+  background-color: transparent;
 }
 
-.home-brand-zone .activities-showcase {
-  background-color: rgb(255 255 255 / 78%);
+.home-brand-zone > .home-section::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background-color: var(--home-section-background);
+  content: "";
 }
 
-.home-brand-zone .journey-statement {
-  background-color: rgb(239 248 253 / 76%);
-}
-
-.home-brand-zone .instagram-showcase {
-  background-color: rgb(247 251 253 / 80%);
+.home-brand-zone > .home-section > .container {
+  position: relative;
+  z-index: 2;
 }
 
 .journey-statement {
+  --journey-safe-zone-expansion: clamp(28px, 4vw, 56px);
+  --journey-safe-zone-solid-stop: 62%;
+
   position: relative;
   overflow: hidden;
   padding-block: clamp(52px, 6vw, 76px) clamp(66px, 7vw, 88px);
@@ -876,6 +897,32 @@ button {
   grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
   align-items: end;
   gap: clamp(36px, 6vw, 80px);
+}
+
+.journey-statement__intro,
+.journey-statement__copy {
+  position: relative;
+  isolation: isolate;
+}
+
+.journey-statement__intro::before,
+.journey-statement__copy::before {
+  position: absolute;
+  z-index: -1;
+  inset: calc(var(--journey-safe-zone-expansion) * -1);
+  background-color: var(--home-section-blue);
+  content: "";
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(
+    ellipse at center,
+    #000 0 var(--journey-safe-zone-solid-stop),
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse at center,
+    #000 0 var(--journey-safe-zone-solid-stop),
+    transparent 100%
+  );
 }
 
 .journey-statement .section-eyebrow {
@@ -918,7 +965,6 @@ button {
 
 .instagram-showcase {
   padding-block: clamp(60px, 7vw, 88px);
-  border-top: 1px solid color-mix(in srgb, var(--color-blue) 22%, var(--color-border));
   background-color: color-mix(in srgb, var(--color-blue) 5%, var(--color-white));
 }
 
@@ -1043,7 +1089,6 @@ button {
 
 .reviews-strip {
   padding-block: 64px;
-  border-top: 1px solid var(--color-border);
   background-color: var(--color-surface);
 }
 
