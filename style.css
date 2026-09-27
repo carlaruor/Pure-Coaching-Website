@@ -818,6 +818,50 @@ button {
   line-height: 1.22;
 }
 
+.home-brand-zone {
+  --brand-watermark-size: clamp(1400px, 125vw, 1900px);
+  --brand-watermark-x: 112%;
+  --brand-watermark-y: 48%;
+  --brand-watermark-rotation: -7deg;
+  --brand-watermark-opacity: 0.68;
+
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background-color: var(--color-white);
+}
+
+.brand-watermark {
+  position: absolute;
+  z-index: 0;
+  top: var(--brand-watermark-y);
+  left: var(--brand-watermark-x);
+  width: var(--brand-watermark-size);
+  max-width: none;
+  height: auto;
+  opacity: var(--brand-watermark-opacity);
+  pointer-events: none;
+  transform: translate(-50%, -50%) rotate(var(--brand-watermark-rotation));
+  user-select: none;
+}
+
+.home-brand-zone > section {
+  position: relative;
+  z-index: 1;
+}
+
+.home-brand-zone .activities-showcase {
+  background-color: rgb(255 255 255 / 78%);
+}
+
+.home-brand-zone .journey-statement {
+  background-color: rgb(239 248 253 / 76%);
+}
+
+.home-brand-zone .instagram-showcase {
+  background-color: rgb(247 251 253 / 80%);
+}
+
 .journey-statement {
   position: relative;
   overflow: hidden;
@@ -4637,6 +4681,14 @@ body.has-modal-open {
 }
 
 @media (max-width: 1023px) {
+  .home-brand-zone {
+    --brand-watermark-size: clamp(1100px, 150vw, 1450px);
+    --brand-watermark-x: 124%;
+    --brand-watermark-y: 50%;
+    --brand-watermark-rotation: -9deg;
+    --brand-watermark-opacity: 0.6;
+  }
+
   .journey-statement {
     padding-block: 52px 68px;
   }
@@ -4660,6 +4712,14 @@ body.has-modal-open {
 }
 
 @media (max-width: 767px) {
+  .home-brand-zone {
+    --brand-watermark-size: clamp(760px, 225vw, 980px);
+    --brand-watermark-x: 150%;
+    --brand-watermark-y: 52%;
+    --brand-watermark-rotation: -12deg;
+    --brand-watermark-opacity: 0.54;
+  }
+
   .journey-statement {
     padding-block: 44px 58px;
   }
