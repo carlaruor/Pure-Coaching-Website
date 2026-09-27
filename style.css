@@ -818,6 +818,60 @@ button {
   line-height: 1.22;
 }
 
+.journey-statement {
+  position: relative;
+  overflow: hidden;
+  padding-block: clamp(52px, 6vw, 76px) clamp(66px, 7vw, 88px);
+  background-color: var(--color-blue-tint);
+}
+
+.journey-statement__layout {
+  display: grid;
+  position: relative;
+  z-index: 1;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+  align-items: end;
+  gap: clamp(36px, 6vw, 80px);
+}
+
+.journey-statement .section-eyebrow {
+  margin-bottom: var(--space-md);
+  color: var(--color-blue-dark);
+}
+
+.journey-statement__title {
+  color: var(--color-navy);
+  font-size: clamp(3rem, 5.5vw, 5.25rem);
+  font-weight: 850;
+  letter-spacing: -0.065em;
+  line-height: 0.92;
+}
+
+.journey-statement__title span {
+  display: block;
+}
+
+.journey-statement__title span:nth-child(2) {
+  margin-left: clamp(24px, 5vw, 72px);
+}
+
+.journey-statement__title .journey-statement__accent {
+  margin-top: 0.12em;
+  margin-left: clamp(52px, 10vw, 148px);
+  color: var(--color-orange);
+  font-style: italic;
+  font-weight: 750;
+  letter-spacing: -0.055em;
+}
+
+.journey-statement__copy {
+  max-width: 450px;
+  margin-bottom: clamp(8px, 2vw, 28px);
+  color: var(--color-text);
+  font-size: clamp(1.0625rem, 1.45vw, 1.25rem);
+  line-height: 1.75;
+}
+
 .instagram-showcase {
   padding-block: clamp(60px, 7vw, 88px);
   border-top: 1px solid color-mix(in srgb, var(--color-blue) 22%, var(--color-border));
@@ -4583,12 +4637,63 @@ body.has-modal-open {
 }
 
 @media (max-width: 1023px) {
+  .journey-statement {
+    padding-block: 52px 68px;
+  }
+
+  .journey-statement__layout {
+    grid-template-columns: minmax(0, 1.1fr) minmax(240px, 0.9fr);
+    gap: var(--space-xl);
+  }
+
+  .journey-statement__title {
+    font-size: clamp(3rem, 6.5vw, 4.25rem);
+  }
+
+  .journey-statement__title .journey-statement__accent {
+    margin-left: clamp(40px, 7vw, 72px);
+  }
+
   .instagram-feed {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 767px) {
+  .journey-statement {
+    padding-block: 44px 58px;
+  }
+
+  .journey-statement__layout {
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+  }
+
+  .journey-statement .section-eyebrow {
+    margin-bottom: 12px;
+  }
+
+  .journey-statement__title {
+    font-size: clamp(2.5rem, 12vw, 3.5rem);
+    line-height: 0.96;
+  }
+
+  .journey-statement__title span:nth-child(2) {
+    margin-left: 16px;
+  }
+
+  .journey-statement__title .journey-statement__accent {
+    margin-top: 0.14em;
+    margin-left: 32px;
+  }
+
+  .journey-statement__copy {
+    max-width: 36rem;
+    margin-bottom: 0;
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
   .instagram-showcase {
     padding-block: 52px;
   }
