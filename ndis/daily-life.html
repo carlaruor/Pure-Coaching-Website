@@ -106,25 +106,52 @@
       </section>
 
       <section class="daily-life-examples" aria-labelledby="daily-life-examples-title">
-        <div class="container daily-life-examples__layout">
-          <div class="daily-life-examples__intro">
-            <p class="section-eyebrow">Real-world support</p>
-            <h2 class="section-title" id="daily-life-examples-title">What can Daily Life look like with Pure Coaching?</h2>
-          </div>
-          <div class="daily-life-gallery">
-            <div class="daily-life-gallery__grid">
-              <figure><img src="../assets/images/activities/domestic-support.webp" alt="Pure Coaching support worker demonstrating a household routine" width="1672" height="941" loading="lazy"></figure>
-              <figure><img src="../assets/images/activities/social-activities.webp" alt="Participant connecting with others during a community activity" width="1672" height="941" loading="lazy"></figure>
-              <figure><img src="../assets/images/activities/driving-independence.webp" alt="Participant practising driving with support from Pure Coaching" width="1672" height="941" loading="lazy"></figure>
-              <figure><img src="../assets/images/activities/mentoring.webp" alt="Participant planning everyday goals with a Pure Coaching mentor" width="1672" height="941" loading="lazy"></figure>
+        <div class="container">
+          <div class="daily-life-examples__header">
+            <div class="daily-life-examples__intro">
+              <p class="section-eyebrow">Real-world support</p>
+              <h2 class="section-title" id="daily-life-examples-title">Daily Life support, in real life.</h2>
             </div>
-            <button class="daily-life-gallery__more" type="button" disabled title="More Daily Life photos coming soon">View more photos <span aria-hidden="true">→</span></button>
+          </div>
+          <div class="daily-life-gallery carousel" data-carousel data-gallery>
+            <div class="carousel__controls" aria-label="Daily Life photo carousel controls">
+              <button type="button" aria-label="Previous Daily Life photos" aria-controls="daily-life-gallery-track" data-carousel-previous>
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
+              </button>
+              <button type="button" aria-label="Next Daily Life photos" aria-controls="daily-life-gallery-track" data-carousel-next>
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+              </button>
+            </div>
+            <div class="daily-life-gallery__track carousel__track" id="daily-life-gallery-track" role="region" aria-label="Daily Life support photos" tabindex="0" data-carousel-track>
+              <figure><button type="button" aria-label="Open household support photo" aria-haspopup="dialog" data-gallery-item><img src="../assets/images/activities/domestic-support.webp" alt="Pure Coaching support worker demonstrating a household routine" width="1672" height="941" loading="lazy"></button></figure>
+              <figure><button type="button" aria-label="Open community activity photo" aria-haspopup="dialog" data-gallery-item><img src="../assets/images/activities/social-activities.webp" alt="Participant connecting with others during a community activity" width="1672" height="941" loading="lazy"></button></figure>
+              <figure><button type="button" aria-label="Open driving support photo" aria-haspopup="dialog" data-gallery-item><img src="../assets/images/activities/driving-independence.webp" alt="Participant practising driving with support from Pure Coaching" width="1672" height="941" loading="lazy"></button></figure>
+              <figure><button type="button" aria-label="Open mentoring support photo" aria-haspopup="dialog" data-gallery-item><img src="../assets/images/activities/mentoring.webp" alt="Participant planning everyday goals with a Pure Coaching mentor" width="1672" height="941" loading="lazy"></button></figure>
+            </div>
+
+            <div class="modal gallery-lightbox" id="daily-life-gallery-lightbox" data-gallery-lightbox hidden>
+              <div class="modal__backdrop" data-gallery-close></div>
+              <section class="gallery-lightbox__dialog" role="dialog" aria-modal="true" aria-label="Daily Life photo gallery" tabindex="-1">
+                <button class="gallery-lightbox__close" type="button" aria-label="Close gallery" data-gallery-close>
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"></path></svg>
+                </button>
+                <button class="gallery-lightbox__previous" type="button" aria-label="Previous photo" data-gallery-previous>
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
+                </button>
+                <div class="gallery-lightbox__stage" data-gallery-stage>
+                  <img alt="" data-gallery-lightbox-image>
+                </div>
+                <button class="gallery-lightbox__next" type="button" aria-label="Next photo" data-gallery-next>
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+                </button>
+              </section>
+            </div>
           </div>
         </div>
       </section>
 
       <section class="daily-life-progress" aria-labelledby="daily-life-progress-title">
-        <div class="container">
+        <div class="container daily-life-progress__layout">
           <div class="daily-life-progress__intro">
             <p class="section-eyebrow">Progress with purpose</p>
             <h2 class="section-title" id="daily-life-progress-title">Small steps can make everyday life feel more manageable.</h2>

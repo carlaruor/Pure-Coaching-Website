@@ -331,6 +331,108 @@ function initModal(modal) {
   });
 }
 
+function initGallery(gallery) {
+  const items = Array.from(gallery.querySelectorAll('[data-gallery-item]'));
+  const lightbox = gallery.querySelector('[data-gallery-lightbox]');
+  const dialog = lightbox?.querySelector('[role="dialog"]');
+  const lightboxImage = lightbox?.querySelector('[data-gallery-lightbox-image]');
+  const stage = lightbox?.querySelector('[data-gallery-stage]');
+  const previousButton = lightbox?.querySelector('[data-gallery-previous]');
+  const nextButton = lightbox?.querySelector('[data-gallery-next]');
+  const closeButtons = Array.from(lightbox?.querySelectorAll('[data-gallery-close]') || []);
+  const focusableSelector = 'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
+  let currentIndex = 0;
+  let returnFocusTo = null;
+  let touchStartX = null;
+
+  if (!items.length || !lightbox || !dialog || !lightboxImage || !stage || !previousButton || !nextButton) return;
+
+  items.forEach((item) => {
+    item.setAttribute('aria-controls', lightbox.id);
+    item.setAttribute('aria-expanded', 'false');
+  });
+
+  const showPhoto = (index) => {
+    currentIndex = (index + items.length) % items.length;
+    const sourceImage = items[currentIndex].querySelector('img');
+    if (!sourceImage) return;
+
+    lightboxImage.src = sourceImage.currentSrc || sourceImage.src;
+    lightboxImage.alt = sourceImage.alt;
+  };
+
+  const closeGallery = () => {
+    lightbox.hidden = true;
+    document.body.classList.remove('has-modal-open');
+    items.forEach((item) => item.setAttribute('aria-expanded', 'false'));
+    returnFocusTo?.focus({ preventScroll: true });
+    returnFocusTo = null;
+  };
+
+  const openGallery = (item, index) => {
+    returnFocusTo = item;
+    showPhoto(index);
+    lightbox.hidden = false;
+    document.body.classList.add('has-modal-open');
+    item.setAttribute('aria-expanded', 'true');
+    lightbox.querySelector('.gallery-lightbox__close')?.focus();
+  };
+
+  items.forEach((item, index) => {
+    item.addEventListener('click', () => openGallery(item, index));
+  });
+  closeButtons.forEach((button) => button.addEventListener('click', closeGallery));
+  previousButton.addEventListener('click', () => showPhoto(currentIndex - 1));
+  nextButton.addEventListener('click', () => showPhoto(currentIndex + 1));
+
+  lightbox.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeGallery();
+      return;
+    }
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      showPhoto(currentIndex - 1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      showPhoto(currentIndex + 1);
+      return;
+    }
+    if (event.key !== 'Tab') return;
+
+    const focusableElements = Array.from(dialog.querySelectorAll(focusableSelector));
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (!firstElement || !lastElement) {
+      event.preventDefault();
+      dialog.focus();
+    } else if (event.shiftKey && document.activeElement === firstElement) {
+      event.preventDefault();
+      lastElement.focus();
+    } else if (!event.shiftKey && document.activeElement === lastElement) {
+      event.preventDefault();
+      firstElement.focus();
+    }
+  });
+
+  stage.addEventListener('touchstart', (event) => {
+    touchStartX = event.changedTouches[0]?.clientX ?? null;
+  }, { passive: true });
+  stage.addEventListener('touchend', (event) => {
+    if (touchStartX === null) return;
+    const touchEndX = event.changedTouches[0]?.clientX ?? touchStartX;
+    const distance = touchEndX - touchStartX;
+    touchStartX = null;
+
+    if (Math.abs(distance) < 50) return;
+    showPhoto(currentIndex + (distance < 0 ? 1 : -1));
+  }, { passive: true });
+}
+
 function initDisclosure(disclosure) {
   const trigger = disclosure.querySelector('[data-disclosure-trigger]');
   const panel = disclosure.querySelector('[data-disclosure-panel]');
@@ -519,6 +621,7 @@ function init() {
   }
 
   document.querySelectorAll('[data-modal]').forEach(initModal);
+  document.querySelectorAll('[data-gallery]').forEach(initGallery);
   document.querySelectorAll('[data-disclosure]').forEach(initDisclosure);
   document.querySelectorAll('[data-interest-form]').forEach(initInterestForm);
 
