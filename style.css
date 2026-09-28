@@ -4123,7 +4123,7 @@ body.has-modal-open {
 
 .ndis-access {
   scroll-margin-top: 80px;
-  padding-block: clamp(80px, 8vw, 112px);
+  padding-block: clamp(48px, 4.5vw, 64px);
   background-color: var(--color-white);
 }
 
@@ -4132,18 +4132,18 @@ body.has-modal-open {
 }
 
 .ndis-access__header .section-title {
-  margin-top: var(--space-md);
+  margin-top: var(--space-sm);
 }
 
 .ndis-access__header .section-description {
   max-width: 600px;
-  margin-top: var(--space-lg);
+  margin-top: var(--space-md);
 }
 
 .ndis-access__pathways {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: clamp(48px, 5vw, 68px);
+  margin-top: clamp(28px, 3vw, 40px);
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--color-blue) 40%, var(--color-border));
   border-radius: var(--radius-large);
@@ -4153,10 +4153,9 @@ body.has-modal-open {
 .ndis-access__pathway {
   display: flex;
   min-width: 0;
-  min-height: 360px;
   flex-direction: column;
   align-items: flex-start;
-  padding: clamp(30px, 4vw, 48px);
+  padding: clamp(24px, 3vw, 34px);
   scroll-margin-top: 100px;
 }
 
@@ -4191,7 +4190,7 @@ body.has-modal-open {
 }
 
 .ndis-access__label {
-  margin-top: 30px;
+  margin-top: 20px;
   color: var(--color-blue-dark);
   font-size: 0.75rem;
   font-weight: 800;
@@ -4208,8 +4207,8 @@ body.has-modal-open {
 
 .ndis-access__pathway h3 + p {
   max-width: 500px;
-  margin-top: var(--space-md);
-  margin-bottom: 32px;
+  margin-top: var(--space-sm);
+  margin-bottom: 24px;
   color: var(--color-text);
   line-height: 1.65;
 }
@@ -4877,7 +4876,7 @@ body.has-modal-open {
   }
 
   .ndis-access {
-    padding-block: 64px;
+    padding-block: 44px;
   }
 
   .ndis-connections {
@@ -4906,8 +4905,7 @@ body.has-modal-open {
   }
 
   .ndis-access__pathway {
-    min-height: 330px;
-    padding: 28px;
+    padding: 24px;
   }
 
   .ndis-access__pathway--referral {
