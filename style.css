@@ -477,16 +477,15 @@ button {
   line-height: 1.2;
   text-align: center;
   white-space: nowrap;
-  transition: color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .button--primary {
-  color: var(--color-black);
+  color: var(--color-white);
   background-color: var(--color-orange);
 }
 
 .button--primary:hover {
-  color: var(--color-white);
   background-color: var(--color-orange-dark);
   transform: translateY(-1px);
 }
@@ -5665,10 +5664,6 @@ body.has-modal-open {
   line-height: 1.68;
 }
 
-.support-page-hero__content .button {
-  margin-top: var(--space-lg);
-}
-
 .support-page-hero__media {
   height: clamp(280px, 33vw, 430px);
   margin-top: clamp(24px, 3vw, 34px);
@@ -5908,7 +5903,7 @@ body.has-modal-open {
 .community-outcomes li svg {
   width: 27px;
   height: 27px;
-  color: var(--color-blue);
+  color: color-mix(in srgb, var(--color-blue) 55%, var(--color-blue-dark));
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
