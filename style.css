@@ -1,9 +1,12 @@
 :root {
-  --color-orange: #f45b0b;
-  --color-orange-dark: #d94d00;
-  --color-blue: #67b7e8;
-  --color-blue-dark: #397b9f;
-  --color-navy: #171c24;
+  --color-orange: #ff5900;
+  --color-black: #020a0a;
+  --color-orange-dark: color-mix(in srgb, var(--color-orange) 78%, var(--color-black));
+  --color-blue: #b7dcf6;
+  --color-blue-dark: #1d252d;
+  --color-navy: #1d252d;
+  --color-eyebrow-orange: #d94d00;
+  --color-eyebrow-blue: #397b9f;
   --color-text: #252b33;
   --color-muted: #747b84;
   --color-background: #f5f7f9;
@@ -32,8 +35,8 @@
   --transition-ui: 180ms ease;
   --transition-standard: 200ms ease;
 
-  --shadow-small: 0 4px 12px rgb(23 28 36 / 5%);
-  --shadow-control: 0 4px 14px rgb(23 28 36 / 12%);
+  --shadow-small: 0 4px 12px rgb(2 10 10 / 5%);
+  --shadow-control: 0 4px 14px rgb(2 10 10 / 12%);
 }
 
 *,
@@ -129,7 +132,7 @@ button {
 }
 
 .section-eyebrow {
-  color: var(--color-orange-dark);
+  color: var(--color-eyebrow-orange);
   font-size: 0.8125rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -181,7 +184,7 @@ button {
 
 .pathway-hero__intro h1 {
   color: var(--color-white);
-  text-shadow: 0 1px 3px var(--color-navy), 0 2px 16px rgb(23 28 36 / 65%);
+  text-shadow: 0 1px 3px var(--color-navy), 0 2px 16px rgb(29 37 45 / 65%);
   font-size: clamp(1.75rem, 3.2vw, 3rem);
   text-transform: uppercase;
 }
@@ -290,8 +293,8 @@ button {
   background: linear-gradient(
     to bottom,
     transparent,
-    rgb(23 28 36 / 66%) 64px,
-    rgb(23 28 36 / 82%) 100%
+    rgb(29 37 45 / 66%) 64px,
+    rgb(29 37 45 / 82%) 100%
   );
 }
 
@@ -406,7 +409,7 @@ button {
 
 .site-header.is-scrolled {
   border-bottom-color: var(--color-border);
-  box-shadow: 0 4px 14px rgb(23 28 36 / 6%);
+  box-shadow: 0 4px 14px rgb(2 10 10 / 6%);
 }
 
 .site-header__inner {
@@ -474,15 +477,16 @@ button {
   line-height: 1.2;
   text-align: center;
   white-space: nowrap;
-  transition: background-color var(--transition-fast), transform var(--transition-fast);
+  transition: color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .button--primary {
-  color: var(--color-white);
+  color: var(--color-black);
   background-color: var(--color-orange);
 }
 
 .button--primary:hover {
+  color: var(--color-white);
   background-color: var(--color-orange-dark);
   transform: translateY(-1px);
 }
@@ -556,7 +560,7 @@ button {
 }
 
 .approach .section-eyebrow {
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .approach__title {
@@ -596,7 +600,7 @@ button {
   margin-bottom: 22px;
   border-radius: var(--radius-medium);
   color: var(--color-orange-dark);
-  background-color: rgb(244 91 11 / 10%);
+  background-color: rgb(255 89 0 / 10%);
 }
 
 .approach__icon svg {
@@ -992,7 +996,7 @@ button {
 
 .journey-statement .section-eyebrow {
   margin-bottom: var(--space-md);
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .journey-statement__title {
@@ -1173,7 +1177,7 @@ button {
   border: 1px solid rgb(255 255 255 / 46%);
   border-radius: 50%;
   color: var(--color-white);
-  background-color: rgb(23 28 36 / 62%);
+  background-color: rgb(29 37 45 / 62%);
   place-items: center;
 }
 
@@ -1628,7 +1632,7 @@ button {
 }
 
 .page-hero--ndis .section-eyebrow {
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .page-hero--ndis h1 span {
@@ -1707,7 +1711,7 @@ button {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .child-hero__content .section-eyebrow::before {
@@ -1851,7 +1855,7 @@ button {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .child-approach__intro .section-eyebrow::before {
@@ -1963,7 +1967,7 @@ button {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .child-everyday__header .section-eyebrow::before {
@@ -2060,7 +2064,7 @@ button {
 }
 
 .child-enquiry__intro .section-eyebrow {
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .child-enquiry__intro .section-title {
@@ -2176,7 +2180,7 @@ button {
 }
 
 .intake-intro .section-eyebrow {
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .intake-intro h1 {
@@ -2206,7 +2210,7 @@ button {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-large);
   background-color: var(--color-white);
-  box-shadow: 0 16px 45px rgb(23 28 36 / 8%);
+  box-shadow: 0 16px 45px rgb(2 10 10 / 8%);
   scroll-margin-top: 96px;
 }
 
@@ -2401,7 +2405,7 @@ button {
 
 .field :where(input, select, textarea):focus {
   border-color: var(--color-blue-dark);
-  outline: 3px solid rgb(103 183 232 / 24%);
+  outline: 3px solid rgb(183 220 246 / 24%);
 }
 
 .field [aria-invalid="true"] {
@@ -2461,7 +2465,7 @@ button {
 }
 
 .choice input:focus-visible + span {
-  outline: 3px solid rgb(103 183 232 / 30%);
+  outline: 3px solid rgb(183 220 246 / 30%);
   outline-offset: 2px;
 }
 
@@ -2724,7 +2728,7 @@ button {
 
 .about-team__intro .section-eyebrow {
   margin-bottom: 15px;
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .about-team__intro .section-description {
@@ -2866,7 +2870,7 @@ body.has-modal-open {
 .modal__backdrop {
   position: absolute;
   inset: 0;
-  background-color: rgb(23 28 36 / 72%);
+  background-color: rgb(29 37 45 / 72%);
   backdrop-filter: blur(3px);
 }
 
@@ -2879,7 +2883,7 @@ body.has-modal-open {
   border-radius: var(--radius-large);
   flex-direction: column;
   background-color: var(--color-white);
-  box-shadow: 0 24px 70px rgb(23 28 36 / 28%);
+  box-shadow: 0 24px 70px rgb(2 10 10 / 28%);
 }
 
 .modal__header {
@@ -2895,7 +2899,7 @@ body.has-modal-open {
 
 .modal__header .section-eyebrow {
   margin-bottom: 7px;
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .modal__header h2 {
@@ -3306,7 +3310,7 @@ body.has-modal-open {
   height: 42px;
   border-radius: var(--radius-medium);
   color: var(--color-orange-dark);
-  background-color: rgb(244 91 11 / 10%);
+  background-color: rgb(255 89 0 / 10%);
 }
 
 .icon-box svg {
@@ -3339,7 +3343,7 @@ body.has-modal-open {
 
 .split-intro .section-eyebrow,
 .process .section-eyebrow {
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .packages {
@@ -3366,7 +3370,7 @@ body.has-modal-open {
 
 .package-card--featured {
   border-color: var(--color-orange);
-  box-shadow: 0 8px 24px rgb(244 91 11 / 10%);
+  box-shadow: 0 8px 24px rgb(255 89 0 / 10%);
 }
 
 .package-card__badge {
@@ -3375,7 +3379,7 @@ body.has-modal-open {
   right: var(--space-lg);
   padding: 6px 10px;
   border-radius: 0 0 var(--radius-small) var(--radius-small);
-  color: var(--color-white);
+  color: var(--color-black);
   background-color: var(--color-orange);
   font-size: 0.7rem;
   font-weight: 800;
@@ -3523,7 +3527,7 @@ body.has-modal-open {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  color: var(--color-white);
+  color: var(--color-black);
   background-color: var(--color-orange);
   font-weight: 800;
 }
@@ -3549,7 +3553,7 @@ body.has-modal-open {
 
 .process-list__eyebrow {
   margin-top: var(--space-sm);
-  color: var(--color-orange-dark);
+  color: var(--color-eyebrow-orange);
   font-size: 0.99rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -3617,7 +3621,7 @@ body.has-modal-open {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .private-enquiry__content .section-eyebrow::before {
@@ -3676,7 +3680,7 @@ body.has-modal-open {
 }
 
 .ndis-support-areas__intro .section-eyebrow {
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .ndis-support-areas__intro .section-title {
@@ -3733,7 +3737,7 @@ body.has-modal-open {
 
 .support-detail-hero__content .section-eyebrow,
 .page-daily-life .daily-life-progress .section-eyebrow {
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .support-detail-hero h1 {
@@ -3794,7 +3798,7 @@ body.has-modal-open {
 
 .daily-life-practical .section-eyebrow,
 .daily-life-examples .section-eyebrow {
-  color: var(--color-orange-dark);
+  color: var(--color-eyebrow-orange);
 }
 
 .daily-life-practical__groups {
@@ -3936,7 +3940,7 @@ body.has-modal-open {
   border: 1px solid rgb(255 255 255 / 28%);
   border-radius: 50%;
   color: var(--color-white);
-  background-color: rgb(23 28 36 / 72%);
+  background-color: rgb(29 37 45 / 72%);
   cursor: pointer;
   place-items: center;
   transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast);
@@ -4045,7 +4049,7 @@ body.has-modal-open {
 }
 
 .ndis-journey__intro .section-eyebrow {
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .ndis-journey__intro .section-title {
@@ -4106,7 +4110,7 @@ body.has-modal-open {
 
 .ndis-connections__content .section-eyebrow,
 .ndis-access__header .section-eyebrow {
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .ndis-connections__content .section-title {
@@ -4176,7 +4180,7 @@ body.has-modal-open {
   height: 52px;
   border-radius: var(--radius-medium);
   color: var(--color-orange-dark);
-  background-color: rgb(244 91 11 / 10%);
+  background-color: rgb(255 89 0 / 10%);
 }
 
 .ndis-access__icon svg {
@@ -5378,7 +5382,7 @@ body.has-modal-open {
 }
 
 .supports-intro .section-eyebrow {
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .supports-intro h1 {
@@ -5583,7 +5587,7 @@ body.has-modal-open {
 }
 
 .supports-cta .section-eyebrow {
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .supports-cta .section-title {
@@ -5716,7 +5720,7 @@ body.has-modal-open {
 
 .community-hero .section-eyebrow,
 .community-outcomes .section-eyebrow {
-  color: var(--color-blue-dark);
+  color: var(--color-eyebrow-blue);
 }
 
 .community-hero h1 {
@@ -5770,7 +5774,7 @@ body.has-modal-open {
 }
 
 .community-section-heading .section-eyebrow {
-  color: var(--color-orange-dark);
+  color: var(--color-eyebrow-orange);
 }
 
 .community-section-heading .section-title {
@@ -5840,6 +5844,11 @@ body.has-modal-open {
   border-radius: 50%;
   color: var(--color-orange);
   background-color: color-mix(in srgb, var(--color-orange) 11%, var(--color-white));
+}
+
+.activity-accordion__item:nth-child(even) .activity-accordion__icon {
+  color: var(--color-blue-dark);
+  background-color: color-mix(in srgb, var(--color-blue) 32%, var(--color-white));
 }
 
 .activity-accordion__icon svg,
