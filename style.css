@@ -5838,12 +5838,7 @@ body.has-modal-open {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  color: var(--color-blue-dark);
-  background-color: color-mix(in srgb, var(--color-blue) 18%, var(--color-white));
-}
-
-.activity-accordion__icon--orange {
-  color: var(--color-orange-dark);
+  color: var(--color-orange);
   background-color: color-mix(in srgb, var(--color-orange) 11%, var(--color-white));
 }
 
