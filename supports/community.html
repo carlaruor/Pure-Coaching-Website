@@ -66,37 +66,51 @@
         </div>
       </section>
 
-      <section class="community-mosaic" aria-labelledby="community-mosaic-title">
+      <section class="community-activities" aria-labelledby="community-activities-title">
         <div class="container">
           <div class="community-section-heading">
             <p class="section-eyebrow">What could we do?</p>
-            <h2 class="section-title" id="community-mosaic-title">Find something that feels like you.</h2>
+            <h2 class="section-title" id="community-activities-title">Find something that feels like you.</h2>
           </div>
-          <div class="community-mosaic__grid">
-            <figure class="community-mosaic__item community-mosaic__item--outdoor" tabindex="0">
-              <img src="../assets/images/activities/outdoor-adventure.webp" alt="Outdoor adventure experience in Far North Queensland" width="1672" height="941" loading="lazy">
-              <figcaption>Outdoor &amp; Adventure</figcaption>
-            </figure>
-            <figure class="community-mosaic__item community-mosaic__item--fitness" tabindex="0">
-              <img src="../assets/images/activities/fitness-wellbeing.webp" alt="Fitness and wellbeing activity" width="1672" height="941" loading="lazy">
-              <figcaption>Fitness &amp; Wellbeing</figcaption>
-            </figure>
-            <figure class="community-mosaic__item community-mosaic__item--social" tabindex="0">
-              <img src="../assets/images/activities/social-activities.webp" alt="People connecting during a social community activity" width="1672" height="941" loading="lazy">
-              <figcaption>Social &amp; Community</figcaption>
-            </figure>
-            <figure class="community-mosaic__item community-mosaic__item--trips" tabindex="0">
-              <img src="../assets/images/activities/driving-independence.webp" alt="Building confidence while travelling to community activities" width="1672" height="941" loading="lazy">
-              <figcaption>Day Trips</figcaption>
-            </figure>
-            <figure class="community-mosaic__item community-mosaic__item--camps" tabindex="0">
-              <img src="../assets/images/child-safety/child-satefy-image3.webp" alt="Planning an outdoor experience using a map" width="1147" height="860" loading="lazy">
-              <figcaption>Camps</figcaption>
-            </figure>
-            <figure class="community-mosaic__item community-mosaic__item--new" tabindex="0">
-              <img src="../assets/images/activities/life-skills.webp" alt="Trying a practical new experience with support" width="1672" height="941" loading="lazy">
-              <figcaption>Trying Something New</figcaption>
-            </figure>
+          <div class="activity-accordion" data-accordion>
+            <article class="activity-accordion__item" data-accordion-item data-accordion-default>
+              <h3>
+                <button class="activity-accordion__trigger" type="button" id="activity-outdoor-trigger" aria-expanded="false" aria-controls="activity-outdoor-panel" data-accordion-trigger>
+                  <span class="activity-accordion__image"><img src="../assets/images/activities/outdoor-adventure.webp" alt="" width="1672" height="941" loading="lazy"></span>
+                  <span class="activity-accordion__icon activity-accordion__icon--orange" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 20 6-10 3 5 3-4 6 9H3Z"></path><path d="m7.5 12.5 1.5 1 1.5-1.5"></path></svg></span>
+                  <span class="activity-accordion__title">Outdoor &amp; Adventure</span>
+                  <svg class="activity-accordion__chevron" aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg>
+                </button>
+              </h3>
+              <div class="activity-accordion__panel" id="activity-outdoor-panel" role="region" aria-labelledby="activity-outdoor-trigger" data-accordion-panel hidden>
+                <div class="activity-accordion__body"><p>Get outdoors and explore with support shaped around your interests, confidence and goals.</p><ul><li>Hikes and nature walks</li><li>Kayaking or water activities</li><li>Exploring local places</li><li>Trying different outdoor experiences</li></ul></div>
+              </div>
+            </article>
+
+            <article class="activity-accordion__item" data-accordion-item>
+              <h3><button class="activity-accordion__trigger" type="button" id="activity-fitness-trigger" aria-expanded="false" aria-controls="activity-fitness-panel" data-accordion-trigger><span class="activity-accordion__image"><img src="../assets/images/activities/fitness-wellbeing.webp" alt="" width="1672" height="941" loading="lazy"></span><span class="activity-accordion__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 9v6m-3-4v2m6-6v10m9-8v6m3-4v2m-6-6v10M6 12h12"></path></svg></span><span class="activity-accordion__title">Fitness &amp; Wellbeing</span><svg class="activity-accordion__chevron" aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg></button></h3>
+              <div class="activity-accordion__panel" id="activity-fitness-panel" role="region" aria-labelledby="activity-fitness-trigger" data-accordion-panel hidden><div class="activity-accordion__body"><p>Build movement and wellbeing into everyday life in ways that feel enjoyable and achievable.</p><ul><li>Gym or exercise sessions</li><li>Swimming and walking</li><li>Active hobbies</li><li>Building healthy routines</li></ul></div></div>
+            </article>
+
+            <article class="activity-accordion__item" data-accordion-item>
+              <h3><button class="activity-accordion__trigger" type="button" id="activity-social-trigger" aria-expanded="false" aria-controls="activity-social-panel" data-accordion-trigger><span class="activity-accordion__image"><img src="../assets/images/activities/social-activities.webp" alt="" width="1672" height="941" loading="lazy"></span><span class="activity-accordion__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"></circle><circle cx="17" cy="9" r="2.5"></circle><path d="M3 20c.5-4 2.5-6 6-6s5.5 2 6 6"></path><path d="M15 15c3.2 0 5.2 1.7 6 5"></path></svg></span><span class="activity-accordion__title">Social &amp; Community</span><svg class="activity-accordion__chevron" aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg></button></h3>
+              <div class="activity-accordion__panel" id="activity-social-panel" role="region" aria-labelledby="activity-social-trigger" data-accordion-panel hidden><div class="activity-accordion__body"><p>Take part in community life and practise connecting with people in comfortable, practical settings.</p><ul><li>Community events and activities</li><li>Cafés and social outings</li><li>Meeting people</li><li>Building social confidence</li></ul></div></div>
+            </article>
+
+            <article class="activity-accordion__item" data-accordion-item>
+              <h3><button class="activity-accordion__trigger" type="button" id="activity-trips-trigger" aria-expanded="false" aria-controls="activity-trips-panel" data-accordion-trigger><span class="activity-accordion__image"><img src="../assets/images/activities/driving-independence.webp" alt="" width="1672" height="941" loading="lazy"></span><span class="activity-accordion__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 17h14l-1-7-2-3H8l-2 3-1 7Z"></path><path d="M3 13h18"></path><circle cx="7" cy="18" r="2"></circle><circle cx="17" cy="18" r="2"></circle></svg></span><span class="activity-accordion__title">Day Trips</span><svg class="activity-accordion__chevron" aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg></button></h3>
+              <div class="activity-accordion__panel" id="activity-trips-panel" role="region" aria-labelledby="activity-trips-trigger" data-accordion-panel hidden><div class="activity-accordion__body"><p>Explore somewhere around Cairns and FNQ with support to plan, participate and enjoy the experience.</p><ul><li>Beaches and nature destinations</li><li>Markets and local attractions</li><li>Exploring new places</li><li>Trying a different outing</li></ul></div></div>
+            </article>
+
+            <article class="activity-accordion__item" data-accordion-item>
+              <h3><button class="activity-accordion__trigger" type="button" id="activity-camps-trigger" aria-expanded="false" aria-controls="activity-camps-panel" data-accordion-trigger><span class="activity-accordion__image"><img src="../assets/images/child-safety/child-satefy-image3.webp" alt="" width="1147" height="860" loading="lazy"></span><span class="activity-accordion__icon activity-accordion__icon--orange" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4 20 8-16 8 16H4Z"></path><path d="m12 4 3 16M8 20l4-5 4 5"></path></svg></span><span class="activity-accordion__title">Camps</span><svg class="activity-accordion__chevron" aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg></button></h3>
+              <div class="activity-accordion__panel" id="activity-camps-panel" role="region" aria-labelledby="activity-camps-trigger" data-accordion-panel hidden><div class="activity-accordion__body"><p>Time away from the usual routine can offer supported opportunities for connection, participation and practical independence.</p><ul><li>Outdoor experiences</li><li>Shared activities</li><li>Practising everyday skills</li><li>Building confidence and connection</li></ul></div></div>
+            </article>
+
+            <article class="activity-accordion__item" data-accordion-item>
+              <h3><button class="activity-accordion__trigger" type="button" id="activity-new-trigger" aria-expanded="false" aria-controls="activity-new-panel" data-accordion-trigger><span class="activity-accordion__image"><img src="../assets/images/activities/life-skills.webp" alt="" width="1672" height="941" loading="lazy"></span><span class="activity-accordion__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3Z"></path><path d="m19 16 .8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16Z"></path></svg></span><span class="activity-accordion__title">Trying Something New</span><svg class="activity-accordion__chevron" aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg></button></h3>
+              <div class="activity-accordion__panel" id="activity-new-panel" role="region" aria-labelledby="activity-new-trigger" data-accordion-panel hidden><div class="activity-accordion__body"><p>Discover possible interests with encouragement to try unfamiliar activities at a pace that feels right.</p><ul><li>Exploring new interests</li><li>Trying unfamiliar activities</li><li>Stepping beyond familiar routines</li><li>Finding something genuinely enjoyable</li></ul></div></div>
+            </article>
           </div>
         </div>
       </section>
@@ -107,12 +121,12 @@
           <p class="section-eyebrow">It's about more than the activity</p>
           <h2 class="section-title" id="community-outcomes-title">Every experience can build something.</h2>
           <ul aria-label="Community support outcomes">
-            <li>Confidence</li>
-            <li>Independence</li>
-            <li>Connection</li>
-            <li>Wellbeing</li>
-            <li>Social skills</li>
-            <li>New experiences</li>
+            <li><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 19v-4m5 4v-7m5 7V9m4 10V5"></path><path d="m5 10 5-4 4 2 5-5"></path></svg><span>Confidence</span></li>
+            <li><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="7" r="3"></circle><path d="M6 21c.6-5 2.6-7.5 6-7.5s5.4 2.5 6 7.5"></path></svg><span>Independence</span></li>
+            <li><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"></circle><circle cx="17" cy="9" r="2.5"></circle><path d="M2.5 20c.5-4 2.4-6 5.5-6s5 2 5.5 6m1-5c3.4 0 5.6 1.7 6 5"></path></svg><span>Connection</span></li>
+            <li><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20.5 8.5c0 5-8.5 10-8.5 10s-8.5-5-8.5-10A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 8.5 2.5Z"></path></svg><span>Wellbeing</span></li>
+            <li><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-9 8l-5 2 1-4a8 8 0 1 1 13-6Z"></path><path d="M8 11h8m-8 4h5"></path></svg><span>Social Skills</span></li>
+            <li><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 3 1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3Z"></path><path d="m19 16 .8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16Z"></path></svg><span>New Experiences</span></li>
           </ul>
         </div>
       </section>
