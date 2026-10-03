@@ -5776,11 +5776,6 @@ body.has-modal-open {
   background-color: color-mix(in srgb, var(--color-orange) 11%, var(--color-white));
 }
 
-.activity-accordion__item:nth-child(even) .activity-accordion__icon {
-  color: var(--color-blue-dark);
-  background-color: color-mix(in srgb, var(--color-blue) 32%, var(--color-white));
-}
-
 .activity-accordion__icon svg,
 .activity-accordion__chevron {
   width: 21px;
@@ -5913,16 +5908,12 @@ body.has-modal-open {
 .community-outcomes li svg {
   width: 27px;
   height: 27px;
-  color: var(--color-blue-dark);
+  color: var(--color-blue);
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.75;
-}
-
-.community-outcomes li:nth-child(5) svg {
-  color: var(--color-orange-dark);
 }
 
 .community-outcomes li span {
