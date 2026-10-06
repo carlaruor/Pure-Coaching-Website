@@ -5,8 +5,8 @@
   --color-blue: #b7dcf6;
   --color-blue-dark: #1d252d;
   --color-navy: #1d252d;
-  --color-eyebrow-orange: #d94d00;
-  --color-eyebrow-blue: #397b9f;
+  --color-eyebrow-orange: var(--color-orange);
+  --color-eyebrow-blue: var(--color-orange);
   --color-text: #252b33;
   --color-muted: #747b84;
   --color-background: #f5f7f9;
