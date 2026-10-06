@@ -686,7 +686,7 @@ button {
 .carousel__controls {
   display: flex;
   position: absolute;
-  z-index: 2;
+  z-index: 3;
   top: 50%;
   right: var(--carousel-control-offset);
   left: var(--carousel-control-offset);
@@ -3741,11 +3741,11 @@ body.has-modal-open {
 }
 
 .daily-life-brand-zone {
-  --brand-watermark-size: clamp(1450px, 120vw, 1850px);
-  --brand-watermark-x: 108%;
+  --brand-watermark-size: clamp(1500px, 125vw, 1900px);
+  --brand-watermark-x: 102%;
   --brand-watermark-y: 51%;
   --brand-watermark-rotation: -8deg;
-  --brand-watermark-opacity: 0.46;
+  --brand-watermark-opacity: 0.72;
 
   position: relative;
   overflow: hidden;
@@ -3754,7 +3754,7 @@ body.has-modal-open {
 }
 
 .brand-watermark--daily-life {
-  z-index: 0;
+  z-index: 1;
 }
 
 .daily-life-brand-zone > section {
@@ -3763,11 +3763,54 @@ body.has-modal-open {
 
 .daily-life-brand-zone > .daily-life-practical,
 .daily-life-brand-zone > .daily-life-progress {
-  background-color: color-mix(in srgb, var(--color-blue-tint) 92%, transparent);
+  background-color: var(--color-blue-tint);
 }
 
 .daily-life-brand-zone > .daily-life-examples {
-  background-color: color-mix(in srgb, var(--color-white) 94%, transparent);
+  background-color: var(--color-white);
+}
+
+.daily-life-practical > .container,
+.daily-life-progress > .container,
+.daily-life-examples__header,
+.daily-life-gallery__track {
+  position: relative;
+  z-index: 2;
+}
+
+.daily-life-practical .section-header,
+.daily-life-practical__groups > section,
+.daily-life-examples__header,
+.daily-life-progress__intro,
+.daily-life-progress__outcomes {
+  --daily-life-text-fade-color: var(--color-blue-tint);
+
+  position: relative;
+  isolation: isolate;
+}
+
+.daily-life-examples__header {
+  --daily-life-text-fade-color: var(--color-white);
+}
+
+.daily-life-practical .section-header::before,
+.daily-life-practical__groups > section::before,
+.daily-life-examples__header::before,
+.daily-life-progress__intro::before,
+.daily-life-progress__outcomes::before {
+  position: absolute;
+  z-index: -1;
+  inset: -32px -40px;
+  background: radial-gradient(
+    ellipse at center,
+    var(--daily-life-text-fade-color) 0%,
+    var(--daily-life-text-fade-color) 42%,
+    color-mix(in srgb, var(--daily-life-text-fade-color) 82%, transparent) 62%,
+    color-mix(in srgb, var(--daily-life-text-fade-color) 35%, transparent) 80%,
+    transparent 100%
+  );
+  content: "";
+  pointer-events: none;
 }
 
 .daily-life-practical .section-eyebrow,
@@ -5250,10 +5293,10 @@ body.has-modal-open {
 
 @media (max-width: 1023px) {
   .daily-life-brand-zone {
-    --brand-watermark-size: clamp(1150px, 165vw, 1500px);
-    --brand-watermark-x: 126%;
+    --brand-watermark-size: clamp(1200px, 170vw, 1550px);
+    --brand-watermark-x: 116%;
     --brand-watermark-y: 51%;
-    --brand-watermark-opacity: 0.4;
+    --brand-watermark-opacity: 0.64;
   }
 
   .daily-life-gallery__track figure {
@@ -5264,10 +5307,18 @@ body.has-modal-open {
 
 @media (max-width: 767px) {
   .daily-life-brand-zone {
-    --brand-watermark-size: clamp(820px, 245vw, 1040px);
-    --brand-watermark-x: 168%;
+    --brand-watermark-size: clamp(820px, 235vw, 1020px);
+    --brand-watermark-x: 142%;
     --brand-watermark-y: 52%;
-    --brand-watermark-opacity: 0.3;
+    --brand-watermark-opacity: 0.5;
+  }
+
+  .daily-life-practical .section-header::before,
+  .daily-life-practical__groups > section::before,
+  .daily-life-examples__header::before,
+  .daily-life-progress__intro::before,
+  .daily-life-progress__outcomes::before {
+    inset: -24px -20px;
   }
 
   .daily-life-practical,
