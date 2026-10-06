@@ -891,7 +891,6 @@ button {
   --brand-watermark-x: 112%;
   --brand-watermark-y: 48%;
   --brand-watermark-rotation: -7deg;
-  --brand-watermark-opacity: 0.68;
 
   position: relative;
   overflow: hidden;
@@ -924,7 +923,7 @@ button {
   width: var(--brand-watermark-size);
   max-width: none;
   height: auto;
-  opacity: var(--brand-watermark-opacity);
+  opacity: 0.34;
   pointer-events: none;
   transform: translate(-50%, -50%) rotate(var(--brand-watermark-rotation));
   user-select: none;
@@ -2615,6 +2614,33 @@ button {
   color: var(--color-muted);
 }
 
+.about-brand-zone {
+  --brand-watermark-size: clamp(1750px, 140vw, 2200px);
+  --brand-watermark-x: 108%;
+  --brand-watermark-y: 58%;
+  --brand-watermark-rotation: -8deg;
+
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-white);
+  isolation: isolate;
+}
+
+.brand-watermark--about {
+  z-index: 1;
+}
+
+.about-brand-zone > .about-approach,
+.about-brand-zone > .about-team {
+  position: relative;
+}
+
+.about-brand-zone .about-approach__layout,
+.about-brand-zone .about-team > .container {
+  position: relative;
+  z-index: 2;
+}
+
 .about-approach {
   padding: clamp(64px, 7vw, 96px) 0 clamp(44px, 5vw, 64px);
   background-color: var(--color-white);
@@ -2719,8 +2745,9 @@ button {
 }
 
 .about-team {
+  position: relative;
   padding: clamp(50px, 5vw, 66px) 0 clamp(72px, 9vw, 120px);
-  background-color: color-mix(in srgb, var(--color-blue) 7%, var(--color-background));
+  background-color: var(--color-blue-tint);
 }
 
 .about-team__feature {
@@ -3745,7 +3772,6 @@ body.has-modal-open {
   --brand-watermark-x: 102%;
   --brand-watermark-y: 51%;
   --brand-watermark-rotation: -8deg;
-  --brand-watermark-opacity: 0.72;
 
   position: relative;
   overflow: hidden;
@@ -3800,13 +3826,13 @@ body.has-modal-open {
 .daily-life-progress__outcomes::before {
   position: absolute;
   z-index: -1;
-  inset: -32px -40px;
+  inset: -64px -88px;
   background: radial-gradient(
     ellipse at center,
-    var(--daily-life-text-fade-color) 0%,
-    var(--daily-life-text-fade-color) 42%,
-    color-mix(in srgb, var(--daily-life-text-fade-color) 82%, transparent) 62%,
-    color-mix(in srgb, var(--daily-life-text-fade-color) 35%, transparent) 80%,
+    color-mix(in srgb, var(--daily-life-text-fade-color) 42%, transparent) 0%,
+    color-mix(in srgb, var(--daily-life-text-fade-color) 30%, transparent) 36%,
+    color-mix(in srgb, var(--daily-life-text-fade-color) 17%, transparent) 62%,
+    color-mix(in srgb, var(--daily-life-text-fade-color) 6%, transparent) 82%,
     transparent 100%
   );
   content: "";
@@ -4943,6 +4969,13 @@ body.has-modal-open {
 }
 
 @media (max-width: 1023px) {
+  .about-brand-zone {
+    --brand-watermark-size: clamp(1450px, 190vw, 1800px);
+    --brand-watermark-x: 126%;
+    --brand-watermark-y: 60%;
+    --brand-watermark-rotation: -10deg;
+  }
+
   .about-hero__layout {
     min-height: 540px;
   }
@@ -4990,6 +5023,13 @@ body.has-modal-open {
 }
 
 @media (max-width: 767px) {
+  .about-brand-zone {
+    --brand-watermark-size: clamp(1050px, 285vw, 1280px);
+    --brand-watermark-x: 160%;
+    --brand-watermark-y: 62%;
+    --brand-watermark-rotation: -12deg;
+  }
+
   .about-hero {
     padding-block: 36px 52px;
   }
@@ -5187,7 +5227,6 @@ body.has-modal-open {
     --brand-watermark-x: 124%;
     --brand-watermark-y: 50%;
     --brand-watermark-rotation: -9deg;
-    --brand-watermark-opacity: 0.6;
   }
 
   .journey-statement {
@@ -5218,7 +5257,6 @@ body.has-modal-open {
     --brand-watermark-x: 150%;
     --brand-watermark-y: 52%;
     --brand-watermark-rotation: -12deg;
-    --brand-watermark-opacity: 0.54;
   }
 
   .journey-statement {
@@ -5296,7 +5334,6 @@ body.has-modal-open {
     --brand-watermark-size: clamp(1200px, 170vw, 1550px);
     --brand-watermark-x: 116%;
     --brand-watermark-y: 51%;
-    --brand-watermark-opacity: 0.64;
   }
 
   .daily-life-gallery__track figure {
@@ -5310,7 +5347,6 @@ body.has-modal-open {
     --brand-watermark-size: clamp(820px, 235vw, 1020px);
     --brand-watermark-x: 142%;
     --brand-watermark-y: 52%;
-    --brand-watermark-opacity: 0.5;
   }
 
   .daily-life-practical .section-header::before,
@@ -5318,7 +5354,7 @@ body.has-modal-open {
   .daily-life-examples__header::before,
   .daily-life-progress__intro::before,
   .daily-life-progress__outcomes::before {
-    inset: -24px -20px;
+    inset: -44px -32px;
   }
 
   .daily-life-practical,
@@ -5432,7 +5468,6 @@ body.has-modal-open {
   --brand-watermark-x: 104%;
   --brand-watermark-y: 51%;
   --brand-watermark-rotation: -8deg;
-  --brand-watermark-opacity: 0.6;
 
   position: relative;
   overflow: hidden;
@@ -5452,13 +5487,19 @@ body.has-modal-open {
 
 .supports-list__inner {
   display: grid;
+  grid-auto-rows: 1fr;
   gap: clamp(28px, 2.5vw, 32px);
+}
+
+.support-row {
+  min-height: 0;
 }
 
 .support-row__surface,
 .support-row__link {
   display: grid;
-  min-height: 310px;
+  height: 100%;
+  min-height: 290px;
   overflow: hidden;
   grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
   border: 1px solid var(--color-border);
@@ -5476,7 +5517,7 @@ body.has-modal-open {
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  padding: clamp(30px, 4vw, 52px);
+  padding: clamp(28px, 3vw, 42px);
 }
 
 .support-row__title {
@@ -5521,7 +5562,7 @@ body.has-modal-open {
 
 .support-row__content > p {
   max-width: 610px;
-  margin-top: var(--space-lg);
+  margin-top: 18px;
   color: var(--color-text);
   line-height: 1.68;
 }
@@ -5531,7 +5572,7 @@ body.has-modal-open {
   min-height: 42px;
   align-items: center;
   gap: 8px;
-  margin-top: var(--space-lg);
+  margin-top: 18px;
   color: var(--color-blue-dark);
   font-size: 0.9375rem;
   font-weight: 800;
@@ -5628,17 +5669,16 @@ body.has-modal-open {
     --brand-watermark-x: 122%;
     --brand-watermark-y: 50%;
     --brand-watermark-rotation: -10deg;
-    --brand-watermark-opacity: 0.55;
   }
 
   .support-row__surface,
   .support-row__link {
-    min-height: 290px;
+    min-height: 275px;
     grid-template-columns: minmax(0, 1fr) minmax(280px, 0.9fr);
   }
 
   .support-row__content {
-    padding: 30px;
+    padding: 26px;
   }
 }
 
@@ -5656,7 +5696,6 @@ body.has-modal-open {
     --brand-watermark-x: 150%;
     --brand-watermark-y: 50%;
     --brand-watermark-rotation: -12deg;
-    --brand-watermark-opacity: 0.48;
 
     padding-block: 44px;
   }
@@ -5948,7 +5987,6 @@ body.has-modal-open {
   --brand-watermark-x: 110%;
   --brand-watermark-y: 43%;
   --brand-watermark-rotation: -8deg;
-  --brand-watermark-opacity: 0.48;
 
   position: relative;
   overflow: hidden;
@@ -6057,7 +6095,6 @@ body.has-modal-open {
     --brand-watermark-size: clamp(1200px, 165vw, 1550px);
     --brand-watermark-x: 126%;
     --brand-watermark-y: 44%;
-    --brand-watermark-opacity: 0.42;
   }
 
   .activity-accordion__trigger {
@@ -6145,7 +6182,6 @@ body.has-modal-open {
     --brand-watermark-size: clamp(900px, 260vw, 1120px);
     --brand-watermark-x: 168%;
     --brand-watermark-y: 46%;
-    --brand-watermark-opacity: 0.34;
   }
 
   .community-outcomes {
