@@ -5764,8 +5764,204 @@ body.has-modal-open {
 .page-community .nav-link[aria-current="page"],
 .page-community .mobile-nav__link[aria-current="page"],
 .page-transport .nav-link[aria-current="page"],
-.page-transport .mobile-nav__link[aria-current="page"] {
+.page-transport .mobile-nav__link[aria-current="page"],
+.page-employment .nav-link[aria-current="page"],
+.page-employment .mobile-nav__link[aria-current="page"] {
   color: var(--color-orange-dark);
+}
+
+/* Employment Support page. */
+.employment-hero .support-page-hero__media img {
+  object-position: center 44%;
+}
+
+.employment-direction,
+.employment-experiences,
+.employment-pathway,
+.employment-independence {
+  padding-block: clamp(54px, 6vw, 78px);
+}
+
+.employment-direction,
+.employment-pathway {
+  background-color: var(--color-blue-tint);
+}
+
+.employment-experiences,
+.employment-independence {
+  background-color: var(--color-white);
+}
+
+.employment-direction__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+  align-items: center;
+  gap: clamp(48px, 8vw, 112px);
+}
+
+.employment-direction__intro {
+  max-width: 570px;
+}
+
+.employment-direction__intro .section-title,
+.employment-section-heading .section-title {
+  margin-top: var(--space-sm);
+}
+
+.employment-direction__intro .section-description {
+  margin-top: var(--space-md);
+}
+
+.employment-direction__questions {
+  display: grid;
+  gap: clamp(18px, 2.5vw, 30px);
+  list-style: none;
+}
+
+.employment-direction__questions li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-md);
+  color: var(--color-navy);
+  font-size: clamp(1.45rem, 2.7vw, 2.35rem);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+}
+
+.employment-direction__questions li:nth-child(even) {
+  margin-left: clamp(24px, 5vw, 72px);
+  color: var(--color-blue-dark);
+}
+
+.employment-direction__questions li:nth-child(3) {
+  margin-left: clamp(8px, 2vw, 28px);
+}
+
+.employment-direction__questions span,
+.employment-pathway__list > li > span {
+  flex: 0 0 auto;
+  color: var(--color-orange);
+  font-size: 0.75rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+}
+
+.employment-section-heading {
+  max-width: 760px;
+  margin-bottom: clamp(28px, 4vw, 42px);
+}
+
+.employment-gallery {
+  max-width: 760px;
+  margin-inline: auto;
+}
+
+.employment-gallery .daily-life-gallery__track figure {
+  flex-basis: min(78vw, 350px);
+}
+
+.employment-pathway__list {
+  display: grid;
+  max-width: 1100px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 clamp(56px, 8vw, 112px);
+  margin-inline: auto;
+  list-style: none;
+  counter-reset: employment-step;
+}
+
+.employment-pathway__list li {
+  display: flex;
+  position: relative;
+  min-width: 0;
+  gap: var(--space-lg);
+  padding-block: clamp(20px, 3vw, 30px);
+  border-top: 1px solid color-mix(in srgb, var(--color-blue-dark) 22%, transparent);
+}
+
+.employment-pathway__list li:nth-child(even) {
+  transform: translateY(clamp(28px, 4vw, 48px));
+}
+
+.employment-pathway__list h3,
+.employment-independence__outcomes h3 {
+  color: var(--color-navy);
+  font-size: 1.08rem;
+  line-height: 1.3;
+}
+
+.employment-pathway__list p,
+.employment-independence__outcomes p {
+  margin-top: 7px;
+  color: var(--color-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.employment-independence__outcomes {
+  display: grid;
+  max-width: 1080px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(32px, 5vw, 52px) clamp(48px, 7vw, 88px);
+  margin-inline: auto;
+  list-style: none;
+}
+
+.employment-independence__outcomes li {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 46px minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-md);
+}
+
+.employment-independence__outcomes svg {
+  width: 36px;
+  height: 36px;
+  color: var(--color-blue);
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+@media (max-width: 767px) {
+  .employment-direction,
+  .employment-experiences,
+  .employment-pathway,
+  .employment-independence {
+    padding-block: 48px;
+  }
+
+  .employment-direction__layout {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+
+  .employment-direction__questions li,
+  .employment-direction__questions li:nth-child(even),
+  .employment-direction__questions li:nth-child(3) {
+    margin-left: 0;
+  }
+
+  .employment-pathway__list,
+  .employment-independence__outcomes {
+    grid-template-columns: 1fr;
+  }
+
+  .employment-pathway__list {
+    gap: 0;
+  }
+
+  .employment-pathway__list li:nth-child(even) {
+    transform: none;
+  }
+
+  .employment-gallery {
+    max-width: none;
+  }
 }
 
 .support-page-hero {
