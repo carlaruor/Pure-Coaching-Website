@@ -5787,6 +5787,10 @@ body.has-modal-open {
   background-color: var(--color-blue-tint);
 }
 
+.employment-direction {
+  padding-block: clamp(38px, 4vw, 52px);
+}
+
 .employment-experiences,
 .employment-independence {
   background-color: var(--color-white);
@@ -5981,6 +5985,24 @@ body.has-modal-open {
   letter-spacing: 0.035em;
 }
 
+.employment-wheel__centre span:last-child {
+  position: relative;
+  display: inline-block;
+  justify-self: center;
+}
+
+.employment-wheel__centre span:last-child::after {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  width: 68%;
+  height: 8px;
+  border-top: 3px solid var(--color-orange);
+  border-radius: 50%;
+  content: "";
+  transform: translateX(-50%) rotate(-2deg) skewX(-12deg);
+}
+
 .employment-wheel__nodes {
   position: absolute;
   inset: 0;
@@ -5992,9 +6014,9 @@ body.has-modal-open {
   z-index: 2;
   top: 50%;
   left: 50%;
-  width: 88px;
-  height: 88px;
-  margin: -44px;
+  width: 112px;
+  height: 112px;
+  margin: -56px;
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -6006,47 +6028,57 @@ body.has-modal-open {
 }
 
 .employment-wheel__stage-content {
+  position: relative;
   display: grid;
   width: 100%;
   height: 100%;
-  grid-template-rows: auto 24px auto;
+  grid-template-rows: auto 38px auto;
   place-content: center;
   place-items: center;
-  gap: 2px;
-  padding: 8px;
-  border: 1px solid color-mix(in srgb, var(--color-blue-dark) 12%, var(--color-blue));
+  gap: 4px;
+  padding: 9px;
+  border: 2px solid color-mix(in srgb, var(--color-white) 76%, var(--color-blue));
   border-radius: inherit;
   background-color: var(--color-blue);
-  box-shadow: 0 4px 14px rgb(29 37 45 / 7%);
+  box-shadow: 0 5px 15px rgb(29 37 45 / 8%);
   transform: rotate(calc(var(--stage-counter-angle) + var(--journey-counter-rotation)));
   transition:
     transform 620ms cubic-bezier(0.22, 0.7, 0.25, 1),
     color var(--transition-ui),
     background-color var(--transition-ui),
-    box-shadow var(--transition-ui);
+    box-shadow var(--transition-ui),
+    scale var(--transition-ui);
 }
 
 .employment-wheel__stage svg {
-  width: 21px;
-  height: 21px;
+  width: 40px;
+  height: 40px;
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 1.8;
+  stroke-width: 1.75;
+}
+
+.employment-wheel__icon-accent {
+  color: var(--color-orange);
+  transition: color var(--transition-ui);
 }
 
 .employment-wheel__number {
-  font-size: 0.61rem;
+  color: var(--color-navy);
+  font-size: 0.76rem;
   font-weight: 850;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
+  line-height: 1;
 }
 
 .employment-wheel__label {
-  max-width: 76px;
-  font-size: 0.68rem;
-  font-weight: 800;
-  line-height: 1.05;
+  max-width: 94px;
+  color: var(--color-navy);
+  font-size: 0.94rem;
+  font-weight: 780;
+  line-height: 1.08;
   text-align: center;
 }
 
@@ -6055,13 +6087,23 @@ body.has-modal-open {
 }
 
 .employment-wheel__stage.is-active .employment-wheel__stage-content {
-  color: var(--color-black);
+  color: var(--color-white);
+  border-color: rgb(255 255 255 / 76%);
   background-color: var(--color-orange);
-  box-shadow: 0 6px 16px rgb(2 10 10 / 10%);
-  scale: 1.1;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 28%),
+    0 6px 16px rgb(2 10 10 / 12%);
+  scale: 1.07;
+}
+
+.employment-wheel__stage.is-active .employment-wheel__number,
+.employment-wheel__stage.is-active .employment-wheel__label,
+.employment-wheel__stage.is-active .employment-wheel__icon-accent {
+  color: var(--color-white);
 }
 
 .employment-wheel__stage:focus-visible {
+  outline: 3px solid var(--color-navy);
   outline-offset: 5px;
 }
 
@@ -6082,9 +6124,9 @@ body.has-modal-open {
 
 .employment-journey__detail {
   padding: clamp(22px, 2.5vw, 30px);
-  border: 1px solid color-mix(in srgb, var(--color-orange) 22%, var(--color-border));
+  border: 0;
   border-radius: var(--radius-large);
-  background-color: var(--color-white);
+  background-color: #fff3ec;
 }
 
 .employment-journey__detail-heading {
@@ -6104,46 +6146,59 @@ body.has-modal-open {
 
 .employment-journey__detail-heading span::after {
   margin-left: 10px;
-  color: var(--color-border-strong);
+  color: color-mix(in srgb, var(--color-orange) 18%, var(--color-border));
   content: "|";
 }
 
 .employment-journey__detail h3 {
-  margin-top: var(--space-lg);
+  margin-top: clamp(20px, 2.5vw, 28px);
   color: var(--color-navy);
   font-size: clamp(1.35rem, 2vw, 1.75rem);
   line-height: 1.2;
 }
 
 .employment-journey__detail [aria-live] > p:not(.employment-journey__detail-heading) {
+  max-width: 42ch;
   margin-top: var(--space-sm);
-  color: var(--color-text);
+  color: color-mix(in srgb, var(--color-text) 88%, var(--color-muted));
   font-size: 0.94rem;
   line-height: 1.6;
 }
 
 .employment-journey__detail ul {
   display: grid;
-  gap: 8px;
-  margin-top: var(--space-md);
+  gap: 11px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid color-mix(in srgb, var(--color-orange) 18%, transparent);
   list-style: none;
 }
 
 .employment-journey__detail li {
   position: relative;
-  padding-left: 22px;
-  color: var(--color-muted);
-  font-size: 0.86rem;
-  line-height: 1.45;
+  min-height: 22px;
+  padding-left: 32px;
+  color: color-mix(in srgb, var(--color-text) 80%, var(--color-muted));
+  font-size: 0.89rem;
+  font-weight: 550;
+  line-height: 1.5;
 }
 
 .employment-journey__detail li::before {
+  display: grid;
   position: absolute;
-  top: 0;
+  top: 0.05em;
   left: 0;
-  color: var(--color-orange);
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--color-white);
+  background-color: var(--color-orange);
   content: "✓";
+  font-size: 0.72rem;
   font-weight: 850;
+  line-height: 1;
 }
 
 .employment-journey__controls {
@@ -6171,6 +6226,18 @@ body.has-modal-open {
   background-color: color-mix(in srgb, var(--color-orange) 6%, var(--color-white));
 }
 
+.employment-journey__controls button:last-child {
+  border-color: var(--color-orange);
+  color: var(--color-white);
+  background-color: var(--color-orange);
+}
+
+.employment-journey__controls button:last-child:hover {
+  border-color: var(--color-orange-dark);
+  color: var(--color-white);
+  background-color: var(--color-orange-dark);
+}
+
 .employment-journey__controls svg {
   width: 18px;
   height: 18px;
@@ -6196,11 +6263,48 @@ body.has-modal-open {
 
 .employment-independence__outcomes {
   display: grid;
-  max-width: 1080px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(32px, 5vw, 52px) clamp(48px, 7vw, 88px);
-  margin-inline: auto;
+  grid-column: 2;
+  grid-row: 3;
+  gap: 0;
   list-style: none;
+}
+
+.employment-independence__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+  grid-template-rows: 1fr auto auto 1fr;
+  align-items: start;
+  gap: 0 clamp(42px, 6vw, 84px);
+}
+
+.employment-independence__media {
+  overflow: hidden;
+  height: clamp(480px, 44vw, 570px);
+  min-height: 0;
+  grid-column: 1;
+  grid-row: 1 / 5;
+  border-radius: var(--radius-large);
+  background-color: var(--color-blue-tint);
+}
+
+.employment-independence__media video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: cover;
+  object-position: center;
+}
+
+.employment-independence__intro {
+  grid-column: 2;
+  grid-row: 2;
+  padding-bottom: clamp(18px, 2.5vw, 28px);
+}
+
+.employment-independence__intro .section-title {
+  margin-top: var(--space-sm);
+  font-size: clamp(2rem, 3.4vw, 3.25rem);
 }
 
 .employment-independence__outcomes li {
@@ -6209,6 +6313,19 @@ body.has-modal-open {
   grid-template-columns: 46px minmax(0, 1fr);
   align-items: start;
   gap: var(--space-md);
+  padding-block: clamp(16px, 2vw, 22px);
+}
+
+.employment-independence__outcomes li + li {
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent);
+}
+
+.employment-independence__outcomes li:first-child {
+  padding-top: 4px;
+}
+
+.employment-independence__outcomes li:last-child {
+  padding-bottom: 0;
 }
 
 .employment-independence__outcomes svg {
@@ -6237,6 +6354,15 @@ body.has-modal-open {
     grid-column: 2;
     justify-self: center;
   }
+
+  .employment-independence__layout {
+    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+    gap: 0 40px;
+  }
+
+  .employment-independence__media {
+    height: 500px;
+  }
 }
 
 @media (max-width: 767px) {
@@ -6245,6 +6371,10 @@ body.has-modal-open {
   .employment-pathway,
   .employment-independence {
     padding-block: 48px;
+  }
+
+  .employment-direction {
+    padding-block: 36px;
   }
 
   .employment-direction__layout {
@@ -6259,7 +6389,7 @@ body.has-modal-open {
   }
 
   .employment-independence__outcomes {
-    grid-template-columns: 1fr;
+    grid-column: 1;
   }
 
   .employment-direction__questions li {
@@ -6287,28 +6417,31 @@ body.has-modal-open {
   }
 
   .employment-wheel__stage {
-    width: 72px;
-    height: 72px;
-    margin: -36px;
+    width: 82px;
+    height: 82px;
+    margin: -41px;
   }
 
   .employment-wheel__stage-content {
-    grid-template-rows: auto 19px auto;
-    padding: 5px;
+    grid-template-rows: auto 26px auto;
+    gap: 2px;
+    padding: 6px;
+    border-width: 1px;
   }
 
   .employment-wheel__stage svg {
-    width: 17px;
-    height: 17px;
+    width: 28px;
+    height: 28px;
   }
 
   .employment-wheel__number {
-    font-size: 0.54rem;
+    font-size: 0.66rem;
   }
 
   .employment-wheel__label {
-    max-width: 62px;
-    font-size: 0.59rem;
+    max-width: 70px;
+    font-size: 0.7rem;
+    line-height: 1.03;
   }
 
   .employment-wheel__active-marker {
@@ -6320,6 +6453,39 @@ body.has-modal-open {
   .employment-journey__detail {
     width: 100%;
     grid-column: 1;
+  }
+
+  .employment-independence__layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    gap: 28px;
+  }
+
+  .employment-independence__intro {
+    grid-column: 1;
+    grid-row: 1;
+    padding-bottom: 0;
+  }
+
+  .employment-independence__media {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 16 / 10;
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .employment-independence__media video {
+    min-height: 0;
+  }
+
+  .employment-independence__outcomes {
+    grid-row: 3;
+  }
+
+  .employment-independence__outcomes li {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: var(--space-sm);
   }
 }
 

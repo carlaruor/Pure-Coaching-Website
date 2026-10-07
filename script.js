@@ -729,6 +729,27 @@ function initEmploymentJourney(journey) {
   nextButton?.addEventListener('click', () => selectStage(currentIndex + 1));
 }
 
+function initAmbientVideo(video) {
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  const updatePlayback = async () => {
+    if (reducedMotion.matches || document.hidden) {
+      video.pause();
+      return;
+    }
+
+    try {
+      await video.play();
+    } catch {
+      // The poster remains visible if no source exists or autoplay is unavailable.
+    }
+  };
+
+  reducedMotion.addEventListener('change', updatePlayback);
+  document.addEventListener('visibilitychange', updatePlayback);
+  updatePlayback();
+}
+
 function init() {
   initMobileNavigation();
   initStickyHeader();
@@ -752,6 +773,7 @@ function init() {
   document.querySelectorAll('[data-accordion]').forEach(initAccordion);
   document.querySelectorAll('[data-interest-form]').forEach(initInterestForm);
   document.querySelectorAll('[data-employment-journey]').forEach(initEmploymentJourney);
+  document.querySelectorAll('[data-ambient-video]').forEach(initAmbientVideo);
 
   setCurrentYear();
 }
