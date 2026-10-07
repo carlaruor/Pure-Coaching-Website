@@ -2169,6 +2169,12 @@ button {
 }
 
 .intake-page {
+  --color-orange: #f45b0b;
+  --color-orange-dark: #d94d00;
+  --color-blue: #67b7e8;
+  --color-blue-dark: #397b9f;
+  --color-navy: #171c24;
+
   background-color: var(--color-background);
 }
 
@@ -2178,7 +2184,7 @@ button {
 }
 
 .intake-intro .section-eyebrow {
-  color: var(--color-eyebrow-blue);
+  color: var(--color-blue-dark);
 }
 
 .intake-intro h1 {
@@ -2208,7 +2214,7 @@ button {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-large);
   background-color: var(--color-white);
-  box-shadow: 0 16px 45px rgb(2 10 10 / 8%);
+  box-shadow: 0 16px 45px rgb(23 28 36 / 8%);
   scroll-margin-top: 96px;
 }
 
@@ -2403,7 +2409,7 @@ button {
 
 .field :where(input, select, textarea):focus {
   border-color: var(--color-blue-dark);
-  outline: 3px solid rgb(183 220 246 / 24%);
+  outline: 3px solid rgb(103 183 232 / 24%);
 }
 
 .field [aria-invalid="true"] {
@@ -2463,7 +2469,7 @@ button {
 }
 
 .choice input:focus-visible + span {
-  outline: 3px solid rgb(183 220 246 / 30%);
+  outline: 3px solid rgb(103 183 232 / 30%);
   outline-offset: 2px;
 }
 
@@ -3090,6 +3096,12 @@ body.has-modal-open {
 }
 
 .join-team__form-panel {
+  --color-orange: #f45b0b;
+  --color-orange-dark: #d94d00;
+  --color-blue: #67b7e8;
+  --color-blue-dark: #397b9f;
+  --color-navy: #171c24;
+
   max-width: 940px;
   margin: 46px auto 0;
   padding: clamp(26px, 4vw, 44px);
@@ -5661,6 +5673,35 @@ body.has-modal-open {
 .page-supports .nav-link[aria-current="page"],
 .page-supports .mobile-nav__link[aria-current="page"] {
   color: var(--color-orange-dark);
+}
+
+/* Preserve the original Supports-page accent palette independently of global brand tokens. */
+.page-supports {
+  --supports-original-blue: #397b9f;
+  --supports-original-blue-light: #67b7e8;
+  --supports-original-orange: #f45b0b;
+  --supports-original-orange-dark: #d94d00;
+}
+
+.page-supports .supports-intro .section-eyebrow,
+.page-supports .supports-intro h1 span:last-child,
+.page-supports .supports-cta .section-eyebrow,
+.page-supports .support-row__action {
+  color: var(--supports-original-blue);
+}
+
+.page-supports .support-row__icon {
+  color: var(--supports-original-blue);
+  background-color: color-mix(in srgb, var(--supports-original-blue-light) 18%, var(--color-white));
+}
+
+.page-supports .support-row__icon--orange {
+  color: var(--supports-original-orange-dark);
+  background-color: color-mix(in srgb, var(--supports-original-orange) 12%, var(--color-white));
+}
+
+.page-supports .support-row__link:hover {
+  border-color: var(--supports-original-blue-light);
 }
 
 @media (max-width: 1023px) {
