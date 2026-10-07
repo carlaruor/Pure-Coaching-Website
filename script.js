@@ -674,6 +674,61 @@ function initPathwayHeroVideos() {
   window.addEventListener('pagehide', pauseAll);
 }
 
+function initEmploymentJourney(journey) {
+  const wheel = journey.querySelector('[data-employment-wheel]');
+  const stages = Array.from(journey.querySelectorAll('[data-employment-stage]'));
+  const detailNumber = journey.querySelector('[data-employment-detail-number]');
+  const detailTitle = journey.querySelector('[data-employment-detail-title]');
+  const detailPhrase = journey.querySelector('[data-employment-detail-phrase]');
+  const detailDescription = journey.querySelector('[data-employment-detail-description]');
+  const detailPoints = journey.querySelector('[data-employment-detail-points]');
+  const previousButton = journey.querySelector('[data-employment-previous]');
+  const nextButton = journey.querySelector('[data-employment-next]');
+
+  if (!wheel || !stages.length || !detailNumber || !detailTitle || !detailPhrase || !detailDescription || !detailPoints) return;
+
+  const angleStep = 360 / stages.length;
+  let currentIndex = 0;
+  let currentRotation = 0;
+
+  const shortestAngle = (angle) => ((angle + 540) % 360) - 180;
+
+  const updateDetails = (stage) => {
+    detailNumber.textContent = stage.dataset.number;
+    detailTitle.textContent = stage.dataset.title;
+    detailPhrase.textContent = stage.dataset.phrase;
+    detailDescription.textContent = stage.dataset.description;
+    detailPoints.replaceChildren(...stage.dataset.points.split('|').map((point) => {
+      const item = document.createElement('li');
+      item.textContent = point;
+      return item;
+    }));
+  };
+
+  const selectStage = (index) => {
+    const nextIndex = (index + stages.length) % stages.length;
+    const targetRotation = -nextIndex * angleStep;
+    const delta = shortestAngle(targetRotation - (currentRotation % 360));
+
+    currentRotation += delta;
+    currentIndex = nextIndex;
+    wheel.style.setProperty('--journey-rotation', `${currentRotation}deg`);
+    wheel.style.setProperty('--journey-counter-rotation', `${-currentRotation}deg`);
+
+    stages.forEach((stage, stageIndex) => {
+      const isActive = stageIndex === currentIndex;
+      stage.classList.toggle('is-active', isActive);
+      stage.setAttribute('aria-pressed', String(isActive));
+    });
+
+    updateDetails(stages[currentIndex]);
+  };
+
+  stages.forEach((stage, index) => stage.addEventListener('click', () => selectStage(index)));
+  previousButton?.addEventListener('click', () => selectStage(currentIndex - 1));
+  nextButton?.addEventListener('click', () => selectStage(currentIndex + 1));
+}
+
 function init() {
   initMobileNavigation();
   initStickyHeader();
@@ -696,6 +751,7 @@ function init() {
   document.querySelectorAll('[data-disclosure]').forEach(initDisclosure);
   document.querySelectorAll('[data-accordion]').forEach(initAccordion);
   document.querySelectorAll('[data-interest-form]').forEach(initInterestForm);
+  document.querySelectorAll('[data-employment-journey]').forEach(initEmploymentJourney);
 
   setCurrentYear();
 }

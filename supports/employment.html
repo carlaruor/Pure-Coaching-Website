@@ -60,10 +60,10 @@
             <p class="section-description">Before job applications come direction. We can help you explore your strengths, interests and the environments you work best in, so you can discover realistic opportunities and decide what your next step could be.</p>
           </div>
           <ul class="employment-direction__questions" aria-label="Questions we can explore together">
-            <li><span aria-hidden="true">01</span>What are you good at?</li>
-            <li><span aria-hidden="true">02</span>What do you enjoy?</li>
-            <li><span aria-hidden="true">03</span>Where do you work best?</li>
-            <li><span aria-hidden="true">04</span>What would you like to try?</li>
+            <li>What are you good at?</li>
+            <li>What do you enjoy?</li>
+            <li>Where do you work best?</li>
+            <li>What would you like to try?</li>
           </ul>
         </div>
       </section>
@@ -97,20 +97,56 @@
       </section>
 
       <section class="employment-pathway" aria-labelledby="employment-pathway-title">
-        <div class="container">
-          <div class="employment-section-heading">
+        <div class="container employment-journey" data-employment-journey>
+          <div class="employment-journey__intro">
             <p class="section-eyebrow">Practical support</p>
             <h2 class="section-title" id="employment-pathway-title">Steps we can help you with.</h2>
+            <p class="section-description">Employment support looks different for everyone. Click a step to see how we can support you, depending on your goals and where you're at.</p>
           </div>
-          <ol class="employment-pathway__list">
-            <li><span>01</span><div><h3>Explore</h3><p>Understanding interests, strengths and realistic employment options.</p></div></li>
-            <li><span>02</span><div><h3>Prepare</h3><p>Building job-readiness skills and creating or improving a resume.</p></div></li>
-            <li><span>03</span><div><h3>Search</h3><p>Finding suitable jobs and learning how to search for opportunities.</p></div></li>
-            <li><span>04</span><div><h3>Apply</h3><p>Completing applications and responding to opportunities.</p></div></li>
-            <li><span>05</span><div><h3>Interview</h3><p>Preparing for interviews, practising responses and building confidence.</p></div></li>
-            <li><span>06</span><div><h3>Start</h3><p>Understanding workplace expectations and preparing to begin work.</p></div></li>
-            <li><span>07</span><div><h3>Maintain &amp; Grow</h3><p>Building routines, confidence and independence to help maintain employment where appropriate.</p></div></li>
-          </ol>
+
+          <div class="employment-wheel" data-employment-wheel>
+            <div class="employment-wheel__path" aria-hidden="true"></div>
+            <div class="employment-wheel__centre" aria-hidden="true"><span>Your</span><strong>Employment</strong><span>Journey</span></div>
+            <span class="employment-wheel__active-marker" aria-hidden="true"></span>
+            <div class="employment-wheel__nodes">
+              <button class="employment-wheel__stage is-active" type="button" style="--stage-angle: 45deg; --stage-counter-angle: -45deg" aria-label="Explore employment support stage" aria-pressed="true" data-employment-stage data-number="01" data-title="Explore" data-phrase="Find your direction." data-description="Explore your interests, strengths and the environments you work best in so you can identify realistic employment opportunities." data-points="Explore your interests|Identify your strengths|Consider different work environments|Look at realistic job options">
+                <span class="employment-wheel__stage-content"><span class="employment-wheel__number">01</span><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"></circle><path d="m16 16 4 4M11 8v6m-3-3h6"></path></svg><span class="employment-wheel__label">Explore</span></span>
+              </button>
+              <button class="employment-wheel__stage" type="button" style="--stage-angle: 96.4286deg; --stage-counter-angle: -96.4286deg" aria-label="Prepare employment support stage" aria-pressed="false" data-employment-stage data-number="02" data-title="Prepare" data-phrase="Get ready for opportunities." data-description="Build practical job-readiness skills and prepare the tools you need to start looking for work." data-points="Create or improve your resume|Build job-readiness skills|Organise employment information|Prepare for your job search">
+                <span class="employment-wheel__stage-content"><span class="employment-wheel__number">02</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"></path><path d="M8 8h8m-8 4h8m-8 4h5"></path></svg><span class="employment-wheel__label">Prepare</span></span>
+              </button>
+              <button class="employment-wheel__stage" type="button" style="--stage-angle: 147.8571deg; --stage-counter-angle: -147.8571deg" aria-label="Search employment support stage" aria-pressed="false" data-employment-stage data-number="03" data-title="Search" data-phrase="Find the right opportunities." data-description="Learn how to find suitable jobs and identify opportunities that match your interests, strengths and goals." data-points="Search for suitable roles|Understand job advertisements|Compare opportunities|Build confidence searching independently">
+                <span class="employment-wheel__stage-content"><span class="employment-wheel__number">03</span><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"></circle><path d="m15 15 5 5"></path></svg><span class="employment-wheel__label">Search</span></span>
+              </button>
+              <button class="employment-wheel__stage" type="button" style="--stage-angle: 199.2857deg; --stage-counter-angle: -199.2857deg" aria-label="Apply employment support stage" aria-pressed="false" data-employment-stage data-number="04" data-title="Apply" data-phrase="Go for the opportunity." data-description="Get practical support completing applications and responding to employment opportunities." data-points="Complete job applications|Tailor responses where needed|Understand what information to include|Build confidence with the application process">
+                <span class="employment-wheel__stage-content"><span class="employment-wheel__number">04</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 4h10l4 4v12H5z"></path><path d="M14 4v5h5m-10 5 2 2 4-4"></path></svg><span class="employment-wheel__label">Apply</span></span>
+              </button>
+              <button class="employment-wheel__stage" type="button" style="--stage-angle: 250.7143deg; --stage-counter-angle: -250.7143deg" aria-label="Interview employment support stage" aria-pressed="false" data-employment-stage data-number="05" data-title="Interview" data-phrase="Build your confidence." data-description="Prepare for interviews by practising responses, communication and how to present yourself with confidence." data-points="Practise interview questions|Prepare examples and responses|Build communication confidence|Understand what to expect">
+                <span class="employment-wheel__stage-content"><span class="employment-wheel__number">05</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-9 8l-5 2 1-4a8 8 0 1 1 13-6Z"></path><path d="M8 11h8m-8 4h5"></path></svg><span class="employment-wheel__label">Interview</span></span>
+              </button>
+              <button class="employment-wheel__stage" type="button" style="--stage-angle: 302.1429deg; --stage-counter-angle: -302.1429deg" aria-label="Start employment support stage" aria-pressed="false" data-employment-stage data-number="06" data-title="Start" data-phrase="Get ready for work." data-description="Prepare to begin a new role by understanding workplace expectations, routines and responsibilities." data-points="Understand workplace expectations|Prepare for your first days|Build work routines|Get organised for work">
+                <span class="employment-wheel__stage-content"><span class="employment-wheel__number">06</span><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M9 7V4h6v3M3 12h18"></path></svg><span class="employment-wheel__label">Start</span></span>
+              </button>
+              <button class="employment-wheel__stage" type="button" style="--stage-angle: 353.5714deg; --stage-counter-angle: -353.5714deg" aria-label="Maintain and Grow employment support stage" aria-pressed="false" data-employment-stage data-number="07" data-title="Maintain &amp; Grow" data-phrase="Keep moving forward." data-description="Build the routines, confidence and independence that can help make employment more sustainable over time." data-points="Build consistent routines|Strengthen workplace confidence|Develop independence|Work through new challenges">
+                <span class="employment-wheel__stage-content"><span class="employment-wheel__number">07</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 19v-4m5 4v-7m5 7V9m4 10V5"></path><path d="m5 10 5-4 4 2 5-5"></path></svg><span class="employment-wheel__label">Maintain &amp; Grow</span></span>
+              </button>
+            </div>
+          </div>
+
+          <article class="employment-journey__detail">
+            <div aria-live="polite" aria-atomic="true">
+              <p class="employment-journey__detail-heading"><span data-employment-detail-number>01</span><strong data-employment-detail-title>Explore</strong></p>
+              <h3 data-employment-detail-phrase>Find your direction.</h3>
+              <p data-employment-detail-description>Explore your interests, strengths and the environments you work best in so you can identify realistic employment opportunities.</p>
+              <ul data-employment-detail-points>
+                <li>Explore your interests</li><li>Identify your strengths</li><li>Consider different work environments</li><li>Look at realistic job options</li>
+              </ul>
+            </div>
+            <div class="employment-journey__controls" aria-label="Choose adjacent employment support stages">
+              <button type="button" aria-label="Previous employment support stage" data-employment-previous><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg></button>
+              <button type="button" aria-label="Next employment support stage" data-employment-next><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></button>
+            </div>
+          </article>
         </div>
       </section>
 
