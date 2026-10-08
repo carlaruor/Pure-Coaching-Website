@@ -1826,6 +1826,11 @@ button {
   min-width: 0;
   min-height: 42px;
   padding-right: 14px;
+  color: #171c24;
+}
+
+.child-supporting-list--hero svg {
+  color: #397b9f;
 }
 
 .child-supporting-list--hero li + li {
@@ -6551,10 +6556,6 @@ body.has-modal-open {
   object-position: center 48%;
 }
 
-.page-support-coordination .support-coordination-hero h1 span:last-child {
-  color: #397b9f;
-}
-
 .support-coordination-brand-zone {
   --brand-watermark-size: clamp(1050px, 90vw, 1420px);
   --brand-watermark-x: 108%;
@@ -7037,7 +7038,7 @@ body.has-modal-open {
 }
 
 .support-page-hero h1 span:last-child {
-  color: var(--color-blue-dark);
+  color: #397b9f;
 }
 
 .support-page-hero__content > p:not(.section-eyebrow) {
