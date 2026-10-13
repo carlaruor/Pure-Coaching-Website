@@ -340,6 +340,25 @@ function initIntakeForm() {
     state.fixedSupport = Object.hasOwn(pathways, support) ? support : '';
     state.support = state.fixedSupport;
     state.intent = allowedIntent.includes(intent) ? intent : '';
+    if (state.support === 'private' && state.intent === 'enquiry') {
+      try {
+        const booking = JSON.parse(sessionStorage.getItem('pure-private-booking') || 'null');
+        const message = form.querySelector('#message');
+        if (booking && ['5 Sessions', '10 Sessions', '15 Sessions'].includes(booking.package)
+          && Array.isArray(booking.days) && booking.days.length && !message.value) {
+          message.value = [
+            `Private support package: ${booking.package} — ${booking.price}`,
+            `Preferred days: ${booking.days.join(', ')}`,
+            `Preferred time of day: ${booking.time}`,
+            booking.notes ? `Additional preferences: ${booking.notes}` : '',
+            'These are preferences, not confirmed bookings.'
+          ].filter(Boolean).join('\n');
+          sessionStorage.removeItem('pure-private-booking');
+        }
+      } catch {
+        // The existing enquiry form remains usable without browser storage.
+      }
+    }
     if (isSupportCoordination()) {
       form.querySelector('#message-help').textContent = "Tell us a little about your situation and what you'd like help with. Don't worry if you're not sure what support you need yet — just tell us what you know.";
     }
