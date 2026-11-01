@@ -89,6 +89,76 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Shared branded loading indicators */
+.loading-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: #ffffff;
+}
+
+.loading-indicator__image {
+  display: block;
+  width: 48px;
+  height: auto;
+  animation: brand-loader-rotation 1.05s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.page-loading-indicator {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background-color: #ffffff;
+}
+
+.page-loading-indicator[hidden] {
+  display: none;
+}
+
+.media-loading-host {
+  isolation: isolate;
+}
+
+.media-loading-host--positioned {
+  position: relative;
+}
+
+.loading-indicator--media {
+  position: absolute;
+  z-index: 20;
+  inset: 0;
+  display: flex;
+  width: auto;
+  height: auto;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+@keyframes brand-loader-rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  72% {
+    transform: rotate(360deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-indicator__image {
+    animation: none;
+  }
+}
+
 img,
 picture,
 svg,

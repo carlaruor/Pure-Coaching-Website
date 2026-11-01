@@ -3,6 +3,10 @@
 const DESKTOP_BREAKPOINT = 1024;
 const SCROLL_EDGE_TOLERANCE = 1;
 const INSTAGRAM_PROFILE_URL = 'https://www.instagram.com/pure_coaching_cairns/';
+const LOADER_DELAY = 350;
+const LOADER_TIMEOUT = 20000;
+const SHARED_SCRIPT_URL = document.currentScript?.src || new URL('script.js', window.location.href).href;
+const BRAND_LOADER_URL = new URL('assets/logo/brand-circle.png', SHARED_SCRIPT_URL).href;
 
 // Temporary local posts. Replace this data source with /api/instagram when available.
 const TEMPORARY_INSTAGRAM_POSTS = [
@@ -768,7 +772,219 @@ function initLoginForm(form) {
   form.addEventListener('submit', (event) => event.preventDefault());
 }
 
+function createLoadingIndicator(accessible = false) {
+  const indicator = document.createElement('span');
+  const image = document.createElement('img');
+
+  indicator.className = 'loading-indicator';
+  image.className = 'loading-indicator__image';
+  image.src = BRAND_LOADER_URL;
+  image.alt = '';
+  image.width = 48;
+  image.height = 45;
+  image.setAttribute('aria-hidden', 'true');
+  indicator.append(image);
+
+  if (accessible) {
+    indicator.setAttribute('role', 'status');
+    indicator.setAttribute('aria-label', 'Loading');
+  } else {
+    indicator.setAttribute('aria-hidden', 'true');
+  }
+
+  return indicator;
+}
+
+function initPageLoadingIndicator() {
+  const overlay = document.createElement('div');
+  const indicator = createLoadingIndicator(true);
+  let showTimer;
+  let safetyTimer;
+
+  overlay.className = 'page-loading-indicator';
+  overlay.hidden = true;
+  overlay.append(indicator);
+  document.body.append(overlay);
+
+  const hide = () => {
+    window.clearTimeout(showTimer);
+    window.clearTimeout(safetyTimer);
+    overlay.hidden = true;
+  };
+
+  const showAfterDelay = () => {
+    window.clearTimeout(showTimer);
+    window.clearTimeout(safetyTimer);
+    showTimer = window.setTimeout(() => {
+      overlay.hidden = false;
+      safetyTimer = window.setTimeout(hide, LOADER_TIMEOUT);
+    }, LOADER_DELAY);
+  };
+
+  if (document.readyState !== 'complete') {
+    showAfterDelay();
+    window.addEventListener('load', hide, { once: true });
+  }
+
+  document.addEventListener('click', (event) => {
+    const link = event.target.closest('a[href]');
+
+    if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (link.hasAttribute('download') || (link.target && link.target !== '_self')) return;
+
+    const destination = new URL(link.href, window.location.href);
+    const isWebNavigation = destination.protocol === 'http:' || destination.protocol === 'https:' || destination.protocol === 'file:';
+    const isSameDocument = destination.pathname === window.location.pathname
+      && destination.search === window.location.search
+      && destination.hash;
+
+    if (!isWebNavigation || isSameDocument) return;
+    showAfterDelay();
+  });
+
+  window.addEventListener('pageshow', hide);
+  window.addEventListener('pagehide', hide);
+}
+
+function initMediaLoadingIndicators() {
+  const hostStates = new WeakMap();
+
+  const getHostState = (media) => {
+    const host = media.parentElement;
+    if (!host) return null;
+
+    let state = hostStates.get(host);
+    if (state) return state;
+
+    state = {
+      host,
+      indicator: null,
+      pending: new Set(),
+      showTimer: 0,
+      safetyTimer: 0
+    };
+    hostStates.set(host, state);
+    return state;
+  };
+
+  const hideHostIndicator = (state) => {
+    window.clearTimeout(state.showTimer);
+    window.clearTimeout(state.safetyTimer);
+    state.indicator?.remove();
+    state.indicator = null;
+    state.host.classList.remove('media-loading-host');
+    state.host.classList.remove('media-loading-host--positioned');
+  };
+
+  const finishLoading = (media) => {
+    const state = getHostState(media);
+    if (!state) return;
+
+    state.pending.delete(media);
+    if (!state.pending.size) hideHostIndicator(state);
+  };
+
+  const beginLoading = (media) => {
+    const state = getHostState(media);
+    if (!state || state.pending.has(media)) return;
+
+    state.pending.add(media);
+    if (state.showTimer || state.indicator) return;
+
+    state.showTimer = window.setTimeout(() => {
+      state.showTimer = 0;
+      if (!state.pending.size || !state.host.isConnected) return;
+
+      state.host.classList.add('media-loading-host');
+      if (window.getComputedStyle(state.host).position === 'static') {
+        state.host.classList.add('media-loading-host--positioned');
+      }
+      state.indicator = createLoadingIndicator();
+      state.indicator.classList.add('loading-indicator--media');
+      state.host.append(state.indicator);
+      state.safetyTimer = window.setTimeout(() => {
+        state.pending.clear();
+        hideHostIndicator(state);
+      }, LOADER_TIMEOUT);
+    }, LOADER_DELAY);
+  };
+
+  const shouldSkipImage = (image) => image.matches('.loading-indicator__image, .brand-watermark')
+    || Boolean(image.closest('.site-logo, .site-footer__logo'))
+    || image.getAttribute('aria-hidden') === 'true';
+
+  const observeImage = (image) => {
+    if (image.dataset.loaderTracked || shouldSkipImage(image)) return;
+    image.dataset.loaderTracked = 'true';
+
+    if (image.complete) return;
+
+    beginLoading(image);
+    image.addEventListener('load', () => finishLoading(image), { once: true });
+    image.addEventListener('error', () => finishLoading(image), { once: true });
+  };
+
+  const lazyImageObserver = 'IntersectionObserver' in window
+    ? new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        observer.unobserve(entry.target);
+        observeImage(entry.target);
+      });
+    }, { rootMargin: '200px' })
+    : null;
+
+  const registerImage = (image) => {
+    if (image.dataset.loaderTracked || shouldSkipImage(image) || image.complete) return;
+    if (image.loading === 'lazy' && lazyImageObserver) {
+      lazyImageObserver.observe(image);
+      return;
+    }
+    observeImage(image);
+  };
+
+  const registerVideo = (video) => {
+    if (video.dataset.loaderTracked) return;
+    video.dataset.loaderTracked = 'true';
+
+    if (video.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) beginLoading(video);
+
+    video.addEventListener('loadstart', () => beginLoading(video));
+    video.addEventListener('waiting', () => {
+      if (!video.paused && !video.ended) beginLoading(video);
+    });
+    video.addEventListener('stalled', () => {
+      if (!video.paused && !video.ended) beginLoading(video);
+    });
+    video.addEventListener('canplay', () => finishLoading(video));
+    video.addEventListener('playing', () => finishLoading(video));
+    video.addEventListener('pause', () => finishLoading(video));
+    video.addEventListener('ended', () => finishLoading(video));
+    video.addEventListener('error', () => finishLoading(video));
+  };
+
+  const registerMedia = (root) => {
+    if (root instanceof HTMLImageElement) registerImage(root);
+    if (root instanceof HTMLVideoElement) registerVideo(root);
+    root.querySelectorAll?.('img').forEach(registerImage);
+    root.querySelectorAll?.('video').forEach(registerVideo);
+  };
+
+  registerMedia(document);
+
+  const mediaObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node instanceof Element) registerMedia(node);
+      });
+    });
+  });
+  mediaObserver.observe(document.body, { childList: true, subtree: true });
+}
+
 function init() {
+  initPageLoadingIndicator();
+  initMediaLoadingIndicators();
   initMobileNavigation();
   initStickyHeader();
   initPathwayHeroVideos();
