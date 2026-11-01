@@ -8351,6 +8351,205 @@ body.has-modal-open {
   }
 }
 
+/* Log In page */
+.login-main {
+  display: grid;
+  min-height: clamp(600px, calc(100svh - 82px), 760px);
+  align-items: center;
+  padding-block: clamp(48px, 7vw, 80px);
+  background-color: var(--color-background);
+}
+
+.login-main__inner {
+  display: flex;
+  justify-content: center;
+}
+
+.login-card {
+  width: min(100%, 420px);
+  padding: clamp(28px, 4vw, 40px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-large);
+  background-color: var(--color-white);
+  box-shadow: 0 14px 36px rgba(29, 37, 45, 0.07);
+}
+
+.login-card__header {
+  text-align: center;
+}
+
+.login-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  color: var(--color-blue-dark);
+  background-color: var(--color-blue);
+}
+
+.login-card__icon svg {
+  width: 27px;
+  height: 27px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.login-card h1 {
+  margin-top: var(--space-lg);
+  color: var(--color-navy);
+  font-size: clamp(2rem, 5vw, 2.55rem);
+  letter-spacing: -0.04em;
+  line-height: 1.08;
+}
+
+.login-card__header p {
+  margin-top: var(--space-sm);
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+
+.login-form {
+  display: grid;
+  gap: var(--space-lg);
+  margin-top: clamp(28px, 4vw, 34px);
+}
+
+.login-field {
+  display: grid;
+  gap: 8px;
+}
+
+.login-field label {
+  color: var(--color-navy);
+  font-size: 0.92rem;
+  font-weight: 750;
+}
+
+.login-field input {
+  width: 100%;
+  min-height: 50px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-medium);
+  color: var(--color-text);
+  background-color: var(--color-white);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.login-field input::placeholder {
+  color: var(--color-muted);
+  opacity: 0.85;
+}
+
+.login-field input:focus {
+  border-color: var(--color-orange);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-orange) 18%, transparent);
+}
+
+.login-password {
+  position: relative;
+}
+
+.login-password input {
+  padding-right: 50px;
+}
+
+.login-password__toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  color: var(--color-muted);
+  background: transparent;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.login-password__toggle:hover {
+  color: var(--color-navy);
+  background-color: var(--color-surface);
+}
+
+.login-password__toggle svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.login-password__hide-icon,
+.login-password__toggle[aria-pressed="true"] .login-password__show-icon {
+  display: none;
+}
+
+.login-password__toggle[aria-pressed="true"] .login-password__hide-icon {
+  display: block;
+}
+
+.login-form__help {
+  margin-top: calc(var(--space-sm) * -1);
+  text-align: right;
+}
+
+.login-form__help button {
+  padding: 0;
+  border: 0;
+  color: var(--color-orange);
+  background: transparent;
+  font-size: 0.9rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.login-form__help button:hover {
+  color: var(--color-orange-dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.login-form__submit {
+  width: 100%;
+  min-height: 50px;
+  cursor: pointer;
+}
+
+.login-card__notice {
+  margin-top: clamp(28px, 4vw, 34px);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--color-border);
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .login-main {
+    min-height: 0;
+    padding-block: 40px;
+  }
+
+  .login-card {
+    padding: 28px 22px;
+  }
+}
+
 /* NDIS page sequence: journey, coordination, support areas, compact CTA. */
 .page-ndis-support .ndis-journey,
 .page-ndis-support .ndis-support-areas { background-color: var(--color-blue-tint); }

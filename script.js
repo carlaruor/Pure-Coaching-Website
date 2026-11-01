@@ -750,6 +750,24 @@ function initAmbientVideo(video) {
   updatePlayback();
 }
 
+function initLoginForm(form) {
+  const passwordInput = form.querySelector('[data-password-input]');
+  const passwordToggle = form.querySelector('[data-password-toggle]');
+
+  if (passwordInput && passwordToggle) {
+    passwordToggle.addEventListener('click', () => {
+      const isVisible = passwordInput.type === 'text';
+
+      passwordInput.type = isVisible ? 'password' : 'text';
+      passwordToggle.setAttribute('aria-pressed', String(!isVisible));
+      passwordToggle.setAttribute('aria-label', isVisible ? 'Show password' : 'Hide password');
+    });
+  }
+
+  // Authentication will be connected later; keep this frontend form on-page for now.
+  form.addEventListener('submit', (event) => event.preventDefault());
+}
+
 function init() {
   initMobileNavigation();
   initStickyHeader();
@@ -774,6 +792,7 @@ function init() {
   document.querySelectorAll('[data-interest-form]').forEach(initInterestForm);
   document.querySelectorAll('[data-employment-journey]').forEach(initEmploymentJourney);
   document.querySelectorAll('[data-ambient-video]').forEach(initAmbientVideo);
+  document.querySelectorAll('[data-login-form]').forEach(initLoginForm);
 
   setCurrentYear();
 }
