@@ -170,7 +170,8 @@ function initIntakeForm() {
     setConditionalFields(form.querySelector('[data-coordinator-change]'), coordination && selected('supportCoordinator')?.value === 'Yes');
     documentSection.hidden = support !== 'ndis';
     const disabilityFields = form.querySelector('[data-ndis-disabilities]');
-    disabilityFields.hidden = support !== 'ndis';
+    const showDisabilityFields = support === 'ndis' || support === 'private';
+    disabilityFields.hidden = !showDisabilityFields;
     ['primaryDisability', 'secondaryDisabilities'].forEach((name) => {
       field(name).disabled = disabilityFields.hidden;
       if (disabilityFields.hidden) field(name).value = '';
@@ -309,8 +310,8 @@ function initIntakeForm() {
         files.map((file) => [documentConfig.fields[name].label, file.name])));
     }
     addReviewGroup('About the person', 3, [['Person being referred', contactFor === 'Someone else' ? `${value('personFirstName')} ${value('personLastName')}` : 'Myself'],
-      ['Primary Disability', state.support === 'ndis' ? value('primaryDisability') : ''],
-      ['Secondary Disability or disabilities', state.support === 'ndis' ? value('secondaryDisabilities') : ''],
+      ['Primary Disability', ['ndis', 'private'].includes(state.support) ? value('primaryDisability') : ''],
+      ['Secondary Disability or disabilities', ['ndis', 'private'].includes(state.support) ? value('secondaryDisabilities') : ''],
       ['Age range', selected('ageRange')?.value]]);
     addReviewGroup('Your message', 4, [['Preferred contact', selected('preferredContact')?.value], ['Best time', value('contactTime') === 'Other' ? value('contactTimeOther') : value('contactTime')], ['Message', value('message')]]);
   }

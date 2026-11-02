@@ -283,7 +283,7 @@ button {
   bottom: var(--space-sm);
   left: 50%;
   transform: translateX(-50%);
-  text-shadow: 0 1px 4px var(--color-navy);
+  text-shadow: 0 1px 4px rgb(29 37 45 / 72%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -328,6 +328,20 @@ button {
   cursor: pointer;
 }
 
+.pathway-hero__panel::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 64%,
+    rgb(29 37 45 / 22%) 76%,
+    rgb(29 37 45 / 56%) 100%
+  );
+  content: "";
+  pointer-events: none;
+}
+
 @supports (height: 1svh) {
   .pathway-hero__panel {
     padding-bottom: clamp(104px, 14svh, 160px);
@@ -369,22 +383,7 @@ button {
   position: relative;
   isolation: isolate;
   width: 100%;
-}
-
-/* Follow the copy height, including wrapped tablet/mobile text, rather than
-   darkening a fixed percentage of the footage. The panel clips the overscan. */
-.pathway-hero__content::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: -64px -80px -180px;
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    rgb(23 28 36 / 66%) 64px,
-    rgb(23 28 36 / 82%) 100%
-  );
+  text-shadow: 0 1px 4px rgb(29 37 45 / 44%);
 }
 
 .pathway-hero__content h2 {
@@ -398,6 +397,7 @@ button {
 .pathway-hero__content p {
   min-height: 3.2em;
   margin-top: var(--space-md);
+  color: rgb(255 255 255 / 94%);
   font-size: 1rem;
 }
 
@@ -2463,6 +2463,10 @@ button {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
+}
+
+[data-ndis-disabilities][hidden] {
+  display: none;
 }
 
 .field--full {
