@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Pure Coaching Private Support payment status.">
+    <title>Payment Status | Pure Coaching Cairns</title>
+    <link rel="stylesheet" href="style.css?v=private-purchase-flow">
+    <script src="script.js" defer></script>
+  </head>
+  <body class="page-payment-result">
+    <header class="site-header" data-header>
+      <div class="container site-header__inner">
+        <a class="site-logo" href="index.html" aria-label="Pure Coaching Cairns home"><img src="assets/logo/pure-coaching-logo.png" alt="Pure Coaching Cairns" width="1254" height="1254"></a>
+        <nav class="desktop-nav" aria-label="Primary navigation"><ul class="nav-list"><li><a class="nav-link" href="about.html">About Us</a></li><li><a class="nav-link" href="supports.html">Supports</a></li><li><a class="nav-link" href="referrals.html">Referrals</a></li><li><a class="nav-link" href="contact.html">Contact</a></li><li><a class="nav-link" href="login.html">Log In</a></li></ul><a class="button button--primary" href="get-started.html?intent=general">Start Your Journey</a></nav>
+        <button class="menu-toggle" type="button" aria-label="Open navigation menu" aria-controls="mobile-navigation" aria-expanded="false" data-menu-toggle><span></span><span></span><span></span></button>
+      </div>
+      <nav class="mobile-nav" id="mobile-navigation" aria-label="Mobile navigation" data-mobile-nav hidden><div class="container"><ul class="mobile-nav__list"><li><a class="mobile-nav__link" href="about.html">About Us</a></li><li><a class="mobile-nav__link" href="supports.html">Supports</a></li><li><a class="mobile-nav__link" href="referrals.html">Referrals</a></li><li><a class="mobile-nav__link" href="contact.html">Contact</a></li><li><a class="mobile-nav__link" href="login.html">Log In</a></li></ul><a class="button button--primary mobile-nav__cta" href="get-started.html?intent=general">Start Your Journey</a></div></nav>
+    </header>
+
+    <main class="purchase-result">
+      <div class="container purchase-result__inner">
+        <section class="purchase-result__card purchase-result__unavailable" aria-labelledby="payment-unavailable-title" data-payment-unavailable>
+          <span class="purchase-result__icon purchase-result__icon--pending" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 7v5l3 2"></path><circle cx="12" cy="12" r="9"></circle></svg></span>
+          <p class="section-eyebrow">Private Support payment</p>
+          <h1 id="payment-unavailable-title">Online payment is not available yet.</h1>
+          <p>This page will display a purchase confirmation only after a future payment system has securely verified a successful payment. No payment has been taken and no confirmation email has been sent.</p>
+          <a class="button button--primary" href="private-support.html#private-packages">Return to Private Support</a>
+        </section>
+
+        <!-- A future backend must render this section only after verifying the Stripe Checkout session. -->
+        <section class="purchase-result__card" aria-labelledby="payment-success-title" data-payment-success hidden>
+          <span class="purchase-result__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m7 12 3 3 7-7"></path><circle cx="12" cy="12" r="9"></circle></svg></span>
+          <p class="section-eyebrow">Private Support</p>
+          <h1 id="payment-success-title">Payment successful!</h1>
+          <p>Thank you for choosing Pure Coaching. Your package purchase has been confirmed.</p>
+          <div class="purchase-result__next">
+            <h2>Help us get to know you.</h2>
+            <p>Our team will be in touch with you shortly to organise your sessions. In the meantime, we'd love to learn a little more about you, your interests and your goals so we can make your Pure Coaching experience as personalised and meaningful as possible.</p>
+            <a class="button button--primary" href="private-support-questionnaire.html">Tell Us More About You</a>
+            <p class="purchase-result__supporting">You can also complete this later. We'll send you a link by email.</p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer"><div class="container"><div class="site-footer__main"><div class="site-footer__brand"><a class="site-footer__logo" href="index.html" aria-label="Pure Coaching Cairns home"><img src="assets/logo/pure-coaching-logo.png" alt="Pure Coaching Cairns" width="1254" height="1254"></a><p>Personalised, goal-focused support helping people build confidence, independence and meaningful everyday lives across Cairns &amp; FNQ.</p><a class="site-footer__cta" href="get-started.html?intent=general">Start Your Journey <span aria-hidden="true">→</span></a></div><nav class="site-footer__group" aria-labelledby="payment-footer-explore"><h2 id="payment-footer-explore">Explore</h2><ul><li><a href="about.html">About Us</a></li><li><a href="supports.html">Supports</a></li><li><a href="referrals.html">Referrals</a></li><li><a href="contact.html">Contact</a></li></ul></nav><nav class="site-footer__group" aria-labelledby="payment-footer-started"><h2 id="payment-footer-started">Get Started</h2><ul><li><a href="private-support.html">Private Support</a></li><li><a href="ndis-support.html">NDIS Support</a></li><li><a href="child-safety.html">Family and Children Support</a></li></ul></nav><div class="site-footer__group site-footer__contact"><h2>Contact</h2><address><p>19 Northcote St, Trinity Park QLD 4879, Australia</p><dl><div><dt>Phone</dt><dd><a href="tel:+61407234842">0407 234 842</a></dd></div><div><dt>Email</dt><dd><a href="mailto:info@pure-coaching.com.au">info@pure-coaching.com.au</a></dd></div></dl></address><nav class="site-footer__socials" aria-label="Social media"><a href="https://www.facebook.com/profile.php?id=61590555206375" target="_blank" rel="noopener noreferrer" aria-label="Pure Coaching Cairns on Facebook"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14 8h3V4h-3c-3 0-5 2-5 5v3H6v4h3v5h4v-5h3l1-4h-4V9c0-.6.4-1 1-1Z"></path></svg></a><a href="https://www.instagram.com/cairnspurecoaching/" target="_blank" rel="noopener noreferrer" aria-label="Pure Coaching Cairns on Instagram"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1"></circle></svg></a></nav></div></div><div class="site-footer__bottom"><div><p>© <span data-current-year>2026</span> Pure Coaching Cairns</p></div><nav aria-label="Legal"><a href="#">Privacy Policy</a><a href="#">Terms &amp; Conditions</a></nav></div></div></footer>
+  </body>
+</html>
