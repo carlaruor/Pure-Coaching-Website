@@ -3,7 +3,8 @@
 const DESKTOP_BREAKPOINT = 1024;
 const SCROLL_EDGE_TOLERANCE = 1;
 const INSTAGRAM_PROFILE_URL = 'https://www.instagram.com/pure_coaching_cairns/';
-const LOADER_DELAY = 350;
+const LOADER_DELAY = 500;
+const LOADER_MIN_VISIBLE_TIME = 300;
 const LOADER_TIMEOUT = 20000;
 const SHARED_SCRIPT_URL = document.currentScript?.src || new URL('script.js', window.location.href).href;
 const BRAND_LOADER_URL = new URL('assets/logo/brand-circle.png', SHARED_SCRIPT_URL).href;
@@ -799,31 +800,65 @@ function initPageLoadingIndicator() {
   const overlay = document.createElement('div');
   const indicator = createLoadingIndicator(true);
   let showTimer;
+  let hideTimer;
   let safetyTimer;
+  let visibleAt = 0;
 
   overlay.className = 'page-loading-indicator';
   overlay.hidden = true;
   overlay.append(indicator);
   document.body.append(overlay);
 
-  const hide = () => {
+  const finishHiding = () => {
+    window.clearTimeout(hideTimer);
+    hideTimer = 0;
+    visibleAt = 0;
+    overlay.hidden = true;
+  };
+
+  const hide = (immediately = false) => {
     window.clearTimeout(showTimer);
     window.clearTimeout(safetyTimer);
-    overlay.hidden = true;
+    showTimer = 0;
+    safetyTimer = 0;
+
+    if (overlay.hidden || immediately) {
+      finishHiding();
+      return;
+    }
+
+    const remainingVisibleTime = LOADER_MIN_VISIBLE_TIME - (performance.now() - visibleAt);
+    if (remainingVisibleTime > 0) {
+      window.clearTimeout(hideTimer);
+      hideTimer = window.setTimeout(finishHiding, remainingVisibleTime);
+      return;
+    }
+
+    finishHiding();
   };
 
   const showAfterDelay = () => {
     window.clearTimeout(showTimer);
+    window.clearTimeout(hideTimer);
     window.clearTimeout(safetyTimer);
+    hideTimer = 0;
+
+    if (!overlay.hidden) {
+      safetyTimer = window.setTimeout(() => hide(true), LOADER_TIMEOUT);
+      return;
+    }
+
     showTimer = window.setTimeout(() => {
+      showTimer = 0;
+      visibleAt = performance.now();
       overlay.hidden = false;
-      safetyTimer = window.setTimeout(hide, LOADER_TIMEOUT);
+      safetyTimer = window.setTimeout(() => hide(true), LOADER_TIMEOUT);
     }, LOADER_DELAY);
   };
 
-  if (document.readyState !== 'complete') {
+  if (document.readyState === 'loading') {
     showAfterDelay();
-    window.addEventListener('load', hide, { once: true });
+    document.addEventListener('DOMContentLoaded', () => hide(), { once: true });
   }
 
   document.addEventListener('click', (event) => {
@@ -842,8 +877,8 @@ function initPageLoadingIndicator() {
     showAfterDelay();
   });
 
-  window.addEventListener('pageshow', hide);
-  window.addEventListener('pagehide', hide);
+  window.addEventListener('pageshow', () => hide(true));
+  window.addEventListener('pagehide', () => hide(true));
 }
 
 function initMediaLoadingIndicators() {
@@ -861,19 +896,43 @@ function initMediaLoadingIndicators() {
       indicator: null,
       pending: new Set(),
       showTimer: 0,
+      hideTimer: 0,
+      visibleAt: 0,
       safetyTimer: 0
     };
     hostStates.set(host, state);
     return state;
   };
 
-  const hideHostIndicator = (state) => {
-    window.clearTimeout(state.showTimer);
-    window.clearTimeout(state.safetyTimer);
+  const finishHidingHostIndicator = (state) => {
+    window.clearTimeout(state.hideTimer);
+    state.hideTimer = 0;
+    state.visibleAt = 0;
     state.indicator?.remove();
     state.indicator = null;
     state.host.classList.remove('media-loading-host');
     state.host.classList.remove('media-loading-host--positioned');
+  };
+
+  const hideHostIndicator = (state, immediately = false) => {
+    window.clearTimeout(state.showTimer);
+    window.clearTimeout(state.safetyTimer);
+    state.showTimer = 0;
+    state.safetyTimer = 0;
+
+    if (!state.indicator || immediately) {
+      finishHidingHostIndicator(state);
+      return;
+    }
+
+    const remainingVisibleTime = LOADER_MIN_VISIBLE_TIME - (performance.now() - state.visibleAt);
+    if (remainingVisibleTime > 0) {
+      window.clearTimeout(state.hideTimer);
+      state.hideTimer = window.setTimeout(() => finishHidingHostIndicator(state), remainingVisibleTime);
+      return;
+    }
+
+    finishHidingHostIndicator(state);
   };
 
   const finishLoading = (media) => {
@@ -889,7 +948,12 @@ function initMediaLoadingIndicators() {
     if (!state || state.pending.has(media)) return;
 
     state.pending.add(media);
-    if (state.showTimer || state.indicator) return;
+    if (state.indicator) {
+      window.clearTimeout(state.hideTimer);
+      state.hideTimer = 0;
+      return;
+    }
+    if (state.showTimer) return;
 
     state.showTimer = window.setTimeout(() => {
       state.showTimer = 0;
@@ -902,9 +966,10 @@ function initMediaLoadingIndicators() {
       state.indicator = createLoadingIndicator();
       state.indicator.classList.add('loading-indicator--media');
       state.host.append(state.indicator);
+      state.visibleAt = performance.now();
       state.safetyTimer = window.setTimeout(() => {
         state.pending.clear();
-        hideHostIndicator(state);
+        hideHostIndicator(state, true);
       }, LOADER_TIMEOUT);
     }, LOADER_DELAY);
   };
