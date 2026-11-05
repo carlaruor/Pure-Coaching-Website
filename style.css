@@ -1748,7 +1748,6 @@ button {
   pointer-events: none;
 }
 
-.hero-media-poster,
 .hero-media-video {
   position: absolute;
   inset: 0;
@@ -1760,6 +1759,7 @@ button {
 
 .hero-media-video {
   z-index: 1;
+  background-color: inherit;
 }
 
 .page-hero--ndis {
@@ -1899,10 +1899,9 @@ button {
   height: 540px;
   overflow: hidden;
   border-radius: var(--radius-large);
-  background: var(--color-blue-tint) url("assets/images/pathways/child-safety.webp") 66% center / cover no-repeat;
+  background-color: var(--color-blue-tint);
 }
 
-.child-hero__media .hero-media-poster,
 .child-hero__media .hero-media-video {
   object-position: 66% center;
 }

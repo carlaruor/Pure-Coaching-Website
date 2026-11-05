@@ -745,7 +745,7 @@ function initAmbientVideo(video) {
     try {
       await video.play();
     } catch {
-      // The poster remains visible if no source exists or autoplay is unavailable.
+      // The media container's clean background remains visible when playback is unavailable.
     }
   };
 
