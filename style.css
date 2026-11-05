@@ -1250,66 +1250,10 @@ button {
   transform: translate(2px, -2px);
 }
 
-.instagram-feed {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(12px, 1.5vw, 20px);
-  min-width: 0;
-}
-
-.instagram-feed[hidden] {
-  display: none;
-}
-
-.instagram-post {
-  position: relative;
-  min-width: 0;
-  overflow: hidden;
-  aspect-ratio: 1;
-  border-radius: var(--radius-medium);
-  background-color: var(--color-border);
-}
-
-.instagram-post img {
+.instagram-showcase__widget {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform var(--transition-ui);
-}
-
-.instagram-post__media-type {
-  display: grid;
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 34px;
-  height: 34px;
-  border: 1px solid rgb(255 255 255 / 46%);
-  border-radius: 50%;
-  color: var(--color-white);
-  background-color: rgb(29 37 45 / 62%);
-  place-items: center;
-}
-
-.instagram-post__media-type svg {
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.instagram-post__media-type svg path:first-child:last-child {
-  fill: currentColor;
-  stroke: none;
-}
-
-@media (hover: hover) {
-  .instagram-post:hover img {
-    transform: scale(1.035);
-  }
+  min-width: 0;
+  overflow-x: clip;
 }
 
 
@@ -5582,9 +5526,6 @@ body.has-modal-open {
     margin-left: clamp(40px, 7vw, 72px);
   }
 
-  .instagram-feed {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 767px) {
@@ -5647,22 +5588,6 @@ body.has-modal-open {
     justify-self: start;
   }
 
-  .instagram-feed {
-    display: flex;
-    gap: 14px;
-    margin-inline: calc(var(--page-padding-mobile) * -1);
-    overflow-x: auto;
-    padding: 0 var(--page-padding-mobile) 10px;
-    scroll-padding-inline: var(--page-padding-mobile);
-    scroll-snap-type: x mandatory;
-    scrollbar-color: var(--color-border-strong) transparent;
-    scrollbar-width: thin;
-  }
-
-  .instagram-post {
-    flex: 0 0 min(76vw, 300px);
-    scroll-snap-align: start;
-  }
 }
 
 @media (max-width: 1023px) {

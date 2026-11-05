@@ -2,40 +2,11 @@
 
 const DESKTOP_BREAKPOINT = 1024;
 const SCROLL_EDGE_TOLERANCE = 1;
-const INSTAGRAM_PROFILE_URL = 'https://www.instagram.com/pure_coaching_cairns/';
 const LOADER_DELAY = 500;
 const LOADER_MIN_VISIBLE_TIME = 300;
 const LOADER_TIMEOUT = 20000;
 const SHARED_SCRIPT_URL = document.currentScript?.src || new URL('script.js', window.location.href).href;
 const BRAND_LOADER_URL = new URL('assets/logo/brand-circle.png', SHARED_SCRIPT_URL).href;
-
-// Temporary local posts. Replace this data source with /api/instagram when available.
-const TEMPORARY_INSTAGRAM_POSTS = [
-  {
-    mediaType: 'IMAGE',
-    image: 'assets/images/child-safety/support-everyday-life.webp',
-    permalink: INSTAGRAM_PROFILE_URL,
-    alt: 'Young person and support worker sharing a high five during an outdoor activity'
-  },
-  {
-    mediaType: 'REEL',
-    image: 'assets/images/activities/outdoor-adventure.webp',
-    permalink: INSTAGRAM_PROFILE_URL,
-    alt: 'Outdoor adventure activity with Pure Coaching support'
-  },
-  {
-    mediaType: 'CAROUSEL',
-    image: 'assets/images/activities/fitness-wellbeing.webp',
-    permalink: INSTAGRAM_PROFILE_URL,
-    alt: 'Fitness and wellbeing activity with Pure Coaching'
-  },
-  {
-    mediaType: 'IMAGE',
-    image: 'assets/images/activities/social-activities.webp',
-    permalink: INSTAGRAM_PROFILE_URL,
-    alt: 'Social and community activity with Pure Coaching support'
-  }
-];
 
 function validateEmailAddress(email, control) {
   if (control && !control.validity.valid) return false;
@@ -206,70 +177,6 @@ function initCarousel(carousel) {
   updateControls();
 
   return updateControls;
-}
-
-function createInstagramMediaIcon(mediaType) {
-  if (mediaType === 'VIDEO' || mediaType === 'REEL') {
-    return '<svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 7 8 5-8 5V7Z"></path></svg>';
-  }
-
-  if (mediaType === 'CAROUSEL') {
-    return '<svg aria-hidden="true" viewBox="0 0 24 24"><rect x="7" y="7" width="12" height="12" rx="2"></rect><path d="M5 16H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"></path></svg>';
-  }
-
-  return '';
-}
-
-function setInstagramFeedState(section, state) {
-  const feed = section.querySelector('[data-instagram-feed]');
-  section.dataset.feedState = state;
-  feed.hidden = state === 'unavailable';
-  feed.setAttribute('aria-busy', String(state === 'loading'));
-}
-
-function renderInstagramFeed(section, posts) {
-  const feed = section.querySelector('[data-instagram-feed]');
-  if (!feed) return;
-
-  feed.replaceChildren();
-  posts.forEach((post) => {
-    const link = document.createElement('a');
-    const image = document.createElement('img');
-    const mediaIcon = createInstagramMediaIcon(post.mediaType);
-
-    link.className = 'instagram-post';
-    link.href = post.permalink;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.setAttribute('role', 'listitem');
-    link.setAttribute('aria-label', `${post.alt}. Open on Instagram.`);
-
-    image.src = post.image;
-    image.alt = post.alt;
-    image.width = 900;
-    image.height = 900;
-    image.loading = 'lazy';
-    image.decoding = 'async';
-    link.append(image);
-
-    if (mediaIcon) {
-      const indicator = document.createElement('span');
-      indicator.className = 'instagram-post__media-type';
-      indicator.innerHTML = mediaIcon;
-      link.append(indicator);
-    }
-
-    feed.append(link);
-  });
-
-  setInstagramFeedState(section, posts.length ? 'success' : 'unavailable');
-}
-
-function initInstagramFeed() {
-  const section = document.querySelector('[data-instagram-section]');
-  if (!section) return;
-
-  renderInstagramFeed(section, TEMPORARY_INSTAGRAM_POSTS);
 }
 
 function setCurrentYear() {
@@ -1053,7 +960,6 @@ function init() {
   initMobileNavigation();
   initStickyHeader();
   initPathwayHeroVideos();
-  initInstagramFeed();
 
   const carouselUpdates = Array.from(
     document.querySelectorAll('[data-carousel]'),
