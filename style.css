@@ -7555,6 +7555,7 @@ body.has-modal-open {
 .activity-accordion__item {
   position: relative;
   min-height: 96px;
+  scroll-margin-top: 100px;
   overflow: hidden;
   padding-left: 39%;
   border: 1px solid color-mix(in srgb, var(--color-border) 62%, transparent);

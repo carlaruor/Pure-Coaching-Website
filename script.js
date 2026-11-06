@@ -380,6 +380,18 @@ function initAccordion(accordion) {
     panel: item.querySelector('[data-accordion-panel]')
   });
 
+  const getHashItem = () => {
+    const rawHash = window.location.hash.slice(1);
+    if (!rawHash) return null;
+
+    try {
+      const hash = decodeURIComponent(rawHash);
+      return items.find((item) => item.id === hash) || null;
+    } catch {
+      return null;
+    }
+  };
+
   const setOpen = async (item, isOpen, immediate = false) => {
     const { trigger, panel } = getParts(item);
     if (!trigger || !panel) return;
@@ -432,6 +444,42 @@ function initAccordion(accordion) {
       setOpen(item, shouldOpen);
     });
   });
+
+  const openHashItem = async () => {
+    const targetItem = getHashItem();
+    if (!targetItem) {
+      if (!window.location.hash) {
+        await Promise.all(items.map((item) => setOpen(item, false, true)));
+      }
+      return;
+    }
+
+    await Promise.all(items.map((item) => setOpen(item, item === targetItem, true)));
+    const scrollToTarget = () => {
+      if (getHashItem() !== targetItem) return;
+
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          targetItem.scrollIntoView({
+            behavior: reduceMotion ? 'auto' : 'smooth',
+            block: 'start'
+          });
+        });
+      });
+    };
+
+    scrollToTarget();
+    if (document.readyState !== 'complete') {
+      window.addEventListener('load', scrollToTarget, { once: true });
+    }
+  };
+
+  window.addEventListener('hashchange', openHashItem);
+
+  if (getHashItem()) {
+    openHashItem();
+    return;
+  }
 
   if (window.matchMedia('(min-width: 768px)').matches) {
     const defaultItem = items.find((item) => item.hasAttribute('data-accordion-default'));
