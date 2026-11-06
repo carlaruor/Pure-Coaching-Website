@@ -7784,6 +7784,7 @@ body.has-modal-open {
 
 .community-outcomes {
   position: relative;
+  z-index: 2;
   padding-block: clamp(36px, 3.5vw, 48px);
   background-color: var(--color-blue-tint);
 }
@@ -7794,11 +7795,8 @@ body.has-modal-open {
 
 .community-outcomes__content {
   position: relative;
-  z-index: 2;
   max-width: 980px;
   margin-inline: auto;
-  background-color: var(--color-blue-tint);
-  box-shadow: 0 0 0 var(--space-lg) var(--color-blue-tint);
   text-align: center;
 }
 
@@ -8541,7 +8539,7 @@ body.has-modal-open {
 }
 
 .contact-card--blue .contact-card__icon {
-  color: var(--color-blue-dark);
+  color: color-mix(in srgb, var(--color-blue-dark) 28%, var(--color-blue));
   background-color: color-mix(in srgb, var(--color-blue) 56%, var(--color-white));
 }
 
