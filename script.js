@@ -32,6 +32,69 @@ function validateAustralianPhone(phone) {
   return /^(?:04\d{8}|0[2378]\d{8}|\+614\d{8}|\+61[2378]\d{8})$/.test(normalisedPhone);
 }
 
+function initContactReferralsNavigation() {
+  const findItem = (list, page) => Array.from(list?.children || []).find((item) => (
+    item.querySelector(':scope > a')?.getAttribute('href')?.endsWith(page)
+  ));
+
+  const desktopList = document.querySelector('.desktop-nav .nav-list');
+  const desktopContactItem = findItem(desktopList, 'contact.html');
+  const desktopReferralsItem = findItem(desktopList, 'referrals.html');
+
+  if (desktopContactItem && desktopReferralsItem) {
+    const contactLink = desktopContactItem.querySelector(':scope > a');
+    const referralsLink = desktopReferralsItem.querySelector(':scope > a');
+    const submenu = document.createElement('ul');
+
+    desktopContactItem.classList.add('nav-dropdown');
+    contactLink?.setAttribute('aria-haspopup', 'true');
+    referralsLink?.classList.add('nav-dropdown__link');
+    submenu.className = 'nav-dropdown__menu';
+    submenu.setAttribute('aria-label', 'Contact');
+    submenu.append(desktopReferralsItem);
+    desktopContactItem.append(submenu);
+  }
+
+  const mobileList = document.querySelector('.mobile-nav__list');
+  const mobileContactItem = findItem(mobileList, 'contact.html');
+  const mobileReferralsItem = findItem(mobileList, 'referrals.html');
+
+  if (!mobileContactItem || !mobileReferralsItem) return;
+
+  const contactLink = mobileContactItem.querySelector(':scope > a');
+  const referralsLink = mobileReferralsItem.querySelector(':scope > a');
+  const contactRow = document.createElement('div');
+  const submenu = document.createElement('ul');
+  const toggle = document.createElement('button');
+  const submenuId = 'mobile-contact-submenu';
+
+  mobileContactItem.classList.add('mobile-nav__dropdown');
+  contactRow.className = 'mobile-nav__contact-row';
+  submenu.className = 'mobile-nav__submenu';
+  submenu.id = submenuId;
+  submenu.hidden = true;
+  submenu.setAttribute('aria-label', 'Contact');
+  referralsLink?.classList.add('mobile-nav__submenu-link');
+
+  toggle.className = 'mobile-nav__submenu-toggle';
+  toggle.type = 'button';
+  toggle.setAttribute('aria-expanded', 'false');
+  toggle.setAttribute('aria-controls', submenuId);
+  toggle.setAttribute('aria-label', 'Show Contact submenu');
+  toggle.innerHTML = '<span aria-hidden="true"></span>';
+
+  contactRow.append(contactLink, toggle);
+  submenu.append(mobileReferralsItem);
+  mobileContactItem.append(contactRow, submenu);
+
+  toggle.addEventListener('click', () => {
+    const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!isOpen));
+    toggle.setAttribute('aria-label', `${isOpen ? 'Show' : 'Hide'} Contact submenu`);
+    submenu.hidden = isOpen;
+  });
+}
+
 function initMobileNavigation() {
   const menuToggle = document.querySelector('[data-menu-toggle]');
   const mobileNav = document.querySelector('[data-mobile-nav]');
@@ -44,6 +107,13 @@ function initMobileNavigation() {
     menuToggle.setAttribute('aria-expanded', 'false');
     menuToggle.setAttribute('aria-label', 'Open navigation menu');
     mobileNav.hidden = true;
+    mobileNav.querySelectorAll('[aria-controls="mobile-contact-submenu"]').forEach((toggle) => {
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-label', 'Show Contact submenu');
+    });
+    mobileNav.querySelectorAll('#mobile-contact-submenu').forEach((submenu) => {
+      submenu.hidden = true;
+    });
 
     if (returnFocus) {
       menuToggle.focus();
@@ -957,6 +1027,7 @@ function initMediaLoadingIndicators() {
 function init() {
   initPageLoadingIndicator();
   initMediaLoadingIndicators();
+  initContactReferralsNavigation();
   initMobileNavigation();
   initStickyHeader();
   initPathwayHeroVideos();
