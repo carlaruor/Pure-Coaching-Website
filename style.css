@@ -1256,6 +1256,11 @@ button {
   overflow-x: clip;
 }
 
+.instagram-showcase__widget .zyff-instagram {
+  width: 100%;
+  min-width: 0;
+}
+
 
 
 
