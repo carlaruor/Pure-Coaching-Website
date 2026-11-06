@@ -2905,7 +2905,7 @@ button {
 
 .team-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(16px, 2vw, 26px);
   list-style: none;
 }
@@ -5302,15 +5302,11 @@ body.has-modal-open {
   }
 
   .team-grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .team-member {
-    grid-column: span 2;
-  }
-
-  .team-member:nth-child(4) {
-    grid-column: 2 / span 2;
+    grid-column: auto;
   }
 
 }
@@ -5414,8 +5410,7 @@ body.has-modal-open {
     gap: 28px 16px;
   }
 
-  .team-member,
-  .team-member:nth-child(4) {
+  .team-member {
     grid-column: auto;
   }
 
