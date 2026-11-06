@@ -7554,19 +7554,27 @@ body.has-modal-open {
 
 .activity-accordion__item {
   position: relative;
-  min-height: 118px;
+  min-height: 96px;
   overflow: hidden;
   padding-left: 39%;
-  border: 1px solid var(--color-border);
+  border: 1px solid color-mix(in srgb, var(--color-border) 62%, transparent);
   border-radius: var(--radius-medium);
   background-color: var(--color-white);
-  transition: min-height var(--transition-ui), border-color var(--transition-fast), background-color var(--transition-fast);
+  box-shadow: 0 5px 16px rgb(29 37 45 / 7%);
+  transition: min-height var(--transition-ui), border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
 }
 
 .activity-accordion__item:has(.activity-accordion__trigger[aria-expanded="true"]) {
   min-height: 0;
-  border-color: color-mix(in srgb, var(--color-blue) 70%, var(--color-border));
+  border-color: color-mix(in srgb, var(--color-border) 62%, transparent);
   background-color: var(--color-white);
+}
+
+@media (hover: hover) {
+  .activity-accordion__item:hover {
+    box-shadow: 0 9px 24px rgb(29 37 45 / 11%);
+    transform: translateY(-2px);
+  }
 }
 
 .activity-accordion__item::after {
@@ -7593,11 +7601,11 @@ body.has-modal-open {
 .activity-accordion__trigger {
   display: grid;
   width: 100%;
-  min-height: 116px;
-  grid-template-columns: 40px minmax(0, 1fr) 28px;
+  min-height: 94px;
+  grid-template-columns: 40px minmax(0, 1fr) 34px;
   align-items: center;
   gap: var(--space-md);
-  padding: 12px 20px;
+  padding: 8px 18px;
   color: var(--color-navy);
   text-align: left;
   background-color: transparent;
@@ -7605,7 +7613,8 @@ body.has-modal-open {
 }
 
 .activity-accordion__trigger:focus-visible {
-  outline-offset: -3px;
+  outline: 3px solid color-mix(in srgb, var(--color-orange) 72%, var(--color-white));
+  outline-offset: -4px;
 }
 
 .activity-accordion__image {
@@ -7619,7 +7628,7 @@ body.has-modal-open {
   overflow: hidden;
   border-radius: 0;
   background-color: var(--color-border);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  clip-path: polygon(0 0, 100% 0, 97% 100%, 0 100%);
   transition: clip-path var(--transition-ui);
 }
 
@@ -7662,18 +7671,35 @@ body.has-modal-open {
 }
 
 .activity-accordion__chevron {
+  display: block;
+  width: 34px;
+  height: 34px;
   justify-self: end;
-  transition: transform var(--transition-fast);
+  padding: 7px;
+  border-radius: 50%;
+  color: var(--color-navy);
+  background-color: var(--color-blue);
+  stroke-width: 2.25;
+  transition: none;
 }
 
 .activity-accordion__trigger[aria-expanded="true"] .activity-accordion__chevron {
-  transform: rotate(180deg);
+  color: var(--color-white);
+  background-color: var(--color-orange);
+}
+
+.activity-accordion__plus-vertical {
+  display: block;
+}
+
+.activity-accordion__trigger[aria-expanded="true"] .activity-accordion__plus-vertical {
+  display: none;
 }
 
 .activity-accordion__trigger[aria-expanded="true"] {
   position: static;
   min-height: 0;
-  grid-template-columns: minmax(0, 1fr) 28px;
+  grid-template-columns: minmax(0, 1fr) 34px;
   gap: var(--space-md);
   padding: 24px 32px 6px;
 }
@@ -7857,12 +7883,12 @@ body.has-modal-open {
   }
 
   .activity-accordion__trigger {
-    min-height: 110px;
-    grid-template-columns: 40px minmax(0, 1fr) 28px;
+    min-height: 86px;
+    grid-template-columns: 40px minmax(0, 1fr) 34px;
   }
 
   .activity-accordion__item {
-    min-height: 112px;
+    min-height: 88px;
     padding-left: 38%;
   }
 
@@ -7926,14 +7952,14 @@ body.has-modal-open {
   }
 
   .activity-accordion__trigger {
-    min-height: 84px;
-    grid-template-columns: 36px minmax(0, 1fr) 24px;
+    min-height: 74px;
+    grid-template-columns: 34px minmax(0, 1fr) 32px;
     gap: 10px;
-    padding: 10px 12px;
+    padding: 6px 10px;
   }
 
   .activity-accordion__item {
-    min-height: 86px;
+    min-height: 76px;
     padding-left: 36%;
   }
 
@@ -7956,8 +7982,8 @@ body.has-modal-open {
   }
 
   .activity-accordion__icon {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
   }
 
   .activity-accordion__icon svg {
@@ -7970,7 +7996,7 @@ body.has-modal-open {
   }
 
   .activity-accordion__trigger[aria-expanded="true"] {
-    grid-template-columns: minmax(0, 1fr) 24px;
+    grid-template-columns: minmax(0, 1fr) 32px;
     gap: 14px;
     padding: 20px 16px 6px;
   }
@@ -7983,6 +8009,12 @@ body.has-modal-open {
   .activity-accordion__trigger[aria-expanded="true"] .activity-accordion__chevron {
     align-self: center;
     margin-bottom: 0;
+  }
+
+  .activity-accordion__chevron {
+    width: 32px;
+    height: 32px;
+    padding: 7px;
   }
 
   .activity-accordion__body {
@@ -8030,7 +8062,8 @@ body.has-modal-open {
   .activity-accordion__item,
   .activity-accordion__item::after,
   .activity-accordion__image,
-  .activity-accordion__chevron {
+  .activity-accordion__chevron,
+  .activity-accordion__plus-vertical {
     transition: none;
   }
 }
