@@ -553,6 +553,7 @@ function initPathwayHeroVideos() {
 
   const hoverPointer = window.matchMedia('(hover: hover) and (pointer: fine)');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const pendingMobilePlays = new WeakSet();
   let activePathway = null;
 
   const pauseAll = () => {
@@ -590,6 +591,30 @@ function initPathwayHeroVideos() {
     pathway.video.pause();
   };
 
+  const playOnMobile = async (pathway) => {
+    const { video } = pathway;
+    if (
+      hoverPointer.matches
+      || reducedMotion.matches
+      || document.hidden
+      || !video.paused
+      || pendingMobilePlays.has(video)
+    ) return;
+
+    pendingMobilePlays.add(video);
+    video.muted = true;
+    video.playsInline = true;
+    video.loop = true;
+
+    try {
+      await video.play();
+    } catch {
+      // Native poster remains visible if mobile autoplay is unavailable.
+    } finally {
+      pendingMobilePlays.delete(video);
+    }
+  };
+
   // Transfer the shared active state directly to the next pathway link.
   const leave = (pathway, nextTarget, keyboard = false) => {
     const next = pathways.find(({ panel }) => panel.contains(nextTarget));
@@ -603,6 +628,7 @@ function initPathwayHeroVideos() {
   pathways.forEach((pathway) => {
     const { panel, video } = pathway;
     video.muted = true;
+    video.playsInline = true;
     video.pause();
     video.currentTime = 0;
 
@@ -611,6 +637,8 @@ function initPathwayHeroVideos() {
       video.pause();
       video.currentTime = 0;
     });
+
+    video.addEventListener('canplay', () => playOnMobile(pathway));
 
     panel.addEventListener('pointerenter', (event) => {
       if (hoverPointer.matches && event.pointerType !== 'touch') activate(pathway);
@@ -626,12 +654,22 @@ function initPathwayHeroVideos() {
     panel.addEventListener('blur', (event) => leave(pathway, event.relatedTarget, true));
   });
 
-  reducedMotion.addEventListener('change', pauseAll);
-  hoverPointer.addEventListener('change', pauseAll);
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) pauseAll();
-  });
+  const updatePlaybackMode = () => {
+    pauseAll();
+
+    pathways.forEach((pathway) => {
+      pathway.video.loop = !hoverPointer.matches;
+      if (!hoverPointer.matches && !reducedMotion.matches && !document.hidden) {
+        playOnMobile(pathway);
+      }
+    });
+  };
+
+  reducedMotion.addEventListener('change', updatePlaybackMode);
+  hoverPointer.addEventListener('change', updatePlaybackMode);
+  document.addEventListener('visibilitychange', updatePlaybackMode);
   window.addEventListener('pagehide', pauseAll);
+  updatePlaybackMode();
 }
 
 function initEmploymentJourney(journey) {
