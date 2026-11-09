@@ -602,6 +602,8 @@ function initPathwayHeroVideos() {
     ) return;
 
     pendingMobilePlays.add(video);
+    video.autoplay = true;
+    video.defaultMuted = true;
     video.muted = true;
     video.playsInline = true;
     video.loop = true;
@@ -609,7 +611,7 @@ function initPathwayHeroVideos() {
     try {
       await video.play();
     } catch {
-      // Native poster remains visible if mobile autoplay is unavailable.
+      // Mobile browsers can retry when the next usable media state is reached.
     } finally {
       pendingMobilePlays.delete(video);
     }
@@ -627,10 +629,16 @@ function initPathwayHeroVideos() {
 
   pathways.forEach((pathway) => {
     const { panel, video } = pathway;
+    video.autoplay = true;
+    video.defaultMuted = true;
     video.muted = true;
     video.playsInline = true;
-    video.pause();
-    video.currentTime = 0;
+    video.loop = !hoverPointer.matches;
+
+    if (hoverPointer.matches || reducedMotion.matches) {
+      video.pause();
+      video.currentTime = 0;
+    }
 
     video.addEventListener('ended', () => {
       // Only natural completion rewinds; hover/focus changes retain the frame.
@@ -638,6 +646,7 @@ function initPathwayHeroVideos() {
       video.currentTime = 0;
     });
 
+    video.addEventListener('loadeddata', () => playOnMobile(pathway));
     video.addEventListener('canplay', () => playOnMobile(pathway));
 
     panel.addEventListener('pointerenter', (event) => {
@@ -655,19 +664,27 @@ function initPathwayHeroVideos() {
   });
 
   const updatePlaybackMode = () => {
-    pauseAll();
+    activePathway = null;
+    pathways.forEach(({ panel }) => panel.classList.remove('is-active'));
+
+    if (document.hidden || reducedMotion.matches || hoverPointer.matches) {
+      pathways.forEach(({ video }) => {
+        video.loop = false;
+        video.pause();
+      });
+      return;
+    }
 
     pathways.forEach((pathway) => {
-      pathway.video.loop = !hoverPointer.matches;
-      if (!hoverPointer.matches && !reducedMotion.matches && !document.hidden) {
-        playOnMobile(pathway);
-      }
+      pathway.video.loop = true;
+      playOnMobile(pathway);
     });
   };
 
   reducedMotion.addEventListener('change', updatePlaybackMode);
   hoverPointer.addEventListener('change', updatePlaybackMode);
   document.addEventListener('visibilitychange', updatePlaybackMode);
+  window.addEventListener('pageshow', updatePlaybackMode);
   window.addEventListener('pagehide', pauseAll);
   updatePlaybackMode();
 }
@@ -1002,7 +1019,7 @@ function initMediaLoadingIndicators() {
   };
 
   const registerVideo = (video) => {
-    if (video.dataset.loaderTracked) return;
+    if (video.dataset.loaderTracked || video.hasAttribute('data-pathway-hero-video')) return;
     video.dataset.loaderTracked = 'true';
 
     if (video.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) beginLoading(video);
