@@ -546,7 +546,9 @@ function initInterestForm(form) {
 function initPathwayHeroVideos() {
   const pathways = Array.from(document.querySelectorAll('.pathway-hero__panel'), (panel) => ({
     panel,
-    video: panel.querySelector('[data-pathway-hero-video]')
+    video: panel.querySelector('[data-pathway-hero-video]'),
+    playPending: false,
+    retryOptions: null
   })).filter(({ video }) => video);
 
   if (!pathways.length) return;
@@ -555,39 +557,84 @@ function initPathwayHeroVideos() {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let activePathway = null;
 
-  const pauseAll = () => {
+  const showFallback = ({ video }) => video.classList.remove('is-playing');
+
+  const pausePathway = (pathway, reset = false) => {
+    pathway.video.pause();
+    if (reset) {
+      try {
+        pathway.video.currentTime = 0;
+      } catch {
+        // Metadata may not be available yet; the video is already paused.
+      }
+    }
+    showFallback(pathway);
+  };
+
+  const pauseAll = (reset = false) => {
     activePathway = null;
-    pathways.forEach(({ panel, video }) => {
-      panel.classList.remove('is-active');
-      video.pause();
+    pathways.forEach((pathway) => {
+      pathway.panel.classList.remove('is-active');
+      pausePathway(pathway, reset);
     });
   };
 
-  const activate = async (pathway) => {
-    if (document.hidden || activePathway === pathway) return;
+  const playPathway = async (pathway, options = {}) => {
+    const { restart = false, requireActive = false, touchOnly = false } = options;
+    if (document.hidden || reducedMotion.matches) return;
+
+    if (pathway.playPending) {
+      pathway.retryOptions = options;
+      return;
+    }
+
+    if (restart) pausePathway(pathway, true);
+
+    pathway.playPending = true;
+    pathway.video.muted = true;
+    pathway.video.playsInline = true;
+
+    try {
+      await pathway.video.play();
+
+      if (
+        document.hidden
+        || reducedMotion.matches
+        || (requireActive && activePathway !== pathway)
+        || (touchOnly && hoverPointer.matches)
+      ) {
+        pausePathway(pathway, requireActive);
+        return;
+      }
+
+      pathway.video.classList.add('is-playing');
+    } catch {
+      // The matching still image remains visible when autoplay is unavailable.
+      showFallback(pathway);
+    } finally {
+      pathway.playPending = false;
+      const retryOptions = pathway.retryOptions;
+      pathway.retryOptions = null;
+      if (retryOptions) playPathway(pathway, retryOptions);
+    }
+  };
+
+  const activate = (pathway) => {
+    if (!hoverPointer.matches || document.hidden || activePathway === pathway) return;
 
     activePathway = pathway;
     pathways.forEach((item) => {
       item.panel.classList.toggle('is-active', item === pathway);
-      if (item !== pathway) item.video.pause();
+      if (item !== pathway) pausePathway(item, true);
     });
-    if (reducedMotion.matches) return;
-
-    try {
-      await pathway.video.play();
-      // Playback may finish starting after the pointer/focus has already moved.
-      if (activePathway !== pathway || reducedMotion.matches || document.hidden) {
-        pathway.video.pause();
-      }
-    } catch {
-      // A blocked or interrupted play attempt must never interfere with the link.
-    }
+    pathway.video.loop = false;
+    playPathway(pathway, { restart: true, requireActive: true });
   };
 
   const deactivate = (pathway) => {
     if (activePathway === pathway) activePathway = null;
     pathway.panel.classList.remove('is-active');
-    pathway.video.pause();
+    pausePathway(pathway, true);
   };
 
   // Transfer the shared active state directly to the next pathway link.
@@ -603,13 +650,25 @@ function initPathwayHeroVideos() {
   pathways.forEach((pathway) => {
     const { panel, video } = pathway;
     video.muted = true;
-    video.pause();
-    video.currentTime = 0;
+    video.playsInline = true;
+    pausePathway(pathway, true);
 
     video.addEventListener('ended', () => {
-      // Only natural completion rewinds; hover/focus changes retain the frame.
-      video.pause();
-      video.currentTime = 0;
+      pausePathway(pathway, true);
+    });
+    video.addEventListener('playing', () => {
+      const playbackIsExpected = !hoverPointer.matches || activePathway === pathway;
+      if (!reducedMotion.matches && !document.hidden && playbackIsExpected) {
+        video.classList.add('is-playing');
+      } else {
+        showFallback(pathway);
+      }
+    });
+    video.addEventListener('error', () => showFallback(pathway));
+    video.addEventListener('canplay', () => {
+      if (!hoverPointer.matches && !reducedMotion.matches && !document.hidden && video.paused) {
+        playPathway(pathway, { touchOnly: true });
+      }
     });
 
     panel.addEventListener('pointerenter', (event) => {
@@ -619,19 +678,32 @@ function initPathwayHeroVideos() {
       if (hoverPointer.matches && event.pointerType !== 'touch') leave(pathway, event.relatedTarget);
     });
     panel.addEventListener('focus', () => {
-      // Keyboard focus also works with an attached keyboard on a touch device.
-      // Pointer/tap focus must not turn navigation into a playback interaction.
-      if (panel.matches(':focus-visible')) activate(pathway);
+      if (hoverPointer.matches && panel.matches(':focus-visible')) activate(pathway);
     });
-    panel.addEventListener('blur', (event) => leave(pathway, event.relatedTarget, true));
+    panel.addEventListener('blur', (event) => {
+      if (hoverPointer.matches) leave(pathway, event.relatedTarget, true);
+    });
   });
 
-  reducedMotion.addEventListener('change', pauseAll);
-  hoverPointer.addEventListener('change', pauseAll);
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) pauseAll();
-  });
-  window.addEventListener('pagehide', pauseAll);
+  const updatePlaybackMode = () => {
+    pauseAll(true);
+
+    if (document.hidden || reducedMotion.matches || hoverPointer.matches) {
+      pathways.forEach(({ video }) => { video.loop = false; });
+      return;
+    }
+
+    pathways.forEach((pathway) => {
+      pathway.video.loop = true;
+      playPathway(pathway, { touchOnly: true });
+    });
+  };
+
+  reducedMotion.addEventListener('change', updatePlaybackMode);
+  hoverPointer.addEventListener('change', updatePlaybackMode);
+  document.addEventListener('visibilitychange', updatePlaybackMode);
+  window.addEventListener('pagehide', () => pauseAll());
+  updatePlaybackMode();
 }
 
 function initEmploymentJourney(journey) {
@@ -691,6 +763,7 @@ function initEmploymentJourney(journey) {
 
 function initAmbientVideo(video) {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let playPending = false;
 
   const updatePlayback = async () => {
     if (reducedMotion.matches || document.hidden) {
@@ -698,15 +771,30 @@ function initAmbientVideo(video) {
       return;
     }
 
+    if (playPending || video.error) return;
+
+    video.muted = true;
+    video.playsInline = true;
+    playPending = true;
+
     try {
       await video.play();
+      delete video.dataset.playbackUnavailable;
     } catch {
-      // The media container's clean background remains visible when playback is unavailable.
+      // Keep the native poster visible when playback is unavailable.
+      video.dataset.playbackUnavailable = 'true';
+    } finally {
+      playPending = false;
     }
   };
 
   reducedMotion.addEventListener('change', updatePlayback);
   document.addEventListener('visibilitychange', updatePlayback);
+  video.addEventListener('canplay', updatePlayback);
+  video.addEventListener('error', () => {
+    video.pause();
+    video.dataset.playbackUnavailable = 'true';
+  });
   updatePlayback();
 }
 
@@ -964,7 +1052,9 @@ function initMediaLoadingIndicators() {
   };
 
   const registerVideo = (video) => {
-    if (video.dataset.loaderTracked) return;
+    const hasStaticPlaybackFallback = video.hasAttribute('data-pathway-hero-video')
+      || (video.hasAttribute('data-ambient-video') && video.hasAttribute('poster'));
+    if (video.dataset.loaderTracked || hasStaticPlaybackFallback) return;
     video.dataset.loaderTracked = 'true';
 
     if (video.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) beginLoading(video);
