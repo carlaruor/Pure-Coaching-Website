@@ -367,26 +367,6 @@ button {
   object-position: var(--pathway-hero-media-position, center);
 }
 
-.pathway-hero__fallback {
-  z-index: 0;
-}
-
-.pathway-hero__media > video {
-  z-index: 1;
-  opacity: 0;
-  transition: opacity var(--transition-ui);
-}
-
-.pathway-hero__media > video.is-playing {
-  opacity: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pathway-hero__media > video {
-    transition: none;
-  }
-}
-
 .pathway-hero__panel--private {
   --pathway-hero-media-position: 38% center;
 }
