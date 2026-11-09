@@ -595,7 +595,6 @@ function initPathwayHeroVideos() {
     const { video } = pathway;
     if (
       hoverPointer.matches
-      || reducedMotion.matches
       || document.hidden
       || !video.paused
       || pendingMobilePlays.has(video)
@@ -606,6 +605,7 @@ function initPathwayHeroVideos() {
     video.defaultMuted = true;
     video.muted = true;
     video.playsInline = true;
+    video.setAttribute('webkit-playsinline', '');
     video.loop = true;
 
     try {
@@ -633,9 +633,10 @@ function initPathwayHeroVideos() {
     video.defaultMuted = true;
     video.muted = true;
     video.playsInline = true;
+    video.setAttribute('webkit-playsinline', '');
     video.loop = !hoverPointer.matches;
 
-    if (hoverPointer.matches || reducedMotion.matches) {
+    if (hoverPointer.matches) {
       video.pause();
       video.currentTime = 0;
     }
@@ -667,7 +668,7 @@ function initPathwayHeroVideos() {
     activePathway = null;
     pathways.forEach(({ panel }) => panel.classList.remove('is-active'));
 
-    if (document.hidden || reducedMotion.matches || hoverPointer.matches) {
+    if (document.hidden || hoverPointer.matches) {
       pathways.forEach(({ video }) => {
         video.loop = false;
         video.pause();
