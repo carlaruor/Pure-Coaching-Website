@@ -13,6 +13,7 @@ The implementation is intentionally **inactive** in the public website configura
 - The database stores private bucket/path references, not public URLs.
 - Resend receives one staff notification per stored submission. Documents are never attached and no document URL is placed in email.
 - A failed notification leaves the database submission intact with `email_status = 'failed'`.
+- Client submission identifiers are single-use idempotency claims. A repeated or concurrent claim receives `409` after validation, Turnstile and rate limiting; it never receives data about the stored submission.
 
 ## 1. Security review before deployment
 
@@ -24,6 +25,7 @@ The implementation is intentionally **inactive** in the public website configura
 6. Publish a real privacy policy and retention notice before collecting participant information.
 7. Choose a retention period. Use a scheduled, audited server-side process to delete expired Storage objects and their database references. Do not delete from the browser.
 8. Review Australian Privacy Principles and applicable NDIS privacy/security obligations with the organisation's adviser.
+9. Apply `20261117010000_harden_form_submission_delivery.sql` before deploying the Function. It adds non-destructive notification-attempt metadata required by the reviewed code.
 
 ## 2. Apply database controls
 
@@ -35,6 +37,8 @@ supabase db push
 ```
 
 The migration enables RLS, revokes browser roles, adds an idempotency index and creates a private rate-limit table. The rate-limit implementation remains in the non-exposed `private` schema; only its service-role-only wrapper is available through PostgREST. The migration also forces the required bucket to private, installs a restrictive deny policy for browser roles, and refuses to complete if the bucket does not exist. It does not delete or rewrite existing form submissions or Storage objects.
+
+The follow-up hardening migration adds `email_attempt_count`, `email_last_attempt_at`, `email_provider_id` and `email_retryable`, plus a bounded-attempt constraint and failed-delivery index. It does not delete submissions or change the existing required columns.
 
 After applying the migration, verify the controls in the SQL editor:
 
@@ -95,6 +99,33 @@ Test at minimum:
 - keyboard/screen-reader form behaviour.
 
 Use synthetic documents only. Never place participant data in fixtures, logs or the repository.
+
+When Deno is available, run the committed unit tests before any deployment:
+
+```sh
+deno test --allow-env supabase/functions/submit-form/index_test.ts
+```
+
+The tests cover the deployed secret-key dictionary, trusted-IP selection, validation-before-idempotency, DOCX container checks, misleading ZIP rejection and cleanup failure preservation. A separate opt-in integration test covers rejection and a two-request concurrency race. Run it only against an approved local/staging Function using Turnstile test credentials and synthetic data:
+
+```sh
+TEST_SUBMIT_FORM_URL=https://STAGING_FUNCTION_URL \
+TEST_ALLOWED_ORIGIN=https://APPROVED_TEST_ORIGIN \
+TEST_TURNSTILE_TOKEN=TURNSTILE_TEST_TOKEN \
+deno test --allow-env --allow-net supabase/functions/submit-form/integration_test.ts
+```
+
+After the concurrency test, confirm exactly one row exists for the synthetic client ID, there is no second email attempt, and the losing response is `409` without a database submission ID. Delete the synthetic row through an authorised administrative workflow.
+
+### Request size and document validation
+
+The Function requires a gateway-provided numeric `Content-Length` and rejects multipart requests above 36 MiB before parsing. The accepted files remain capped at 10 MiB each and 35 MiB combined. This is bounded well below Supabase Edge Functions' current 256 MB memory limit, but multipart parsing still holds request data in memory; test the maximum permitted request in staging and monitor memory/resource errors before activation.
+
+DOCX validation now inspects the ZIP central directory without decompressing the complete archive. It requires the core DOCX entries, verifies their local headers, rejects encrypted/ZIP64/unsafe paths, caps entry count and expanded size/compression ratio, and rejects common macro/ActiveX/embedded-object entries. This is format validation, not malware scanning. A managed malware-scanning/quarantine workflow remains required before staff download participant documents.
+
+### Trusted client address
+
+On hosted Supabase Edge Functions, rate limiting uses only the `cf-connecting-ip` value supplied by the Supabase/Cloudflare gateway. Caller-supplied `X-Forwarded-For` is ignored. If the trusted gateway value is missing or malformed, requests share the conservative `gateway-ip-unavailable` bucket while the independent email limit and Turnstile still apply. Confirm the hosted gateway overwrites `cf-connecting-ip` during staging tests; do not deploy this Function behind an unreviewed proxy that forwards a client-controlled value.
 
 ### Verify the rate-limit RPC before Function deployment
 
@@ -185,6 +216,9 @@ Do not create public URLs. A future staff-only admin service should authenticate
 
 ## Operational notes
 
-- Monitor `failed` email statuses and retry manually through an authenticated server-side process. Do not make the public browser retry email delivery.
+- The public Function makes exactly one Resend attempt after Storage is finalised and uses the stable key `pure-form/<submission-id>`. Resend currently retains idempotency keys for 24 hours.
+- A future authenticated server-side recovery worker may claim only `email_status = 'failed'`, `email_retryable = true` rows with `email_attempt_count < 3`, atomically increment the count, and retry with the same key and identical payload. Allow at most two retries, serialize claims, and keep them within 23 hours of the first attempt. On success, store the provider ID and mark `sent`; on a definite failure, return to `failed`. For an ambiguous result outside the idempotency window, staff must reconcile against Resend before any resend. Never expose recovery through the public form endpoint.
+- The recovery worker is not implemented yet. Until it is reviewed, failed notifications require manual reconciliation and must not be resent automatically.
+- If upload cleanup cannot be verified, the Function preserves the database row with `pending` private paths and logs only its submission ID. An authorised administrator must compare those paths with Storage, remove any remaining objects, and then remove the incomplete row. Never delete the recovery record before Storage cleanup is confirmed.
 - Edge Function logs intentionally contain only submission IDs and error categories. Never add payloads, email addresses, health information or filenames to logs. Original filenames are intentionally not retained in Storage paths or attachment metadata.
 - Rotate the Resend key, Turnstile secret, rate-limit salt and service-role key after any suspected exposure.

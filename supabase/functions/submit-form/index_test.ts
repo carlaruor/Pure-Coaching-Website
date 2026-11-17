@@ -1,0 +1,177 @@
+import {
+  cleanupIncompleteSubmission,
+  parseSupabaseSecretKeys,
+  type StoredAttachment,
+  trustedClientIp,
+  validateDocxArchive,
+  validateFiles,
+  validatePayload
+} from "./index.ts";
+
+function assert(condition: unknown, message = "Assertion failed"): asserts condition {
+  if (!condition) throw new Error(message);
+}
+
+function assertThrows(action: () => unknown, expected: string): void {
+  try {
+    action();
+  } catch (error) {
+    assert(error instanceof Error && error.message.includes(expected), `Expected error containing ${expected}`);
+    return;
+  }
+  throw new Error(`Expected error containing ${expected}`);
+}
+
+function uint16(value: number): Uint8Array {
+  return new Uint8Array([value & 0xff, (value >>> 8) & 0xff]);
+}
+
+function uint32(value: number): Uint8Array {
+  return new Uint8Array([value & 0xff, (value >>> 8) & 0xff, (value >>> 16) & 0xff, (value >>> 24) & 0xff]);
+}
+
+function bytes(...parts: Uint8Array[]): Uint8Array {
+  const result = new Uint8Array(parts.reduce((total, part) => total + part.length, 0));
+  let offset = 0;
+  for (const part of parts) {
+    result.set(part, offset);
+    offset += part.length;
+  }
+  return result;
+}
+
+function syntheticZip(names: string[]): File {
+  const encoder = new TextEncoder();
+  const localParts: Uint8Array[] = [];
+  const centralParts: Uint8Array[] = [];
+  let localOffset = 0;
+  for (const name of names) {
+    const nameBytes = encoder.encode(name);
+    const content = encoder.encode("synthetic");
+    const local = bytes(
+      uint32(0x04034b50), uint16(20), uint16(0), uint16(0), uint16(0), uint16(0),
+      uint32(0), uint32(content.length), uint32(content.length), uint16(nameBytes.length), uint16(0), nameBytes, content
+    );
+    const central = bytes(
+      uint32(0x02014b50), uint16(20), uint16(20), uint16(0), uint16(0), uint16(0), uint16(0),
+      uint32(0), uint32(content.length), uint32(content.length), uint16(nameBytes.length), uint16(0), uint16(0),
+      uint16(0), uint16(0), uint32(0), uint32(localOffset), nameBytes
+    );
+    localParts.push(local);
+    centralParts.push(central);
+    localOffset += local.length;
+  }
+  const locals = bytes(...localParts);
+  const central = bytes(...centralParts);
+  const end = bytes(
+    uint32(0x06054b50), uint16(0), uint16(0), uint16(names.length), uint16(names.length),
+    uint32(central.length), uint32(locals.length), uint16(0)
+  );
+  return new File([bytes(locals, central, end).buffer as ArrayBuffer], "synthetic.docx", { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+}
+
+function validPayload(): Record<string, unknown> {
+  return {
+    clientSubmissionId: "synthetic-submission-000001",
+    contactFor: "Myself",
+    support: "private",
+    intent: "enquiry",
+    firstName: "Synthetic",
+    lastName: "Test",
+    email: "synthetic@example.invalid",
+    phone: "0400000000",
+    ageRange: "25+",
+    message: "Synthetic test only",
+    preferredContact: "Email",
+    contactTime: "",
+    consent: true,
+    website: ""
+  };
+}
+
+Deno.test("parses the deployed SUPABASE_SECRET_KEYS dictionary", () => {
+  assert(parseSupabaseSecretKeys('{"default":"sb_secret_synthetic"}') === "sb_secret_synthetic");
+  assertThrows(() => parseSupabaseSecretKeys('{"other":"value"}'), "Missing default");
+  assertThrows(() => parseSupabaseSecretKeys("not-json"), "SUPABASE_SECRET_KEYS");
+});
+
+Deno.test("uses only a valid gateway-supplied client IP", () => {
+  assert(trustedClientIp(new Request("https://example.test", { headers: { "cf-connecting-ip": "203.0.113.8", "x-forwarded-for": "198.51.100.9" } })) === "203.0.113.8");
+  assert(trustedClientIp(new Request("https://example.test", { headers: { "x-forwarded-for": "198.51.100.9" } })) === null);
+  assert(trustedClientIp(new Request("https://example.test", { headers: { "cf-connecting-ip": "not-an-ip" } })) === null);
+});
+
+Deno.test("validates all fields before an idempotency claim", () => {
+  assert(validatePayload(validPayload()).email === "synthetic@example.invalid");
+  const invalid = { ...validPayload(), email: "not-an-email" };
+  assertThrows(() => validatePayload(invalid), "valid email");
+});
+
+Deno.test("accepts a structurally valid DOCX and rejects misleading ZIP files", async () => {
+  const valid = syntheticZip(["[Content_Types].xml", "_rels/.rels", "word/document.xml"]);
+  assert(await validateDocxArchive(valid));
+  assert(!(await validateDocxArchive(syntheticZip(["[Content_Types].xml", "_rels/.rels", "other.xml"]))));
+  assert(!(await validateDocxArchive(syntheticZip(["[Content_Types].xml", "_rels/.rels", "word/document.xml", "word/vbaProject.bin"]))));
+});
+
+Deno.test("rejects a ZIP-only file presented as DOCX", async () => {
+  const formData = new FormData();
+  formData.append("supportingReports", syntheticZip(["unrelated.txt"]));
+  try {
+    await validateFiles(formData, "ndis");
+  } catch (error) {
+    assert(error instanceof Error && error.message.includes("contents"));
+    return;
+  }
+  throw new Error("Expected invalid DOCX content to be rejected");
+});
+
+Deno.test("does not delete the recovery record when Storage cleanup cannot be verified", async () => {
+  let databaseDeleteCalled = false;
+  const client = {
+    storage: { from: () => ({
+      remove: () => Promise.resolve({ data: null, error: new Error("synthetic failure") }),
+      list: () => Promise.resolve({ data: [], error: null })
+    }) },
+    from: () => ({ delete: () => ({ eq: () => ({ select: () => ({ single: () => {
+      databaseDeleteCalled = true;
+      return Promise.resolve({ data: { id: "synthetic" }, error: null });
+    } }) }) }) })
+  };
+  const attachments: StoredAttachment[] = [{
+    category: "supportingReports",
+    bucket: "referral-documents",
+    path: "synthetic/supportingReports/file.docx",
+    contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    size: 100,
+    state: "pending"
+  }];
+  const cleaned = await cleanupIncompleteSubmission(client as never, "synthetic", attachments);
+  assert(!cleaned);
+  assert(!databaseDeleteCalled, "Recovery record must remain when private-object cleanup fails");
+});
+
+Deno.test("deletes the incomplete row only after private paths are confirmed absent", async () => {
+  let databaseDeleteCalled = false;
+  const client = {
+    storage: { from: () => ({
+      remove: () => Promise.resolve({ data: [], error: null }),
+      list: () => Promise.resolve({ data: [], error: null })
+    }) },
+    from: () => ({ delete: () => ({ eq: () => ({ select: () => ({ single: () => {
+      databaseDeleteCalled = true;
+      return Promise.resolve({ data: { id: "synthetic" }, error: null });
+    } }) }) }) })
+  };
+  const attachments: StoredAttachment[] = [{
+    category: "supportingReports",
+    bucket: "referral-documents",
+    path: "synthetic/supportingReports/file.docx",
+    contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    size: 100,
+    state: "pending"
+  }];
+  const cleaned = await cleanupIncompleteSubmission(client as never, "synthetic", attachments);
+  assert(cleaned);
+  assert(databaseDeleteCalled);
+});

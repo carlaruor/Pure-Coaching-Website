@@ -4,7 +4,12 @@ const FORM_TYPE = "intake";
 const BUCKET = "referral-documents";
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_TOTAL_BYTES = 35 * 1024 * 1024;
+const MAX_REQUEST_BYTES = MAX_TOTAL_BYTES + 1024 * 1024;
 const MAX_REPORTS = 3;
+const MAX_DOCX_ENTRIES = 2048;
+const MAX_DOCX_UNCOMPRESSED_BYTES = 64 * 1024 * 1024;
+const MAX_DOCX_COMPRESSION_RATIO = 150;
+const RESEND_TIMEOUT_MS = 10_000;
 const NOTIFICATION_TO = "info@pure-coaching.com.au";
 const NOTIFICATION_FROM = "Pure Coaching Website <notifications@pure-coaching.com.au>";
 
@@ -39,13 +44,17 @@ const fileTypes = {
 } as const;
 
 type JsonRecord = Record<string, unknown>;
-type StoredAttachment = {
+export type StoredAttachment = {
   category: "ndisPlanDocument" | "supportingReports";
   bucket: string;
   path: string;
   contentType: string;
   size: number;
+  state: "pending" | "stored";
 };
+
+type SupabaseClient = ReturnType<typeof createClient>;
+type NotificationResult = { sent: boolean; providerId: string | null; retryable: boolean };
 
 class RequestError extends Error {
   status: number;
@@ -64,10 +73,10 @@ function requiredEnv(name: string): string {
   return value;
 }
 
-function supabaseAdminKey(): string {
+export function parseSupabaseSecretKeys(raw: string): string {
   let keys: unknown;
   try {
-    keys = JSON.parse(requiredEnv("SUPABASE_SECRET_KEYS"));
+    keys = JSON.parse(raw);
   } catch {
     throw new Error("Missing or invalid server configuration: SUPABASE_SECRET_KEYS");
   }
@@ -79,6 +88,10 @@ function supabaseAdminKey(): string {
     throw new Error("Missing default Supabase secret key");
   }
   return key;
+}
+
+function supabaseAdminKey(): string {
+  return parseSupabaseSecretKeys(requiredEnv("SUPABASE_SECRET_KEYS"));
 }
 
 function allowedOrigins(): Set<string> {
@@ -138,7 +151,7 @@ function validateAustralianPhone(value: string): boolean {
   return /^(?:04\d{8}|0[2378]\d{8}|\+614\d{8}|\+61[2378]\d{8})$/.test(normalised);
 }
 
-function validatePayload(input: unknown): JsonRecord {
+export function validatePayload(input: unknown): JsonRecord {
   const source = asObject(input);
   const clientSubmissionId = textField(source, "clientSubmissionId", 80, true);
   if (!/^[a-zA-Z0-9-]{20,80}$/.test(clientSubmissionId)) {
@@ -210,14 +223,104 @@ function extensionFor(file: File): keyof typeof fileTypes {
   return extension as keyof typeof fileTypes;
 }
 
+function uint32(view: DataView, offset: number): number {
+  return view.getUint32(offset, true);
+}
+
+function safeZipPath(name: string): boolean {
+  return name.length > 0 && name.length <= 512 && !name.includes("\0") && !name.includes("\\") && !name.startsWith("/") && !name.split("/").includes("..");
+}
+
+export async function validateDocxArchive(file: File): Promise<boolean> {
+  const tailSize = Math.min(file.size, 65_557);
+  if (tailSize < 22) return false;
+  const tail = new Uint8Array(await file.slice(file.size - tailSize).arrayBuffer());
+  const tailView = new DataView(tail.buffer, tail.byteOffset, tail.byteLength);
+  let endOffset = -1;
+  for (let offset = tail.length - 22; offset >= 0; offset -= 1) {
+    if (uint32(tailView, offset) === 0x06054b50) {
+      endOffset = offset;
+      break;
+    }
+  }
+  if (endOffset < 0) return false;
+
+  const diskNumber = tailView.getUint16(endOffset + 4, true);
+  const directoryDisk = tailView.getUint16(endOffset + 6, true);
+  const diskEntries = tailView.getUint16(endOffset + 8, true);
+  const totalEntries = tailView.getUint16(endOffset + 10, true);
+  const directorySize = uint32(tailView, endOffset + 12);
+  const directoryOffset = uint32(tailView, endOffset + 16);
+  const commentLength = tailView.getUint16(endOffset + 20, true);
+  const absoluteEndOffset = file.size - tailSize + endOffset;
+  if (diskNumber !== 0 || directoryDisk !== 0 || diskEntries !== totalEntries || totalEntries < 3 || totalEntries > MAX_DOCX_ENTRIES) return false;
+  if ([diskEntries, totalEntries].includes(0xffff) || directorySize === 0xffffffff || directoryOffset === 0xffffffff) return false;
+  if (endOffset + 22 + commentLength > tail.length || directorySize > 2 * 1024 * 1024 || directoryOffset + directorySize !== absoluteEndOffset) return false;
+
+  const directory = new Uint8Array(await file.slice(directoryOffset, directoryOffset + directorySize).arrayBuffer());
+  const view = new DataView(directory.buffer, directory.byteOffset, directory.byteLength);
+  const decoder = new TextDecoder("utf-8", { fatal: true });
+  const required = new Set(["[content_types].xml", "_rels/.rels", "word/document.xml"]);
+  const localEntries: Array<{ name: string; offset: number }> = [];
+  let totalUncompressed = 0;
+  let offset = 0;
+
+  try {
+    for (let index = 0; index < totalEntries; index += 1) {
+      if (offset + 46 > directory.length || uint32(view, offset) !== 0x02014b50) return false;
+      const flags = view.getUint16(offset + 8, true);
+      const method = view.getUint16(offset + 10, true);
+      const compressedSize = uint32(view, offset + 20);
+      const uncompressedSize = uint32(view, offset + 24);
+      const nameLength = view.getUint16(offset + 28, true);
+      const extraLength = view.getUint16(offset + 30, true);
+      const entryCommentLength = view.getUint16(offset + 32, true);
+      const localOffset = uint32(view, offset + 42);
+      const next = offset + 46 + nameLength + extraLength + entryCommentLength;
+      if (nameLength === 0 || next > directory.length || (flags & 0x0001) !== 0 || ![0, 8].includes(method)) return false;
+      if ([compressedSize, uncompressedSize, localOffset].includes(0xffffffff)) return false;
+      if (localOffset >= directoryOffset) return false;
+      const name = decoder.decode(directory.subarray(offset + 46, offset + 46 + nameLength));
+      const lowerName = name.toLowerCase();
+      if (!safeZipPath(name)) return false;
+      if (lowerName === "word/vbaproject.bin" || lowerName.startsWith("word/activex/") || lowerName.startsWith("word/embeddings/")) return false;
+      totalUncompressed += uncompressedSize;
+      if (totalUncompressed > MAX_DOCX_UNCOMPRESSED_BYTES) return false;
+      if (compressedSize > 0 && uncompressedSize / compressedSize > MAX_DOCX_COMPRESSION_RATIO) return false;
+      if (required.has(lowerName)) localEntries.push({ name, offset: localOffset });
+      required.delete(lowerName);
+      offset = next;
+    }
+  } catch {
+    return false;
+  }
+  if (required.size > 0 || localEntries.length !== 3 || offset !== directory.length) return false;
+
+  for (const entry of localEntries) {
+    const header = new Uint8Array(await file.slice(entry.offset, entry.offset + 30 + 512).arrayBuffer());
+    if (header.length < 30) return false;
+    const headerView = new DataView(header.buffer, header.byteOffset, header.byteLength);
+    if (uint32(headerView, 0) !== 0x04034b50) return false;
+    const nameLength = headerView.getUint16(26, true);
+    const extraLength = headerView.getUint16(28, true);
+    if (nameLength === 0 || 30 + nameLength + extraLength > header.length) return false;
+    try {
+      if (decoder.decode(header.subarray(30, 30 + nameLength)) !== entry.name) return false;
+    } catch {
+      return false;
+    }
+  }
+  return true;
+}
+
 async function hasExpectedSignature(file: File, extension: keyof typeof fileTypes): Promise<boolean> {
   const bytes = new Uint8Array(await file.slice(0, 8).arrayBuffer());
   if (extension === "pdf") return bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46;
   if (extension === "doc") return [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1].every((byte, index) => bytes[index] === byte);
-  return bytes[0] === 0x50 && bytes[1] === 0x4b && [0x03, 0x05, 0x07].includes(bytes[2]);
+  return bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 0x03 && bytes[3] === 0x04 && await validateDocxArchive(file);
 }
 
-async function validateFiles(formData: FormData, support: unknown): Promise<Array<{ category: StoredAttachment["category"]; file: File; extension: keyof typeof fileTypes }>> {
+export async function validateFiles(formData: FormData, support: unknown): Promise<Array<{ category: StoredAttachment["category"]; file: File; extension: keyof typeof fileTypes }>> {
   const planEntries = formData.getAll("ndisPlanDocument");
   const reportEntries = formData.getAll("supportingReports");
   if (planEntries.length > 1 || reportEntries.length > MAX_REPORTS) {
@@ -262,10 +365,19 @@ async function sha256(value: string): Promise<string> {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+export function trustedClientIp(request: Request): string | null {
+  const value = request.headers.get("cf-connecting-ip")?.trim().toLowerCase() || "";
+  if (!value || value.length > 45) return null;
+  const ipv4 = value.split(".");
+  if (ipv4.length === 4 && ipv4.every((part) => /^\d{1,3}$/.test(part) && Number(part) <= 255)) return value;
+  if (value.includes(":") && /^[0-9a-f:]+$/.test(value) && !value.includes(":::")) return value;
+  return null;
+}
+
 async function verifyTurnstile(token: string, request: Request, origin: string): Promise<void> {
   if (!token || token.length > 2048) throw new RequestError(400, "SECURITY_CHECK_REQUIRED", "Please complete the security check.");
   const body = new URLSearchParams({ secret: requiredEnv("TURNSTILE_SECRET_KEY"), response: token });
-  const ip = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const ip = trustedClientIp(request);
   if (ip) body.set("remoteip", ip);
   const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body });
   const result = await response.json().catch(() => null) as { success?: boolean; hostname?: string; action?: string } | null;
@@ -308,28 +420,66 @@ function emailContent(data: JsonRecord, attachmentCount: number, submissionId: s
   return { subject, html, text };
 }
 
-async function sendNotification(data: JsonRecord, attachmentCount: number, submissionId: string | number): Promise<boolean> {
+async function sendNotification(data: JsonRecord, attachmentCount: number, submissionId: string | number): Promise<NotificationResult> {
   const content = emailContent(data, attachmentCount, submissionId);
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${requiredEnv("RESEND_API_KEY")}`,
-      "Content-Type": "application/json",
-      "Idempotency-Key": `pure-form-${submissionId}`
-    },
-    body: JSON.stringify({
-      from: NOTIFICATION_FROM,
-      to: [NOTIFICATION_TO],
-      reply_to: String(data.email),
-      subject: content.subject,
-      html: content.html,
-      text: content.text
-    })
-  });
-  return response.ok;
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${requiredEnv("RESEND_API_KEY")}`,
+        "Content-Type": "application/json",
+        "Idempotency-Key": `pure-form/${submissionId}`
+      },
+      body: JSON.stringify({
+        from: NOTIFICATION_FROM,
+        to: [NOTIFICATION_TO],
+        reply_to: String(data.email),
+        subject: content.subject,
+        html: content.html,
+        text: content.text
+      }),
+      signal: AbortSignal.timeout(RESEND_TIMEOUT_MS)
+    });
+    const result = await response.json().catch(() => null) as { id?: unknown; name?: unknown } | null;
+    return {
+      sent: response.ok && typeof result?.id === "string" && result.id.length > 0,
+      providerId: response.ok && typeof result?.id === "string" ? result.id : null,
+      retryable: response.status === 408 || response.status === 429 || response.status >= 500 ||
+        (response.status === 409 && result?.name === "concurrent_idempotent_requests")
+    };
+  } catch {
+    return { sent: false, providerId: null, retryable: true };
+  }
 }
 
-Deno.serve(async (request: Request) => {
+async function updateOne(supabase: SupabaseClient, submissionId: string | number, values: JsonRecord): Promise<void> {
+  const result = await supabase.from("form_submissions").update(values).eq("id", submissionId).select("id").single();
+  if (result.error || !result.data) throw new Error("Submission state update failed");
+}
+
+export async function cleanupIncompleteSubmission(
+  supabase: SupabaseClient,
+  submissionId: string | number,
+  attachments: StoredAttachment[]
+): Promise<boolean> {
+  const paths = attachments.map(({ path }) => path);
+  if (paths.length) {
+    const removal = await supabase.storage.from(BUCKET).remove(paths);
+    if (removal.error) return false;
+
+    for (const category of ["ndisPlanDocument", "supportingReports"] as const) {
+      const expectedNames = new Set(attachments.filter((item) => item.category === category).map((item) => item.path.split("/").pop()));
+      if (!expectedNames.size) continue;
+      const listing = await supabase.storage.from(BUCKET).list(`${submissionId}/${category}`, { limit: MAX_REPORTS + 1 });
+      if (listing.error || !listing.data || listing.data.some((item) => expectedNames.has(item.name))) return false;
+    }
+  }
+
+  const deletion = await supabase.from("form_submissions").delete().eq("id", submissionId).select("id").single();
+  return !deletion.error && Boolean(deletion.data);
+}
+
+export async function handleRequest(request: Request): Promise<Response> {
   const origin = request.headers.get("Origin") || "";
   let origins: Set<string>;
   try {
@@ -341,13 +491,25 @@ Deno.serve(async (request: Request) => {
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(origin) });
   if (request.method !== "POST") return jsonResponse(origin, 405, { ok: false, error: "Method not allowed." });
 
-  const contentLength = Number(request.headers.get("content-length") || "0");
-  if (contentLength > MAX_TOTAL_BYTES + 1024 * 1024) return jsonResponse(origin, 413, { ok: false, error: "The submission is too large." });
+  const contentType = request.headers.get("content-type") || "";
+  if (!contentType.toLowerCase().startsWith("multipart/form-data;")) {
+    return jsonResponse(origin, 415, { ok: false, error: "The submission format is not supported." });
+  }
+  const contentLengthHeader = request.headers.get("content-length") || "";
+  if (!/^\d+$/.test(contentLengthHeader)) {
+    return jsonResponse(origin, 411, { ok: false, error: "A bounded submission size is required." });
+  }
+  const contentLength = Number(contentLengthHeader);
+  if (!Number.isSafeInteger(contentLength) || contentLength <= 0 || contentLength > MAX_REQUEST_BYTES) {
+    return jsonResponse(origin, 413, { ok: false, error: "The submission is too large." });
+  }
 
   let submissionId: string | number | null = null;
-  let uploadedPaths: string[] = [];
+  let plannedAttachments: StoredAttachment[] = [];
+  let supabase: SupabaseClient | null = null;
+  let storageFinalized = false;
   try {
-    const supabase = createClient(requiredEnv("SUPABASE_URL"), supabaseAdminKey(), {
+    supabase = createClient(requiredEnv("SUPABASE_URL"), supabaseAdminKey(), {
       auth: { persistSession: false, autoRefreshToken: false }
     });
     const formData = await request.formData();
@@ -361,14 +523,10 @@ Deno.serve(async (request: Request) => {
     const files = await validateFiles(formData, data.support);
     await verifyTurnstile(String(formData.get("turnstileToken") || ""), request, origin);
 
-    const existing = await supabase.from("form_submissions").select("id,attachments,email_status").contains("form_data", { clientSubmissionId: data.clientSubmissionId }).maybeSingle();
-    if (existing.data) {
-      const storedCount = Array.isArray(existing.data.attachments) ? existing.data.attachments.length : 0;
-      if (storedCount >= files.length) return jsonResponse(origin, 200, { ok: true, duplicate: true, submissionId: existing.data.id });
-      throw new RequestError(409, "SUBMISSION_IN_PROGRESS", "This submission is already being processed.");
-    }
-
-    const ip = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    // Supabase's hosted gateway supplies cf-connecting-ip. Never use a
+    // caller-controlled X-Forwarded-For value. If the trusted header is absent,
+    // all such requests share a deliberately conservative fallback bucket.
+    const ip = trustedClientIp(request) || "gateway-ip-unavailable";
     const salt = requiredEnv("RATE_LIMIT_SALT");
     const ipKey = await sha256(`${salt}:ip:${ip}`);
     const emailKey = await sha256(`${salt}:email:${data.email}`);
@@ -381,45 +539,70 @@ Deno.serve(async (request: Request) => {
       if (result.data !== true) throw new RequestError(429, "RATE_LIMITED", "Too many submissions. Please wait before trying again.");
     }
 
-    const inserted = await supabase.from("form_submissions").insert({ form_type: FORM_TYPE, form_data: data, attachments: [], email_status: "pending", email_sent_at: null }).select("id").single();
+    const inserted = await supabase.from("form_submissions").insert({
+      form_type: FORM_TYPE,
+      form_data: data,
+      attachments: [],
+      email_status: "pending",
+      email_sent_at: null,
+      email_attempt_count: 0,
+      email_last_attempt_at: null,
+      email_provider_id: null,
+      email_retryable: false
+    }).select("id").single();
     if (inserted.error) {
       if (inserted.error.code === "23505") {
-        const duplicate = await supabase.from("form_submissions").select("id").contains("form_data", { clientSubmissionId: data.clientSubmissionId }).maybeSingle();
-        if (duplicate.data) return jsonResponse(origin, 200, { ok: true, duplicate: true, submissionId: duplicate.data.id });
+        throw new RequestError(409, "DUPLICATE_SUBMISSION", "This submission identifier has already been used. Please start a new submission.");
       }
       throw new Error("Submission storage failed");
     }
-    submissionId = inserted.data.id;
+    const storedSubmissionId = inserted.data?.id;
+    if (typeof storedSubmissionId !== "string" && typeof storedSubmissionId !== "number") {
+      throw new Error("Submission storage returned an invalid identifier");
+    }
+    submissionId = storedSubmissionId;
 
-    const attachments: StoredAttachment[] = [];
-    for (const entry of files) {
-      const path = `${submissionId}/${entry.category}/${crypto.randomUUID()}.${entry.extension}`;
+    plannedAttachments = files.map((entry) => {
+      const path = `${storedSubmissionId}/${entry.category}/${crypto.randomUUID()}.${entry.extension}`;
+      return { category: entry.category, bucket: BUCKET, path, contentType: fileTypes[entry.extension], size: entry.file.size, state: "pending" as const };
+    });
+    await updateOne(supabase, storedSubmissionId, { attachments: plannedAttachments });
+
+    for (const [index, entry] of files.entries()) {
+      const path = plannedAttachments[index].path;
       const upload = await supabase.storage.from(BUCKET).upload(path, entry.file, { contentType: fileTypes[entry.extension], upsert: false, cacheControl: "0" });
       if (upload.error) throw new Error("Private document storage failed");
-      uploadedPaths.push(path);
-      attachments.push({ category: entry.category, bucket: BUCKET, path, contentType: fileTypes[entry.extension], size: entry.file.size });
     }
 
-    const attachmentUpdate = await supabase.from("form_submissions").update({ attachments }).eq("id", submissionId);
-    if (attachmentUpdate.error) throw new Error("Attachment reference storage failed");
+    const storedAttachments = plannedAttachments.map((attachment) => ({ ...attachment, state: "stored" as const }));
+    await updateOne(supabase, storedSubmissionId, { attachments: storedAttachments });
+    storageFinalized = true;
 
-    let sent = false;
-    try { sent = await sendNotification(data, attachments.length, submissionId); } catch { sent = false; }
-    const emailUpdate = await supabase.from("form_submissions").update({ email_status: sent ? "sent" : "failed", email_sent_at: sent ? new Date().toISOString() : null }).eq("id", submissionId);
-    if (emailUpdate.error) console.error("Email status update failed", { submissionId });
-    if (!sent) console.error("Notification delivery failed", { submissionId });
+    const attemptedAt = new Date().toISOString();
+    await updateOne(supabase, storedSubmissionId, { email_attempt_count: 1, email_last_attempt_at: attemptedAt, email_retryable: false });
+    const notification = await sendNotification(data, storedAttachments.length, storedSubmissionId);
+    await updateOne(supabase, storedSubmissionId, {
+      email_status: notification.sent ? "sent" : "failed",
+      email_sent_at: notification.sent ? new Date().toISOString() : null,
+      email_provider_id: notification.providerId,
+      email_retryable: !notification.sent && notification.retryable
+    });
+    if (!notification.sent) console.error("Notification delivery failed", { submissionId, retryable: notification.retryable });
 
-    return jsonResponse(origin, 200, { ok: true, submissionId });
+    return jsonResponse(origin, 200, { ok: true });
   } catch (error) {
-    if (submissionId !== null) {
+    if (submissionId !== null && supabase && !storageFinalized) {
       try {
-        const cleanup = createClient(requiredEnv("SUPABASE_URL"), supabaseAdminKey(), { auth: { persistSession: false } });
-        if (uploadedPaths.length) await cleanup.storage.from(BUCKET).remove(uploadedPaths);
-        await cleanup.from("form_submissions").delete().eq("id", submissionId);
-      } catch { console.error("Submission cleanup failed", { submissionId }); }
+        const cleaned = await cleanupIncompleteSubmission(supabase, submissionId, plannedAttachments);
+        if (!cleaned) console.error("Submission cleanup requires administrative recovery", { submissionId });
+      } catch {
+        console.error("Submission cleanup requires administrative recovery", { submissionId });
+      }
     }
     if (error instanceof RequestError) return jsonResponse(origin, error.status, { ok: false, code: error.code, error: error.message });
     console.error("Form submission failed", { submissionId, errorType: error instanceof Error ? error.name : "Unknown" });
     return jsonResponse(origin, 500, { ok: false, error: "We could not securely store your enquiry. Please try again." });
   }
-});
+}
+
+if (import.meta.main) Deno.serve(handleRequest);
