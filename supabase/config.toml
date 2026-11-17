@@ -1,4 +1,6 @@
-project_id = "pure-coaching-placeholder"
+# Local Supabase project identifier only. Remote deployment must use an
+# explicitly linked/selected project; no remote project reference is committed.
+project_id = "pure-coaching"
 
 [functions.submit-form]
 verify_jwt = false

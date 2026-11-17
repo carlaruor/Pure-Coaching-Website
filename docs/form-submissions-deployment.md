@@ -2,6 +2,8 @@
 
 The implementation is intentionally **inactive** in the public website configuration. Review the Edge Function, SQL migration, data-handling process and retention policy before enabling it.
 
+`supabase/config.toml` deliberately contains only a non-secret local project identifier. Select the remote project explicitly through `supabase link --project-ref ...` or by opening the intended project in the Dashboard; never infer the deployment target from the repository name.
+
 ## Architecture
 
 - `get-started.js` sends one multipart request to `submit-form` only when `form-submission-config.js` is explicitly enabled.
@@ -69,7 +71,7 @@ supabase secrets set \
   ALLOWED_ORIGINS=https://YOUR_GITHUB_PAGES_ORIGIN
 ```
 
-`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are supplied to deployed Edge Functions by Supabase. They must never be copied into frontend JavaScript. The reviewed sender and recipient are fixed in server code as `Pure Coaching Website <notifications@pure-coaching.com.au>` and `info@pure-coaching.com.au`. Add both the custom domain and GitHub Pages origin to `ALLOWED_ORIGINS` only if both genuinely serve the form; separate multiple origins with commas and do not use `*`.
+`SUPABASE_URL` and `SUPABASE_SECRET_KEYS` are supplied to deployed Edge Functions by Supabase and do not need to be added manually. The Function reads the `default` server secret from that injected JSON map. Neither value may ever be copied into frontend JavaScript. The reviewed sender and recipient are fixed in server code as `Pure Coaching Website <notifications@pure-coaching.com.au>` and `info@pure-coaching.com.au`. Add both the custom domain and GitHub Pages origin to `ALLOWED_ORIGINS` only if both genuinely serve the form; separate multiple origins with commas and do not use `*`.
 
 ## 5. Local review and testing
 
@@ -94,6 +96,49 @@ Test at minimum:
 
 Use synthetic documents only. Never place participant data in fixtures, logs or the repository.
 
+### Verify the rate-limit RPC before Function deployment
+
+Run this transaction in the Supabase SQL editor. It uses an obviously synthetic hash and rolls back all counter changes:
+
+```sql
+begin;
+set local role service_role;
+
+select public.enforce_form_submission_rate_limit(
+  repeat('a', 64),
+  2,
+  60
+) as first_attempt_allowed;
+
+select public.enforce_form_submission_rate_limit(
+  repeat('a', 64),
+  2,
+  60
+) as second_attempt_allowed;
+
+select public.enforce_form_submission_rate_limit(
+  repeat('a', 64),
+  2,
+  60
+) as third_attempt_blocked;
+
+rollback;
+```
+
+Expected values are `true`, `true`, then `false`. Also repeat the privilege queries from section 2; do not test with a real email address or IP hash.
+
+### Verify private Storage access
+
+Before sending any Function request, use a synthetic document with no personal information and verify through the Storage API that:
+
+1. the anonymous/publishable browser role cannot list the bucket;
+2. it cannot download a known synthetic object path;
+3. direct upload, update and delete requests are denied;
+4. the same synthetic file can be uploaded by the Edge Function's injected server secret;
+5. no public URL serves the object.
+
+Delete the synthetic object through an authorised server/Dashboard workflow after the test. Never relax the restrictive policy to make testing easier.
+
 ## 6. Deploy for reviewed testing
 
 Only after the controls above pass review:
@@ -103,6 +148,22 @@ supabase functions deploy submit-form --no-verify-jwt
 ```
 
 The function is intentionally unauthenticated at the Supabase gateway because the public form has no user account. Origin restrictions, Turnstile, database rate limits and strict validation are enforced inside the function.
+
+### Safest alternative when CLI and Deno are unavailable
+
+Use the Supabase Dashboard Edge Function editor only after explicit deployment approval:
+
+1. Open the correct project and confirm the four custom secrets are present by **name only**. Do not reveal or copy their values.
+2. Choose **Edge Functions → Deploy a new function → Via Editor** and name it exactly `submit-form`.
+3. Replace the generated source with the reviewed `supabase/functions/submit-form/index.ts` from this branch.
+4. Use the editor's built-in type check and stop if it reports any error.
+5. Deploy the function, then open its detail/settings page and turn **JWT verification off**. The browser form is unauthenticated; the Function performs origin, Turnstile, rate-limit and validation checks itself.
+6. Keep `form-submission-config.js` unchanged with `enabled: false`, an empty endpoint and an empty Turnstile site key.
+7. Run rejection tests first: disallowed origin, missing Turnstile token, malformed payload and direct anonymous Storage access must all fail.
+8. For the one successful end-to-end test, use a private, temporary test harness on an allowed test origin with a valid Turnstile widget and synthetic names, contact details and documents only. Do not commit that harness or its public test configuration.
+9. Confirm one database row, only private Storage references, the rate-limit counters, and exactly one notification to Pure Coaching. Delete the synthetic submission and documents using an authorised administrative process after recording the test result.
+
+The Dashboard route is suitable here because the Function has one source file and the Dashboard editor provides Deno/Supabase type checking. CLI deployment remains preferable for repeatability because it applies the tracked `config.toml` automatically; with the Dashboard route, the JWT setting must be checked manually.
 
 ## 7. Activate the frontend last
 

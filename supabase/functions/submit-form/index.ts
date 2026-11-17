@@ -64,6 +64,23 @@ function requiredEnv(name: string): string {
   return value;
 }
 
+function supabaseAdminKey(): string {
+  let keys: unknown;
+  try {
+    keys = JSON.parse(requiredEnv("SUPABASE_SECRET_KEYS"));
+  } catch {
+    throw new Error("Missing or invalid server configuration: SUPABASE_SECRET_KEYS");
+  }
+  if (!keys || typeof keys !== "object" || Array.isArray(keys)) {
+    throw new Error("Missing or invalid server configuration: SUPABASE_SECRET_KEYS");
+  }
+  const key = (keys as Record<string, unknown>).default;
+  if (typeof key !== "string" || !key.trim()) {
+    throw new Error("Missing default Supabase secret key");
+  }
+  return key;
+}
+
 function allowedOrigins(): Set<string> {
   return new Set(requiredEnv("ALLOWED_ORIGINS").split(",").map((origin) => origin.trim()).filter(Boolean));
 }
@@ -330,7 +347,7 @@ Deno.serve(async (request: Request) => {
   let submissionId: string | number | null = null;
   let uploadedPaths: string[] = [];
   try {
-    const supabase = createClient(requiredEnv("SUPABASE_URL"), requiredEnv("SUPABASE_SERVICE_ROLE_KEY"), {
+    const supabase = createClient(requiredEnv("SUPABASE_URL"), supabaseAdminKey(), {
       auth: { persistSession: false, autoRefreshToken: false }
     });
     const formData = await request.formData();
@@ -396,7 +413,7 @@ Deno.serve(async (request: Request) => {
   } catch (error) {
     if (submissionId !== null) {
       try {
-        const cleanup = createClient(requiredEnv("SUPABASE_URL"), requiredEnv("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
+        const cleanup = createClient(requiredEnv("SUPABASE_URL"), supabaseAdminKey(), { auth: { persistSession: false } });
         if (uploadedPaths.length) await cleanup.storage.from(BUCKET).remove(uploadedPaths);
         await cleanup.from("form_submissions").delete().eq("id", submissionId);
       } catch { console.error("Submission cleanup failed", { submissionId }); }
