@@ -8940,3 +8940,16 @@ body.has-modal-open {
 .ndis-access--compact .section-title { margin-top: 8px; font-size: clamp(1.65rem, 3vw, 2.1rem); }
 .ndis-access--compact .section-description { margin: 10px auto 0; max-width: 600px; }
 .ndis-access--compact .button { margin-top: 16px; }
+/* Public form abuse-prevention field: intentionally unavailable to people. */
+.form-honeypot {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
+
+.form-turnstile {
+  margin-top: 1.25rem;
+  min-height: 65px;
+}

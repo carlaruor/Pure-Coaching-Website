@@ -1,0 +1,4 @@
+project_id = "pure-coaching-placeholder"
+
+[functions.submit-form]
+verify_jwt = false

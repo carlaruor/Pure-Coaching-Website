@@ -1,0 +1,109 @@
+# Secure form submission deployment
+
+The implementation is intentionally **inactive** in the public website configuration. Review the Edge Function, SQL migration, data-handling process and retention policy before enabling it.
+
+## Architecture
+
+- `get-started.js` sends one multipart request to `submit-form` only when `form-submission-config.js` is explicitly enabled.
+- The browser receives no Supabase key and no Resend key.
+- The Edge Function verifies the request origin, Cloudflare Turnstile, field rules, attachment rules and database-backed rate limits.
+- Valid records are stored in `form_submissions`; files are stored under unpredictable paths in the private `referral-documents` bucket.
+- The database stores private bucket/path references, not public URLs.
+- Resend receives one staff notification per stored submission. Documents are never attached and no document URL is placed in email.
+- A failed notification leaves the database submission intact with `email_status = 'failed'`.
+
+## 1. Security review before deployment
+
+1. Confirm `form_submissions` uses a compatible generated `id` and that `email_status` accepts `pending`, `sent` and `failed`.
+2. Confirm RLS is enabled and there are no policies granting `anon` or `authenticated` access to submissions.
+3. Confirm `referral-documents` is private. Remove any Storage policies that allow anonymous or general authenticated access to that bucket.
+4. Decide who is authorised to view NDIS documents and document that approval process.
+5. Publish a real privacy policy and retention notice before collecting participant information.
+6. Choose a retention period. Use a scheduled, audited server-side process to delete expired Storage objects and their database references. Do not delete from the browser.
+7. Review Australian Privacy Principles and applicable NDIS privacy/security obligations with the organisation's adviser.
+
+## 2. Apply database controls
+
+Link the Supabase CLI to the intended project, inspect the migration, then apply it:
+
+```sh
+supabase link --project-ref YOUR_PROJECT_REF
+supabase db push
+```
+
+The migration enables RLS, revokes browser roles, adds an idempotency index and creates a private rate-limit table plus a service-role-only RPC. It also refuses to complete if the required bucket does not exist.
+
+## 3. Configure anti-spam protection
+
+Create a Cloudflare Turnstile widget for the exact production hostname. Keep its secret server-side. The site key is public and will later be placed in the browser configuration.
+
+## 4. Set Edge Function secrets
+
+Set these values with placeholders replaced locally. Never commit the resulting command, shell history containing real values, or an environment file.
+
+```sh
+supabase secrets set \
+  RESEND_API_KEY=YOUR_RESEND_API_KEY \
+  TURNSTILE_SECRET_KEY=YOUR_TURNSTILE_SECRET \
+  RATE_LIMIT_SALT=AT_LEAST_32_RANDOM_CHARACTERS \
+  ALLOWED_ORIGINS=https://YOUR_GITHUB_PAGES_ORIGIN
+```
+
+`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are supplied to deployed Edge Functions by Supabase. They must never be copied into frontend JavaScript. The reviewed sender and recipient are fixed in server code as `Pure Coaching Website <notifications@pure-coaching.com.au>` and `info@pure-coaching.com.au`. Add both the custom domain and GitHub Pages origin to `ALLOWED_ORIGINS` only if both genuinely serve the form; separate multiple origins with commas and do not use `*`.
+
+## 5. Local review and testing
+
+Copy `supabase/functions/.env.example` to an ignored `.env.local`, use only non-production test data, and run:
+
+```sh
+supabase functions serve submit-form --env-file supabase/functions/.env.local --no-verify-jwt
+```
+
+Test at minimum:
+
+- allowed and rejected origins;
+- missing/invalid Turnstile tokens;
+- every conditional field path;
+- invalid extensions, MIME types, signatures, sizes and file counts;
+- duplicate submission IDs;
+- IP/email rate limits;
+- database failure, upload failure and Resend failure cleanup/status;
+- one staff email only and no applicant email;
+- no document content, filename or link in the email;
+- keyboard/screen-reader form behaviour.
+
+Use synthetic documents only. Never place participant data in fixtures, logs or the repository.
+
+## 6. Deploy for reviewed testing
+
+Only after the controls above pass review:
+
+```sh
+supabase functions deploy submit-form --no-verify-jwt
+```
+
+The function is intentionally unauthenticated at the Supabase gateway because the public form has no user account. Origin restrictions, Turnstile, database rate limits and strict validation are enforced inside the function.
+
+## 7. Activate the frontend last
+
+After deployment and security testing, edit only the public values in `form-submission-config.js`:
+
+```js
+window.PURE_FORM_SUBMISSION_CONFIG = Object.freeze({
+  enabled: true,
+  endpoint: 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/submit-form',
+  turnstileSiteKey: 'YOUR_PUBLIC_TURNSTILE_SITE_KEY'
+});
+```
+
+Deploy the static site and perform a final synthetic submission. Confirm the database record, private object paths, exactly one Resend notification and no applicant email.
+
+## Private document access
+
+Do not create public URLs. A future staff-only admin service should authenticate and authorise the staff member, log the access, and generate a very short-lived signed URL only when needed. Signed URLs must not be placed in notification emails. Until that workflow exists, documents should be accessed only by specifically authorised administrators through the Supabase Dashboard.
+
+## Operational notes
+
+- Monitor `failed` email statuses and retry manually through an authenticated server-side process. Do not make the public browser retry email delivery.
+- Edge Function logs intentionally contain only submission IDs and error categories. Never add payloads, email addresses, health information or filenames to logs. Original filenames are intentionally not retained in Storage paths or attachment metadata.
+- Rotate the Resend key, Turnstile secret, rate-limit salt and service-role key after any suspected exposure.

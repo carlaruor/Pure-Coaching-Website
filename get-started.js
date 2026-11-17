@@ -15,17 +15,76 @@ function initIntakeForm() {
   const review = form.querySelector('[data-form-review]');
   const context = document.querySelector('[data-form-context]');
   const finalStep = steps.length;
-  const state = { step: 1, support: '', fixedSupport: '', intent: '' };
+  const submissionConfig = window.PURE_FORM_SUBMISSION_CONFIG || {};
+  const state = {
+    step: 1,
+    support: '',
+    fixedSupport: '',
+    intent: '',
+    submitting: false,
+    turnstileToken: '',
+    clientSubmissionId: crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`
+  };
+  let turnstileWidgetId = null;
+  let turnstileScriptPromise = null;
 
   const isSupportCoordination = () => state.support === 'ndis' && state.intent === 'support-coordination';
   const ndisEnquiryLabel = () => isSupportCoordination() ? 'Support Coordination Enquiry' : 'NDIS Support Enquiry';
   const documentSection = form.querySelector('[data-ndis-documents]');
   const documentConfig = {
     maxSizeMB: 10,
+    maxTotalSizeMB: 35,
     fields: { ndisPlanDocument: { limit: 1, label: 'NDIS Plan' }, supportingReports: { limit: 3, label: 'Supporting Reports' } },
     mimeTypes: { pdf: 'application/pdf', doc: 'application/msword', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }
   };
   const documents = { ndisPlanDocument: [], supportingReports: [] };
+
+  const submissionIsConfigured = () => (
+    submissionConfig.enabled === true
+    && typeof submissionConfig.endpoint === 'string'
+    && submissionConfig.endpoint.startsWith('https://')
+    && typeof submissionConfig.turnstileSiteKey === 'string'
+    && submissionConfig.turnstileSiteKey.length > 0
+  );
+
+  function loadTurnstile() {
+    if (window.turnstile) return Promise.resolve(window.turnstile);
+    if (turnstileScriptPromise) return turnstileScriptPromise;
+
+    turnstileScriptPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true;
+      script.defer = true;
+      script.addEventListener('load', () => resolve(window.turnstile), { once: true });
+      script.addEventListener('error', () => reject(new Error('Turnstile failed to load.')), { once: true });
+      document.head.append(script);
+    });
+
+    return turnstileScriptPromise;
+  }
+
+  async function ensureTurnstile() {
+    if (!submissionIsConfigured() || turnstileWidgetId !== null) return;
+    const container = form.querySelector('[data-turnstile-container]');
+    container.hidden = false;
+    try {
+      const turnstile = await loadTurnstile();
+      turnstileWidgetId = turnstile.render(container, {
+        sitekey: submissionConfig.turnstileSiteKey,
+        theme: 'light',
+        action: 'intake',
+        callback: (token) => {
+          state.turnstileToken = token;
+          form.querySelector('[data-error-for="turnstileToken"]').textContent = '';
+        },
+        'expired-callback': () => { state.turnstileToken = ''; },
+        'error-callback': () => { state.turnstileToken = ''; }
+      });
+    } catch {
+      setError('turnstileToken', 'The security check could not load. Please refresh the page or call us on 0407 234 842.');
+    }
+  }
 
   function renderDocuments(name) {
     const list = form.querySelector(`[data-document-list="${name}"]`);
@@ -78,6 +137,12 @@ function initIntakeForm() {
       message = 'Please upload a PDF, DOC or DOCX file.';
     } else if (picked.some((file) => file.size > documentConfig.maxSizeMB * 1024 * 1024)) {
       message = `Each document must be ${documentConfig.maxSizeMB} MB or smaller.`;
+    } else {
+      const prospectiveDocuments = { ...documents, [name]: candidates };
+      const totalBytes = Object.values(prospectiveDocuments).flat().reduce((total, file) => total + file.size, 0);
+      if (totalBytes > documentConfig.maxTotalSizeMB * 1024 * 1024) {
+        message = `The combined size of all documents must be ${documentConfig.maxTotalSizeMB} MB or smaller.`;
+      }
     }
     if (message) {
       setError(name, message);
@@ -258,7 +323,10 @@ function initIntakeForm() {
     nextButton.hidden = stepNumber === finalStep;
     submitButton.hidden = stepNumber !== finalStep;
     status.hidden = true;
-    if (stepNumber === finalStep) renderReview();
+    if (stepNumber === finalStep) {
+      renderReview();
+      void ensureTurnstile();
+    }
     if (manageFocus) steps[stepNumber - 1].querySelector('h2').focus({ preventScroll: true });
     if (scroll) document.querySelector('.intake__surface').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -387,6 +455,43 @@ function initIntakeForm() {
     updateConditionals();
   }
 
+  function buildSubmissionPayload() {
+    const contactFor = selected('contactFor')?.value || '';
+    const coordination = isSupportCoordination();
+    return {
+      clientSubmissionId: state.clientSubmissionId,
+      intent: state.intent || 'general',
+      contactFor,
+      role: contactFor === 'Myself' ? '' : value('role'),
+      roleOther: contactFor === 'Myself' ? '' : value('roleOther'),
+      firstName: value('firstName'),
+      lastName: value('lastName'),
+      email: value('email'),
+      phone: value('phone'),
+      support: state.support,
+      ndisPlan: state.support === 'ndis' && !coordination ? selected('ndisPlan')?.value || '' : '',
+      fundingManagement: state.support === 'ndis' ? selected('fundingManagement')?.value || '' : '',
+      supportCoordinator: coordination ? selected('supportCoordinator')?.value || '' : '',
+      changeCoordinator: coordination && selected('supportCoordinator')?.value === 'Yes' ? selected('changeCoordinator')?.value || '' : '',
+      personFirstName: contactFor === 'Someone else' ? value('personFirstName') : '',
+      personLastName: contactFor === 'Someone else' ? value('personLastName') : '',
+      primaryDisability: ['ndis', 'private'].includes(state.support) ? value('primaryDisability') : '',
+      secondaryDisabilities: ['ndis', 'private'].includes(state.support) ? value('secondaryDisabilities') : '',
+      ageRange: selected('ageRange')?.value || '',
+      message: value('message'),
+      preferredContact: selected('preferredContact')?.value || '',
+      contactTime: value('contactTime'),
+      contactTimeOther: value('contactTime') === 'Other' ? value('contactTimeOther') : '',
+      consent: field('consent').checked,
+      website: value('website')
+    };
+  }
+
+  function resetTurnstile() {
+    state.turnstileToken = '';
+    if (window.turnstile && turnstileWidgetId !== null) window.turnstile.reset(turnstileWidgetId);
+  }
+
   nextButton.addEventListener('click', () => {
     if (state.step < finalStep && validateStep(state.step)) showStep(state.step + 1);
   });
@@ -400,17 +505,64 @@ function initIntakeForm() {
     event.target.removeAttribute('aria-invalid');
     if (Object.hasOwn(documents, event.target.name) && !documentSection.hidden) selectDocuments(event.target);
   });
-  form.addEventListener('submit', (event) => {
+  form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (!validateStep(finalStep)) return;
-    // Development preview only: no enquiry or documents are transmitted.
-    clearDocuments();
-    review.replaceChildren();
-    form.hidden = true;
-    document.querySelector('.intake-progress').hidden = true;
-    context.hidden = true;
-    confirmation.hidden = false;
-    confirmation.focus();
+    if (state.submitting || !validateStep(finalStep)) return;
+
+    if (!submissionIsConfigured()) {
+      status.textContent = 'Online submissions are not active yet. Please call 0407 234 842 to discuss your enquiry.';
+      status.hidden = false;
+      status.focus?.();
+      return;
+    }
+
+    if (!state.turnstileToken) {
+      setError('turnstileToken', 'Please complete the security check before sending your enquiry.');
+      form.querySelector('[data-turnstile-container]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    const request = new FormData();
+    request.append('formType', 'intake');
+    request.append('payload', JSON.stringify(buildSubmissionPayload()));
+    request.append('turnstileToken', state.turnstileToken);
+    documents.ndisPlanDocument.forEach((file) => request.append('ndisPlanDocument', file, file.name));
+    documents.supportingReports.forEach((file) => request.append('supportingReports', file, file.name));
+
+    state.submitting = true;
+    submitButton.disabled = true;
+    backButton.disabled = true;
+    submitButton.textContent = 'Sending…';
+    status.hidden = true;
+
+    try {
+      const response = await fetch(submissionConfig.endpoint, {
+        method: 'POST',
+        body: request,
+        credentials: 'omit',
+        referrerPolicy: 'strict-origin-when-cross-origin',
+        headers: { Accept: 'application/json' }
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || result.ok !== true) throw new Error(result.error || 'Submission failed.');
+
+      clearDocuments();
+      review.replaceChildren();
+      form.hidden = true;
+      document.querySelector('.intake-progress').hidden = true;
+      context.hidden = true;
+      confirmation.hidden = false;
+      confirmation.focus();
+    } catch (error) {
+      const reason = error instanceof Error && error.message ? error.message : 'We could not send your enquiry.';
+      status.textContent = `${reason} Your answers are still on this page—please try again, or call 0407 234 842 if the problem continues.`;
+      status.hidden = false;
+      resetTurnstile();
+      submitButton.disabled = false;
+      backButton.disabled = false;
+      submitButton.textContent = 'Send enquiry →';
+      state.submitting = false;
+    }
   });
 
   steps.forEach((step) => step.querySelector('h2').setAttribute('tabindex', '-1'));

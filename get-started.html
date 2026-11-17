@@ -7,6 +7,7 @@
     <title>Get Started | Pure Coaching Cairns</title>
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
+    <script src="form-submission-config.js" defer></script>
     <script src="get-started.js?v=private-booking-v1" defer></script>
   </head>
   <body class="page-get-started">
@@ -48,6 +49,10 @@
             </ol>
 
             <form data-intake-form novalidate>
+              <div class="form-honeypot" aria-hidden="true">
+                <label for="website">Leave this field empty</label>
+                <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+              </div>
               <p class="form-status" data-form-status role="alert" hidden></p>
 
               <section class="form-step" data-form-step="1" aria-labelledby="form-step-1-title">
@@ -131,14 +136,14 @@
                   <p>If you have these documents available, you can attach them to help our team understand your support needs. You can also provide them later.</p>
                   <div class="field">
                     <label for="ndisPlanDocument">NDIS Plan <span>(optional)</span></label>
-                    <p class="field-help" id="ndisPlanDocument-help">Optional — attach your current NDIS Plan if available. PDF, DOC or DOCX, up to 10 MB per file.</p>
+                    <p class="field-help" id="ndisPlanDocument-help">Optional — attach your current NDIS Plan if available. PDF, DOC or DOCX, up to 10 MB per file and 35 MB combined.</p>
                     <input type="file" id="ndisPlanDocument" name="ndisPlanDocument" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-describedby="ndisPlanDocument-help" disabled>
                     <p class="field-error" data-error-for="ndisPlanDocument" aria-live="polite"></p>
                     <ul class="document-list" data-document-list="ndisPlanDocument" aria-live="polite"></ul>
                   </div>
                   <div class="field">
                     <label for="supportingReports">Supporting Reports <span>(optional)</span></label>
-                    <p class="field-help" id="supportingReports-help">Optional — attach up to 3 relevant reports, such as reports from your psychologist, occupational therapist, physiotherapist or other relevant professionals. PDF, DOC or DOCX, up to 10 MB per file.</p>
+                    <p class="field-help" id="supportingReports-help">Optional — attach up to 3 relevant reports, such as reports from your psychologist, occupational therapist, physiotherapist or other relevant professionals. PDF, DOC or DOCX, up to 10 MB per file and 35 MB combined.</p>
                     <input type="file" id="supportingReports" name="supportingReports" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple aria-describedby="supportingReports-help" disabled>
                     <p class="field-error" data-error-for="supportingReports" aria-live="polite"></p>
                     <ul class="document-list" data-document-list="supportingReports" aria-live="polite"></ul>
@@ -150,12 +155,14 @@
                 <p class="form-step__number">Step 5 of 5</p><h2 id="form-step-5-title">Review your enquiry</h2>
                 <div class="form-review" data-form-review></div>
                 <label class="consent"><input type="checkbox" name="consent" required><span>I consent to Pure Coaching contacting me about this enquiry. <a href="#">Privacy Policy</a></span></label><p class="field-error" data-error-for="consent"></p>
+                <div class="form-turnstile" data-turnstile-container hidden></div>
+                <p class="field-error" data-error-for="turnstileToken"></p>
               </section>
 
-              <div class="form-actions"><button class="button button--secondary" type="button" data-form-back hidden>Back</button><button class="button button--primary" type="button" data-form-next>Continue</button><button class="button button--primary" type="submit" data-form-submit hidden>Finish preview →</button></div>
+              <div class="form-actions"><button class="button button--secondary" type="button" data-form-back hidden>Back</button><button class="button button--primary" type="button" data-form-next>Continue</button><button class="button button--primary" type="submit" data-form-submit hidden>Send enquiry →</button></div>
             </form>
 
-            <div class="form-confirmation" data-form-confirmation hidden tabindex="-1"><span class="form-confirmation__icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m7 12 3 3 7-7"></path><circle cx="12" cy="12" r="9"></circle></svg></span><h2>Enquiry preview complete.</h2><p>The submission service is not connected yet. Your enquiry and documents have not been sent to Pure Coaching. To discuss support, please call <a href="tel:+61407234842">0407 234 842</a>.</p></div>
+            <div class="form-confirmation" data-form-confirmation hidden tabindex="-1"><span class="form-confirmation__icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m7 12 3 3 7-7"></path><circle cx="12" cy="12" r="9"></circle></svg></span><h2>Thank you. Your enquiry has been received.</h2><p>Your information has been stored securely and the Pure Coaching team will be in touch. If your enquiry is urgent, please call <a href="tel:+61407234842">0407 234 842</a>.</p></div>
           </div>
         </div>
       </section>
