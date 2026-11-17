@@ -16,11 +16,12 @@ The implementation is intentionally **inactive** in the public website configura
 
 1. Confirm `form_submissions` uses a compatible generated `id` and that `email_status` accepts `pending`, `sent` and `failed`.
 2. Confirm RLS is enabled and there are no policies granting `anon` or `authenticated` access to submissions.
-3. Confirm `referral-documents` is private. Remove any Storage policies that allow anonymous or general authenticated access to that bucket.
-4. Decide who is authorised to view NDIS documents and document that approval process.
-5. Publish a real privacy policy and retention notice before collecting participant information.
-6. Choose a retention period. Use a scheduled, audited server-side process to delete expired Storage objects and their database references. Do not delete from the browser.
-7. Review Australian Privacy Principles and applicable NDIS privacy/security obligations with the organisation's adviser.
+3. Confirm `private` is **not** listed under the Data API's exposed schemas. PostgREST calls the service-role-only `public.enforce_form_submission_rate_limit` wrapper, which delegates to `private.check_form_submission_rate_limit` using invoker privileges.
+4. Confirm `referral-documents` is private. The migration adds a restrictive policy that denies `anon` and `authenticated` roles every direct operation on objects in that bucket, even if a broader permissive policy exists.
+5. Decide who is authorised to view NDIS documents and document that approval process.
+6. Publish a real privacy policy and retention notice before collecting participant information.
+7. Choose a retention period. Use a scheduled, audited server-side process to delete expired Storage objects and their database references. Do not delete from the browser.
+8. Review Australian Privacy Principles and applicable NDIS privacy/security obligations with the organisation's adviser.
 
 ## 2. Apply database controls
 
@@ -31,7 +32,26 @@ supabase link --project-ref YOUR_PROJECT_REF
 supabase db push
 ```
 
-The migration enables RLS, revokes browser roles, adds an idempotency index and creates a private rate-limit table plus a service-role-only RPC. It also refuses to complete if the required bucket does not exist.
+The migration enables RLS, revokes browser roles, adds an idempotency index and creates a private rate-limit table. The rate-limit implementation remains in the non-exposed `private` schema; only its service-role-only wrapper is available through PostgREST. The migration also forces the required bucket to private, installs a restrictive deny policy for browser roles, and refuses to complete if the bucket does not exist. It does not delete or rewrite existing form submissions or Storage objects.
+
+After applying the migration, verify the controls in the SQL editor:
+
+```sql
+select id, public from storage.buckets where id = 'referral-documents';
+
+select schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check
+from pg_policies
+where schemaname = 'storage'
+  and tablename = 'objects'
+  and policyname = 'Block direct access to referral documents';
+
+select
+  has_function_privilege('anon', 'public.enforce_form_submission_rate_limit(text, integer, integer)', 'execute') as anon_can_execute,
+  has_function_privilege('authenticated', 'public.enforce_form_submission_rate_limit(text, integer, integer)', 'execute') as authenticated_can_execute,
+  has_function_privilege('service_role', 'public.enforce_form_submission_rate_limit(text, integer, integer)', 'execute') as service_role_can_execute;
+```
+
+Expected results: the bucket is not public, the policy is restrictive, both browser roles return `false`, and `service_role` returns `true`.
 
 ## 3. Configure anti-spam protection
 

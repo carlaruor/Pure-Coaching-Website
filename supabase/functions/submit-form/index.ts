@@ -356,7 +356,10 @@ Deno.serve(async (request: Request) => {
     const ipKey = await sha256(`${salt}:ip:${ip}`);
     const emailKey = await sha256(`${salt}:email:${data.email}`);
     for (const [rateKey, limit, windowSeconds] of [[ipKey, 5, 900], [emailKey, 3, 3600]] as const) {
-      const result = await supabase.rpc("check_form_submission_rate_limit", { p_rate_key: rateKey, p_limit: limit, p_window_seconds: windowSeconds });
+      // PostgREST exposes only this service-role-only public wrapper. Its
+      // implementation delegates to private.check_form_submission_rate_limit;
+      // the private schema itself must remain absent from API exposed schemas.
+      const result = await supabase.rpc("enforce_form_submission_rate_limit", { p_rate_key: rateKey, p_limit: limit, p_window_seconds: windowSeconds });
       if (result.error) throw new Error("Rate limit service unavailable");
       if (result.data !== true) throw new RequestError(429, "RATE_LIMITED", "Too many submissions. Please wait before trying again.");
     }

@@ -1,6 +1,45 @@
 -- Security controls required by the public submit-form Edge Function.
 -- Review this migration in the target Supabase project before applying it.
 
+-- Fail before applying security changes if the existing table is not compatible
+-- with the schema this function was designed for. No table data is rewritten.
+do $$
+begin
+  if to_regclass('public.form_submissions') is null then
+    raise exception 'Required table public.form_submissions does not exist';
+  end if;
+
+  if (
+    select count(*)
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'form_submissions'
+      and column_name in (
+        'id',
+        'created_at',
+        'form_type',
+        'form_data',
+        'attachments',
+        'email_status',
+        'email_sent_at'
+      )
+  ) <> 7 then
+    raise exception 'public.form_submissions is missing one or more required columns';
+  end if;
+
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'form_submissions'
+      and column_name in ('form_data', 'attachments')
+      and data_type <> 'jsonb'
+  ) then
+    raise exception 'form_data and attachments must both be jsonb columns';
+  end if;
+end;
+$$;
+
 alter table public.form_submissions enable row level security;
 
 revoke all on table public.form_submissions from anon, authenticated;
@@ -25,14 +64,16 @@ create table if not exists private.form_submission_rate_limits (
 revoke all on table private.form_submission_rate_limits from public, anon, authenticated;
 grant all on table private.form_submission_rate_limits to service_role;
 
-create or replace function public.check_form_submission_rate_limit(
+-- The implementation stays in the non-exposed private schema. The Edge
+-- Function reaches it through a narrowly scoped public PostgREST wrapper below.
+create or replace function private.check_form_submission_rate_limit(
   p_rate_key text,
   p_limit integer,
   p_window_seconds integer
 )
 returns boolean
 language plpgsql
-security definer
+security invoker
 set search_path = ''
 as $$
 declare
@@ -66,8 +107,36 @@ begin
 end;
 $$;
 
-revoke all on function public.check_form_submission_rate_limit(text, integer, integer) from public, anon, authenticated;
-grant execute on function public.check_form_submission_rate_limit(text, integer, integer) to service_role;
+revoke all on function private.check_form_submission_rate_limit(text, integer, integer) from public, anon, authenticated;
+grant execute on function private.check_form_submission_rate_limit(text, integer, integer) to service_role;
+
+-- PostgREST cannot call routines in a schema that is not configured as an
+-- exposed schema. This public wrapper is therefore the only Data API entry
+-- point. SECURITY INVOKER means it retains the service_role caller's grants;
+-- it cannot elevate anon/authenticated callers, which also lack EXECUTE.
+create or replace function public.enforce_form_submission_rate_limit(
+  p_rate_key text,
+  p_limit integer,
+  p_window_seconds integer
+)
+returns boolean
+language sql
+security invoker
+set search_path = ''
+as $$
+  select private.check_form_submission_rate_limit(
+    p_rate_key,
+    p_limit,
+    p_window_seconds
+  );
+$$;
+
+revoke all on function public.enforce_form_submission_rate_limit(text, integer, integer) from public, anon, authenticated;
+grant execute on function public.enforce_form_submission_rate_limit(text, integer, integer) to service_role;
+
+-- Remove the superseded exposed implementation if an earlier draft of this
+-- migration was applied during local testing. This does not touch table data.
+drop function if exists public.check_form_submission_rate_limit(text, integer, integer);
 
 do $$
 begin
@@ -80,3 +149,17 @@ $$;
 update storage.buckets
 set public = false
 where id = 'referral-documents';
+
+-- Restrictive policies are ANDed with any existing permissive policies. This
+-- prevents broad or future anon/authenticated policies from granting direct
+-- access to this sensitive bucket while leaving other buckets unaffected.
+drop policy if exists "Block direct access to referral documents" on storage.objects;
+create policy "Block direct access to referral documents"
+  on storage.objects
+  as restrictive
+  for all
+  to anon, authenticated
+  using (bucket_id <> 'referral-documents')
+  with check (bucket_id <> 'referral-documents');
+
+notify pgrst, 'reload schema';
