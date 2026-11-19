@@ -1,5 +1,7 @@
 import {
   cleanupIncompleteSubmission,
+  documentUploadsEnabled,
+  enforceDocumentUploadSetting,
   parseSupabaseSecretKeys,
   storedDocumentFilename,
   type StoredAttachment,
@@ -106,6 +108,37 @@ Deno.test("validates all fields before an idempotency claim", () => {
   assert(validatePayload(validPayload()).email === "synthetic@example.invalid");
   const invalid = { ...validPayload(), email: "not-an-email" };
   assertThrows(() => validatePayload(invalid), "valid email");
+});
+
+Deno.test("enables document uploads only for the exact true environment value", () => {
+  assert(documentUploadsEnabled("true"));
+  assert(!documentUploadsEnabled(undefined));
+  assert(!documentUploadsEnabled("false"));
+  assert(!documentUploadsEnabled("TRUE"));
+  assert(!documentUploadsEnabled(" true "));
+});
+
+Deno.test("accepts attachment-free submissions and rejects direct files while uploads are disabled", () => {
+  const withoutFiles = new FormData();
+  withoutFiles.set("formType", "intake");
+  enforceDocumentUploadSetting(withoutFiles, false);
+
+  const withFile = new FormData();
+  withFile.set("formType", "intake");
+  withFile.set("unexpectedFile", new File(["synthetic"], "synthetic.pdf", { type: "application/pdf" }));
+  assertThrows(() => enforceDocumentUploadSetting(withFile, false), "not currently available");
+  enforceDocumentUploadSetting(withFile, true);
+});
+
+Deno.test("preserves existing document validation when uploads are enabled", async () => {
+  const formData = new FormData();
+  formData.set(
+    "ndisPlanDocument",
+    new File([new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x37])], "synthetic.pdf", { type: "application/pdf" })
+  );
+  enforceDocumentUploadSetting(formData, true);
+  const files = await validateFiles(formData, "ndis");
+  assert(files.length === 1 && files[0].extension === "pdf");
 });
 
 Deno.test("names self-referral documents from the existing contact name", () => {

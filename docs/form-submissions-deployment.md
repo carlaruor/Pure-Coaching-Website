@@ -1,12 +1,13 @@
 # Secure form submission deployment
 
-The implementation is intentionally **inactive** in the public website configuration. The reviewed production Function URL is committed, but `enabled` remains `false` and the public Turnstile site key remains a non-functional placeholder. Review the Edge Function, SQL migration, data-handling process and retention policy before enabling it.
+The implementation is intentionally **inactive** in the public website configuration. The reviewed production Function URL and public Turnstile site key are configured, but `enabled` remains `false` and `documentUploadsEnabled` remains `false`. Review the Edge Function, SQL migration, data-handling process and retention policy before enabling it.
 
 `supabase/config.toml` deliberately contains only a non-secret local project identifier. Select the remote project explicitly through `supabase link --project-ref ...` or by opening the intended project in the Dashboard; never infer the deployment target from the repository name.
 
 ## Architecture
 
 - `get-started.js` sends one multipart request to `submit-form` only when `form-submission-config.js` is explicitly enabled.
+- Document fields are controlled independently by `documentUploadsEnabled`. The Edge Function separately defaults uploads to disabled unless `DOCUMENT_UPLOADS_ENABLED` is exactly `true`.
 - The browser receives no Supabase key and no Resend key.
 - The Edge Function verifies the request origin, Cloudflare Turnstile, field rules, attachment rules and database-backed rate limits.
 - Valid records are stored in `form_submissions`; files retain private submission/category folders and use sanitised participant names, a Queensland timestamp, document type and server-generated unique identifier.
@@ -31,7 +32,7 @@ The implementation is intentionally **inactive** in the public website configura
 
 Do not set `enabled: true` until all of these are complete:
 
-1. Copy the existing public Turnstile site key from the reviewed Cloudflare widget into `form-submission-config.js`. The key is not present in this repository; do not use a Turnstile test key in production.
+1. Confirm the configured public Turnstile site key matches the reviewed Cloudflare widget. Do not replace it with a test key in production.
 2. Configure that widget for the exact hostname `carlaruor.github.io` and keep its secret only in the Edge Function secret store.
 3. Confirm `ALLOWED_ORIGINS` includes the exact origin `https://carlaruor.github.io`. Origins never include `/Pure-Coaching-Website/`.
 4. Obtain business and appropriate legal/privacy approval for `privacy-policy.html`, then publish it. The page is visibly marked as a draft and the public intake must remain disabled until the draft notice and its operational commitments have been approved.
@@ -87,7 +88,8 @@ supabase secrets set \
   RESEND_API_KEY=YOUR_RESEND_API_KEY \
   TURNSTILE_SECRET_KEY=YOUR_TURNSTILE_SECRET \
   RATE_LIMIT_SALT=AT_LEAST_32_RANDOM_CHARACTERS \
-  ALLOWED_ORIGINS=https://carlaruor.github.io
+  ALLOWED_ORIGINS=https://carlaruor.github.io \
+  DOCUMENT_UPLOADS_ENABLED=false
 ```
 
 `SUPABASE_URL` and `SUPABASE_SECRET_KEYS` are supplied to deployed Edge Functions by Supabase and do not need to be added manually. The Function reads the `default` server secret from that injected JSON map. Neither value may ever be copied into frontend JavaScript. The reviewed sender and recipient are fixed in server code as `Pure Coaching Website <notifications@pure-coaching.com.au>` and `info@pure-coaching.com.au`. Add both the custom domain and GitHub Pages origin to `ALLOWED_ORIGINS` only if both genuinely serve the form; separate multiple origins with commas and do not use `*`.
@@ -109,6 +111,9 @@ Test at minimum:
 - duplicate submission IDs;
 - IP/email rate limits;
 - database failure, upload failure and Resend failure cleanup/status;
+- attachment-free submissions while document uploads are disabled;
+- direct multipart file rejection while document uploads are disabled;
+- restored document validation and private upload behaviour when both upload controls are enabled;
 - one staff email only and no applicant email;
 - no document content, filename or link in the email;
 - keyboard/screen-reader form behaviour.
@@ -199,12 +204,12 @@ The function is intentionally unauthenticated at the Supabase gateway because th
 
 Use the Supabase Dashboard Edge Function editor only after explicit deployment approval:
 
-1. Open the correct project and confirm the four custom secrets are present by **name only**. Do not reveal or copy their values.
+1. Open the correct project and confirm the five custom secrets are present by **name only**, including `DOCUMENT_UPLOADS_ENABLED`. Do not reveal or copy their values.
 2. Choose **Edge Functions → Deploy a new function → Via Editor** and name it exactly `submit-form`.
 3. Replace the generated source with the **entire contents** of `supabase/functions/submit-form/index.ts` from this branch. Paste it as plain TypeScript with no Markdown fences, wrappers or test files. The final line must remain `export default { fetch: handleRequest };`; this is the current Dashboard-compatible module entrypoint.
 4. Use the editor's built-in type check and stop if it reports any error.
 5. Deploy the function, then open its detail/settings page and turn **JWT verification off**. The browser form is unauthenticated; the Function performs origin, Turnstile, rate-limit and validation checks itself.
-6. Keep `form-submission-config.js` unchanged with `enabled: false`, the reviewed production endpoint and `YOUR_PUBLIC_TURNSTILE_SITE_KEY` as the non-functional Turnstile placeholder.
+6. Keep `form-submission-config.js` unchanged with `enabled: false`, `documentUploadsEnabled: false`, the reviewed production endpoint and the existing public Turnstile site key.
 7. Run rejection tests first: disallowed origin, missing Turnstile token, malformed payload and direct anonymous Storage access must all fail.
 8. For the one successful end-to-end test, use a private, temporary test harness on an allowed test origin with a valid Turnstile widget and synthetic names, contact details and documents only. Do not commit that harness or its public test configuration.
 9. Confirm one database row, only private Storage references, the rate-limit counters, and exactly one notification to Pure Coaching. Delete the synthetic submission and documents using an authorised administrative process after recording the test result.
@@ -220,12 +225,22 @@ After deployment, policy/retention/file-handling approval and security testing, 
 ```js
 window.PURE_FORM_SUBMISSION_CONFIG = Object.freeze({
   enabled: true,
+  documentUploadsEnabled: false,
   endpoint: 'https://ovsedudlfslldvhmswjy.supabase.co/functions/v1/submit-form',
-  turnstileSiteKey: 'YOUR_PUBLIC_TURNSTILE_SITE_KEY'
+  turnstileSiteKey: 'YOUR_EXISTING_PUBLIC_TURNSTILE_SITE_KEY'
 });
 ```
 
 Deploy the static site and perform a final synthetic submission. Confirm the database record, private object paths, exactly one Resend notification and no applicant email.
+
+### Re-enable document uploads after security approval
+
+Document uploads remain disabled independently of general form submissions. Reactivation requires both controls:
+
+1. Set `documentUploadsEnabled: true` in `form-submission-config.js` and publish the website.
+2. Set the Supabase Edge Function secret `DOCUMENT_UPLOADS_ENABLED=true`.
+
+No Edge Function source change or redeployment is required, provided the deployed Function includes the environment-based control from this branch. The Function reads the current environment value for every request. If either control remains disabled, the browser omits document fields or the server safely rejects direct file uploads. Do not enable either control until the approved quarantine, malware-scanning, staff-access and retention procedures are operational.
 
 ### GitHub Pages repository path
 

@@ -9,6 +9,7 @@
     >
     <title>About Pure Coaching | NDIS Support Cairns</title>
     <link rel="stylesheet" href="style.css">
+    <script src="form-submission-config.js" defer></script>
     <script src="script.js" defer></script>
   </head>
   <body class="page-about">
@@ -245,10 +246,10 @@
                 <label for="interest-reason">Why are you interested in working with Pure Coaching?</label>
                 <textarea id="interest-reason" name="interestReason" rows="5"></textarea>
               </div>
-              <div class="field field--full field--file">
+              <div class="field field--full field--file" data-document-upload-section hidden>
                 <label for="interest-resume">Resume <span>(optional)</span></label>
                 <p class="field-help" id="interest-resume-help">PDF or Word document. File storage will be connected before launch.</p>
-                <input id="interest-resume" name="resume" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-describedby="interest-resume-help">
+                <input id="interest-resume" name="resume" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-describedby="interest-resume-help" disabled>
               </div>
               <div class="interest-form__actions">
                 <button class="button button--primary" type="submit">Send Expression of Interest →</button>

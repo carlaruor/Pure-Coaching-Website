@@ -490,6 +490,19 @@ function initAccordion(accordion) {
 function initInterestForm(form) {
   const status = form.querySelector('[data-interest-status]');
   const confirmation = form.parentElement.querySelector('[data-interest-confirmation]');
+  const documentUploadsEnabled = window.PURE_FORM_SUBMISSION_CONFIG?.documentUploadsEnabled === true;
+
+  form.querySelectorAll('[data-document-upload-section]').forEach((section) => {
+    section.hidden = !documentUploadsEnabled;
+    section.querySelectorAll('input[type="file"]').forEach((control) => {
+      control.disabled = !documentUploadsEnabled;
+      if (!documentUploadsEnabled) {
+        control.required = false;
+        control.value = '';
+        control.removeAttribute('aria-invalid');
+      }
+    });
+  });
 
   form.querySelectorAll('[data-interest-error]').forEach((error) => {
     const control = form.elements.namedItem(error.dataset.interestError);

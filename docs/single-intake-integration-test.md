@@ -12,14 +12,15 @@ The public form remains disabled by default. The committed preview gate works on
    export default { fetch: handleRequest };
    ```
 
-2. Confirm JWT verification is disabled for `submit-form` and the secrets `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`, `RATE_LIMIT_SALT` and `ALLOWED_ORIGINS` exist by name. Never reveal their values.
+2. Confirm JWT verification is disabled for `submit-form` and the secrets `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`, `RATE_LIMIT_SALT`, `ALLOWED_ORIGINS` and `DOCUMENT_UPLOADS_ENABLED` exist by name. Never reveal their values.
 3. Confirm both migrations have been applied, including `20261117010000_harden_form_submission_delivery.sql`.
 4. In the SQL editor, confirm `form_submissions` has `email_attempt_count`, `email_last_attempt_at`, `email_provider_id` and `email_retryable`.
 5. Confirm `referral-documents` is private and the browser roles cannot read, list, upload, update or delete its objects directly.
-6. Add `http://localhost:8765` to the existing `ALLOWED_ORIGINS` value without removing the production origin.
-7. In the existing production Turnstile widget, temporarily allow the hostname `localhost`. Use the real public site key already paired with the configured `TURNSTILE_SECRET_KEY`.
-8. In Resend, confirm `pure-coaching.com.au` remains verified and there is no existing message for marker `SYNTHETIC-E2E-20261119-01`.
-9. In Supabase, confirm there is no existing row with that marker:
+6. For this controlled attachment test only, set `DOCUMENT_UPLOADS_ENABLED=true`. Keep the public website configuration disabled.
+7. Add `http://localhost:8765` to the existing `ALLOWED_ORIGINS` value without removing the production origin.
+8. In the existing production Turnstile widget, temporarily allow the hostname `localhost`. Use the real public site key already paired with the configured `TURNSTILE_SECRET_KEY`.
+9. In Resend, confirm `pure-coaching.com.au` remains verified and there is no existing message for marker `SYNTHETIC-E2E-20261119-01`.
+10. In Supabase, confirm there is no existing row with that marker:
 
    ```sql
    select count(*)
@@ -55,7 +56,8 @@ Open `http://localhost:8765/` and, in that tab's browser console, set only the p
 ```js
 sessionStorage.setItem('pure-form-submission-preview', JSON.stringify({
   endpoint: 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/submit-form',
-  turnstileSiteKey: 'YOUR_PUBLIC_TURNSTILE_SITE_KEY'
+  turnstileSiteKey: 'YOUR_PUBLIC_TURNSTILE_SITE_KEY',
+  documentUploadsEnabled: true
 }));
 
 location.assign('/get-started.html?support=ndis&intent=enrolment&form-preview=1');
@@ -69,7 +71,7 @@ After navigation, verify in the console:
 window.PURE_FORM_SUBMISSION_CONFIG
 ```
 
-It must show `enabled: true`, `preview: true`, the expected Function URL and the public Turnstile site key. If not, stop.
+It must show `enabled: true`, `preview: true`, `documentUploadsEnabled: true`, the expected Function URL and the public Turnstile site key. If not, stop.
 
 ## 4. Submit exactly once
 
@@ -165,13 +167,14 @@ Do not send, resend or retry the notification from Resend.
 2. Remove the synthetic Storage object through an authorised Dashboard workflow.
 3. Delete the synthetic database row only after confirming the object was removed.
 4. Remove `http://localhost:8765` from `ALLOWED_ORIGINS`, preserving the production origin.
-5. Remove `localhost` from the Turnstile widget if it is not otherwise required.
-6. Clear the browser preview configuration:
+5. Reset `DOCUMENT_UPLOADS_ENABLED=false`.
+6. Remove `localhost` from the Turnstile widget if it is not otherwise required.
+7. Clear the browser preview configuration:
 
    ```js
    sessionStorage.removeItem('pure-form-submission-preview');
    ```
 
-7. Stop the local HTTP server.
+8. Stop the local HTTP server.
 
 The Resend event may remain in provider audit history. It is synthetic and must not be resent.

@@ -16,6 +16,7 @@ function initIntakeForm() {
   const context = document.querySelector('[data-form-context]');
   const finalStep = steps.length;
   const submissionConfig = window.PURE_FORM_SUBMISSION_CONFIG || {};
+  const documentUploadsEnabled = submissionConfig.documentUploadsEnabled === true;
   const state = {
     step: 1,
     support: '',
@@ -233,7 +234,7 @@ function initIntakeForm() {
     setConditionalFields(form.querySelector('[data-ndis-plan-details]'), hasPlan);
     setConditionalFields(form.querySelector('[data-coordinator-question]'), coordination);
     setConditionalFields(form.querySelector('[data-coordinator-change]'), coordination && selected('supportCoordinator')?.value === 'Yes');
-    documentSection.hidden = support !== 'ndis';
+    documentSection.hidden = !documentUploadsEnabled || support !== 'ndis';
     const disabilityFields = form.querySelector('[data-ndis-disabilities]');
     const showDisabilityFields = support === 'ndis' || support === 'private';
     disabilityFields.hidden = !showDisabilityFields;
@@ -373,7 +374,7 @@ function initIntakeForm() {
         ['Looking to change Support Coordinators', coordination && selected('supportCoordinator')?.value === 'Yes' ? selected('changeCoordinator')?.value : '']
       ]);
     }
-    if (state.support === 'ndis' && Object.values(documents).some((files) => files.length)) {
+    if (documentUploadsEnabled && state.support === 'ndis' && Object.values(documents).some((files) => files.length)) {
       addReviewGroup('Supporting documents', 4, Object.entries(documents).flatMap(([name, files]) =>
         files.map((file) => [documentConfig.fields[name].label, file.name])));
     }
@@ -526,8 +527,10 @@ function initIntakeForm() {
     request.append('formType', 'intake');
     request.append('payload', JSON.stringify(buildSubmissionPayload()));
     request.append('turnstileToken', state.turnstileToken);
-    documents.ndisPlanDocument.forEach((file) => request.append('ndisPlanDocument', file, file.name));
-    documents.supportingReports.forEach((file) => request.append('supportingReports', file, file.name));
+    if (documentUploadsEnabled) {
+      documents.ndisPlanDocument.forEach((file) => request.append('ndisPlanDocument', file, file.name));
+      documents.supportingReports.forEach((file) => request.append('supportingReports', file, file.name));
+    }
 
     state.submitting = true;
     submitButton.disabled = true;

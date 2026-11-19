@@ -98,6 +98,22 @@ function allowedOrigins(): Set<string> {
   return new Set(requiredEnv("ALLOWED_ORIGINS").split(",").map((origin) => origin.trim()).filter(Boolean));
 }
 
+export function documentUploadsEnabled(value: string | undefined = Deno.env.get("DOCUMENT_UPLOADS_ENABLED")): boolean {
+  return value === "true";
+}
+
+export function enforceDocumentUploadSetting(formData: FormData, enabled: boolean): void {
+  if (enabled) return;
+  const containsFile = Array.from(formData.values()).some((value) => value instanceof File);
+  if (containsFile) {
+    throw new RequestError(
+      400,
+      "DOCUMENT_UPLOADS_DISABLED",
+      "Document uploads are not currently available. Please submit your enquiry without attachments."
+    );
+  }
+}
+
 function corsHeaders(origin: string): HeadersInit {
   return {
     "Access-Control-Allow-Origin": origin,
@@ -570,13 +586,15 @@ export async function handleRequest(request: Request): Promise<Response> {
     });
     const formData = await request.formData();
     if (formData.get("formType") !== FORM_TYPE) throw new RequestError(400, "INVALID_FORM_TYPE", "This form type is not supported.");
+    const uploadsEnabled = documentUploadsEnabled();
+    enforceDocumentUploadSetting(formData, uploadsEnabled);
 
     const payloadText = formData.get("payload");
     if (typeof payloadText !== "string" || payloadText.length > 20000) throw new RequestError(400, "INVALID_PAYLOAD", "The submitted form data is invalid.");
     let parsed: unknown;
     try { parsed = JSON.parse(payloadText); } catch { throw new RequestError(400, "INVALID_PAYLOAD", "The submitted form data is invalid."); }
     const data = validatePayload(parsed);
-    const files = await validateFiles(formData, data.support);
+    const files = uploadsEnabled ? await validateFiles(formData, data.support) : [];
     await verifyTurnstile(String(formData.get("turnstileToken") || ""), request, origin);
 
     // Supabase's hosted gateway supplies cf-connecting-ip. Never use a
