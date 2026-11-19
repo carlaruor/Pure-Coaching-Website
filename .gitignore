@@ -1,0 +1,17 @@
+# Local environment and secret files
+.env
+.env.*
+!.env.example
+!supabase/functions/.env.example
+
+# Supabase local state
+.supabase/
+supabase/.temp/
+
+# Local test uploads and submission exports
+test-documents/
+form-submissions/
+
+# Common local tooling files
+.DS_Store
+node_modules/

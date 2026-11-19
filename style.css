@@ -8940,3 +8940,153 @@ body.has-modal-open {
 .ndis-access--compact .section-title { margin-top: 8px; font-size: clamp(1.65rem, 3vw, 2.1rem); }
 .ndis-access--compact .section-description { margin: 10px auto 0; max-width: 600px; }
 .ndis-access--compact .button { margin-top: 16px; }
+/* Public form abuse-prevention field: intentionally unavailable to people. */
+.form-honeypot {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
+
+.form-turnstile {
+  margin-top: 1.25rem;
+  min-height: 65px;
+}
+
+/* Privacy policy */
+.privacy-policy-hero {
+  padding-block: clamp(64px, 8vw, 108px) clamp(48px, 6vw, 76px);
+  background: var(--color-white);
+}
+
+.privacy-policy-hero__inner,
+.privacy-policy-content__inner {
+  max-width: 940px;
+}
+
+.privacy-policy-hero h1 {
+  margin-top: 12px;
+  color: var(--color-navy);
+  font-size: clamp(2.8rem, 7vw, 5rem);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.privacy-policy-hero__inner > p:not(.section-eyebrow):not(.privacy-policy-hero__updated) {
+  max-width: 720px;
+  margin-top: 24px;
+  color: var(--color-text);
+  font-size: clamp(1.05rem, 2vw, 1.22rem);
+  line-height: 1.7;
+}
+
+.privacy-policy-hero__updated {
+  margin-top: 20px;
+  color: var(--color-muted);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.privacy-policy-content {
+  padding-block: clamp(52px, 7vw, 88px);
+  background: var(--color-blue-tint);
+}
+
+.privacy-policy__approval {
+  padding: clamp(24px, 4vw, 34px);
+  border-left: 4px solid var(--color-orange);
+  border-radius: var(--radius-small);
+  background: var(--color-white);
+}
+
+.privacy-policy__approval h2 {
+  color: var(--color-navy);
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+}
+
+.privacy-policy__approval p {
+  margin-top: 10px;
+  color: var(--color-text);
+  line-height: 1.7;
+}
+
+.privacy-policy__body {
+  margin-top: clamp(36px, 6vw, 60px);
+  border-radius: var(--radius-large);
+  background: var(--color-white);
+  padding-inline: clamp(24px, 6vw, 68px);
+}
+
+.privacy-policy__body section {
+  padding-block: clamp(34px, 5vw, 52px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.privacy-policy__body section:last-child {
+  border-bottom: 0;
+}
+
+.privacy-policy__body h2 {
+  color: var(--color-navy);
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  line-height: 1.2;
+}
+
+.privacy-policy__body p,
+.privacy-policy__body li {
+  color: var(--color-text);
+  line-height: 1.75;
+}
+
+.privacy-policy__body p,
+.privacy-policy__body ul,
+.privacy-policy__body address {
+  margin-top: 16px;
+}
+
+.privacy-policy__body ul {
+  padding-left: 1.25rem;
+}
+
+.privacy-policy__body li + li {
+  margin-top: 8px;
+}
+
+.privacy-policy__body address {
+  font-style: normal;
+}
+
+.privacy-policy__body address p {
+  margin-top: 6px;
+}
+
+.privacy-policy__body a {
+  color: var(--color-navy);
+  font-weight: 750;
+  text-decoration: underline;
+  text-decoration-color: var(--color-orange);
+  text-underline-offset: 3px;
+}
+
+.privacy-policy__approval-item {
+  padding: 16px 18px;
+  border-left: 3px solid var(--color-orange);
+  border-radius: 0 var(--radius-small) var(--radius-small) 0;
+  background: color-mix(in srgb, var(--color-orange) 9%, var(--color-white));
+}
+
+@media (max-width: 639px) {
+  .privacy-policy-hero {
+    padding-block: 48px 40px;
+  }
+
+  .privacy-policy-content {
+    padding-block: 36px;
+  }
+
+  .privacy-policy__body {
+    padding-inline: 20px;
+    border-radius: var(--radius-small);
+  }
+}
