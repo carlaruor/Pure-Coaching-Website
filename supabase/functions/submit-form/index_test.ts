@@ -1,6 +1,7 @@
 import {
   cleanupIncompleteSubmission,
   parseSupabaseSecretKeys,
+  storedDocumentFilename,
   type StoredAttachment,
   trustedClientIp,
   validateDocxArchive,
@@ -105,6 +106,44 @@ Deno.test("validates all fields before an idempotency claim", () => {
   assert(validatePayload(validPayload()).email === "synthetic@example.invalid");
   const invalid = { ...validPayload(), email: "not-an-email" };
   assertThrows(() => validatePayload(invalid), "valid email");
+});
+
+Deno.test("names self-referral documents from the existing contact name", () => {
+  const data = validatePayload(validPayload());
+  const filename = storedDocumentFilename(
+    data,
+    "ndisPlanDocument",
+    "pdf",
+    new Date("2026-11-19T01:50:00.000Z"),
+    "89a7d938"
+  );
+  assert(filename === "Synthetic_Test_2026-11-19_1150_NDIS_Plan_89a7d938.pdf", filename);
+  const legacyDoc = storedDocumentFilename(data, "supportingReports", "doc", new Date("2026-11-19T01:50:00.000Z"), "27bc61ef");
+  assert(legacyDoc === "Synthetic_Test_2026-11-19_1150_Supporting_Document_27bc61ef.doc", legacyDoc);
+});
+
+Deno.test("names third-party documents from participant fields and rejects missing participant names", () => {
+  const data = validatePayload({
+    ...validPayload(),
+    contactFor: "Someone else",
+    firstName: "Contact",
+    lastName: "Person",
+    role: "Support Coordinator",
+    personFirstName: "Emma/../",
+    personLastName: "Smíth"
+  });
+  const date = new Date("2026-11-19T01:50:00.000Z");
+  const first = storedDocumentFilename(data, "supportingReports", "docx", date, "89a7d938");
+  const second = storedDocumentFilename(data, "supportingReports", "docx", date, "27bc61ef");
+  assert(first === "Emma_Smith_2026-11-19_1150_Supporting_Document_89a7d938.docx", first);
+  assert(!first.includes("Contact_Person"), "The referrer's name must not be used for a participant document");
+  assert(!first.includes("..") && !first.includes("/"), "The stored filename contains an unsafe path component");
+  assert(second !== first, "Server-generated identifiers must prevent filename collisions");
+  assertThrows(() => validatePayload({
+    ...validPayload(),
+    contactFor: "Someone else",
+    role: "Support Coordinator"
+  }), "personFirstName");
 });
 
 Deno.test("accepts a structurally valid DOCX and rejects misleading ZIP files", async () => {

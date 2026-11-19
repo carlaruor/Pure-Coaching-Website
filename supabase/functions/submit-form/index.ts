@@ -223,6 +223,62 @@ function extensionFor(file: File): keyof typeof fileTypes {
   return extension as keyof typeof fileTypes;
 }
 
+function safeFilenameComponent(value: unknown, fallback: string): string {
+  const component = String(value ?? "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Za-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 60);
+  return component || fallback;
+}
+
+function brisbaneDateTime(date: Date): { date: string; time: string } {
+  const parts = new Intl.DateTimeFormat("en-AU", {
+    timeZone: "Australia/Brisbane",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23"
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((entry) => entry.type === type)?.value || "";
+  return { date: `${part("year")}-${part("month")}-${part("day")}`, time: `${part("hour")}${part("minute")}` };
+}
+
+function participantName(data: JsonRecord): { firstName: string; lastName: string } {
+  if (data.contactFor === "Myself") {
+    const firstName = String(data.firstName || "").trim();
+    const lastName = String(data.lastName || "").trim();
+    if (!firstName || !lastName) throw new RequestError(400, "MISSING_FIELD", "The participant's first and last name are required.");
+    return { firstName, lastName };
+  }
+  if (data.contactFor === "Someone else") {
+    const firstName = String(data.personFirstName || "").trim();
+    const lastName = String(data.personLastName || "").trim();
+    if (!firstName || !lastName) throw new RequestError(400, "MISSING_FIELD", "The participant's first and last name are required.");
+    return { firstName, lastName };
+  }
+  throw new RequestError(400, "INVALID_FIELD", "The contactFor field is invalid.");
+}
+
+export function storedDocumentFilename(
+  data: JsonRecord,
+  category: StoredAttachment["category"],
+  extension: keyof typeof fileTypes,
+  date = new Date(),
+  uniqueId: string = crypto.randomUUID().replaceAll("-", "")
+): string {
+  const participant = participantName(data);
+  const firstName = safeFilenameComponent(participant.firstName, "Participant");
+  const lastName = safeFilenameComponent(participant.lastName, "Unknown");
+  const documentType = category === "ndisPlanDocument" ? "NDIS_Plan" : "Supporting_Document";
+  const timestamp = brisbaneDateTime(date);
+  const identifier = safeFilenameComponent(uniqueId, crypto.randomUUID().replaceAll("-", ""));
+  return `${firstName}_${lastName}_${timestamp.date}_${timestamp.time}_${documentType}_${identifier}.${extension}`;
+}
+
 function uint32(view: DataView, offset: number): number {
   return view.getUint32(offset, true);
 }
@@ -563,7 +619,8 @@ export async function handleRequest(request: Request): Promise<Response> {
     submissionId = storedSubmissionId;
 
     plannedAttachments = files.map((entry) => {
-      const path = `${storedSubmissionId}/${entry.category}/${crypto.randomUUID()}.${entry.extension}`;
+      const filename = storedDocumentFilename(data, entry.category, entry.extension);
+      const path = `${storedSubmissionId}/${entry.category}/${filename}`;
       return { category: entry.category, bucket: BUCKET, path, contentType: fileTypes[entry.extension], size: entry.file.size, state: "pending" as const };
     });
     await updateOne(supabase, storedSubmissionId, { attachments: plannedAttachments });

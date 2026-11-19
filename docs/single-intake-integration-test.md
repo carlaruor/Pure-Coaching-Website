@@ -133,7 +133,8 @@ Verify all of the following:
 - exactly one row exists and `form_type = 'intake'`;
 - `client_submission_id` is present;
 - `attachments` contains exactly one item;
-- that item has bucket `referral-documents`, state `stored`, an unpredictable path, PDF content type and no original filename or public URL;
+- that item has bucket `referral-documents`, state `stored`, PDF content type and no original filename or public URL;
+- its private path retains the submission UUID/category folders and ends with a server-generated Queensland-time filename matching `Synthetic_Integration_Test_YYYY-MM-DD_HHmm_NDIS_Plan_<unique-id>.pdf`;
 - `email_status = 'sent'`;
 - `email_attempt_count = 1`;
 - `email_sent_at` and `email_provider_id` are populated;
