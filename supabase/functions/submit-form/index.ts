@@ -26,11 +26,7 @@ const allowedValues = {
   contactTime: ["", "Morning", "Afternoon", "Either", "Other"]
 } as const;
 
-const allowedRelationships = [
-  "Self",
-  "Parent",
-  "Guardian",
-  "Family member",
+const allowedRoles = [
   "Participant / person seeking support",
   "Parent or family member",
   "Carer",
@@ -155,15 +151,6 @@ function validateAustralianPhone(value: string): boolean {
   return /^(?:04\d{8}|0[2378]\d{8}|\+614\d{8}|\+61[2378]\d{8})$/.test(normalised);
 }
 
-function matchingField(source: JsonRecord, primary: string, legacy: string, maxLength: number): string {
-  const primaryValue = textField(source, primary, maxLength);
-  const legacyValue = textField(source, legacy, maxLength);
-  if (primaryValue && legacyValue && primaryValue !== legacyValue) {
-    throw new RequestError(400, "INVALID_FIELD", `The ${primary} field is inconsistent.`);
-  }
-  return primaryValue || legacyValue;
-}
-
 export function validatePayload(input: unknown): JsonRecord {
   const source = asObject(input);
   const clientSubmissionId = textField(source, "clientSubmissionId", 80, true);
@@ -178,23 +165,10 @@ export function validatePayload(input: unknown): JsonRecord {
   const lastName = textField(source, "lastName", 100, true);
   const email = textField(source, "email", 254, true).toLowerCase();
   const phone = textField(source, "phone", 30, true);
-  const submittedRelationship = matchingField(source, "relationshipToParticipant", "role", 100);
-  const relationshipToParticipant = contactFor === "Myself" ? "Self" : submittedRelationship;
-  if (contactFor === "Someone else" && !relationshipToParticipant) {
-    throw new RequestError(400, "MISSING_FIELD", "The relationshipToParticipant field is required.");
-  }
-  const submittedRelationshipOther = matchingField(source, "relationshipOther", "roleOther", 150);
-  if (relationshipToParticipant === "Other" && !submittedRelationshipOther) {
-    throw new RequestError(400, "MISSING_FIELD", "The relationshipOther field is required.");
-  }
-  const relationshipOther = relationshipToParticipant === "Other" ? submittedRelationshipOther : "";
-  const submittedParticipantFirstName = matchingField(source, "participantFirstName", "personFirstName", 100);
-  const submittedParticipantLastName = matchingField(source, "participantLastName", "personLastName", 100);
-  const participantFirstName = contactFor === "Myself" ? firstName : submittedParticipantFirstName;
-  const participantLastName = contactFor === "Myself" ? lastName : submittedParticipantLastName;
-  if (!participantFirstName || !participantLastName) {
-    throw new RequestError(400, "MISSING_FIELD", "The participant's first and last name are required.");
-  }
+  const role = textField(source, "role", 100, contactFor === "Someone else");
+  const roleOther = textField(source, "roleOther", 150, role === "Other");
+  const personFirstName = textField(source, "personFirstName", 100, contactFor === "Someone else");
+  const personLastName = textField(source, "personLastName", 100, contactFor === "Someone else");
   const ageRange = enumField(source, "ageRange", true);
   const message = textField(source, "message", 5000, true);
   const preferredContact = enumField(source, "preferredContact", true);
@@ -205,9 +179,7 @@ export function validatePayload(input: unknown): JsonRecord {
   if (website) throw new RequestError(400, "SPAM_REJECTED", "The submission could not be accepted.");
   if (!validateEmail(email)) throw new RequestError(400, "INVALID_EMAIL", "Please provide a valid email address.");
   if (!validateAustralianPhone(phone)) throw new RequestError(400, "INVALID_PHONE", "Please provide a valid Australian phone number.");
-  if (!allowedRelationships.includes(relationshipToParticipant)) {
-    throw new RequestError(400, "INVALID_FIELD", "The relationshipToParticipant field is invalid.");
-  }
+  if (role && !allowedRoles.includes(role)) throw new RequestError(400, "INVALID_FIELD", "The role field is invalid.");
   if (source.consent !== true) throw new RequestError(400, "CONSENT_REQUIRED", "Consent is required.");
 
   const coordination = support === "ndis" && intent === "support-coordination";
@@ -221,28 +193,19 @@ export function validatePayload(input: unknown): JsonRecord {
     clientSubmissionId,
     intent,
     contactFor,
-    // Preserve legacy keys for existing reporting while storing explicit names.
-    role: contactFor === "Someone else" ? relationshipToParticipant : "",
-    roleOther: relationshipOther,
-    relationshipToParticipant,
-    relationshipOther,
+    role,
+    roleOther,
     firstName,
     lastName,
     email,
     phone,
-    participantFirstName,
-    participantLastName,
-    referrerFirstName: contactFor === "Someone else" ? firstName : "",
-    referrerLastName: contactFor === "Someone else" ? lastName : "",
-    referrerEmail: contactFor === "Someone else" ? email : "",
-    referrerPhone: contactFor === "Someone else" ? phone : "",
     support,
     ndisPlan,
     fundingManagement,
     supportCoordinator,
     changeCoordinator,
-    personFirstName: contactFor === "Someone else" ? participantFirstName : "",
-    personLastName: contactFor === "Someone else" ? participantLastName : "",
+    personFirstName,
+    personLastName,
     primaryDisability: ["ndis", "private"].includes(support) ? textField(source, "primaryDisability", 250) : "",
     secondaryDisabilities: ["ndis", "private"].includes(support) ? textField(source, "secondaryDisabilities", 1000) : "",
     ageRange,
@@ -258,45 +221,6 @@ function extensionFor(file: File): keyof typeof fileTypes {
   const extension = file.name.split(".").pop()?.toLowerCase() || "";
   if (!(extension in fileTypes)) throw new RequestError(400, "INVALID_FILE_TYPE", "Documents must be PDF, DOC or DOCX files.");
   return extension as keyof typeof fileTypes;
-}
-
-function safeFilenameComponent(value: unknown, fallback: string): string {
-  const component = String(value ?? "")
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^A-Za-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "")
-    .slice(0, 60);
-  return component || fallback;
-}
-
-function brisbaneDateTime(date: Date): { date: string; time: string } {
-  const parts = new Intl.DateTimeFormat("en-AU", {
-    timeZone: "Australia/Brisbane",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23"
-  }).formatToParts(date);
-  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((entry) => entry.type === type)?.value || "";
-  return { date: `${part("year")}-${part("month")}-${part("day")}`, time: `${part("hour")}${part("minute")}` };
-}
-
-export function storedDocumentFilename(
-  data: JsonRecord,
-  category: StoredAttachment["category"],
-  extension: keyof typeof fileTypes,
-  date = new Date(),
-  uniqueId: string = crypto.randomUUID().replaceAll("-", "")
-): string {
-  const participantFirstName = safeFilenameComponent(data.participantFirstName, "Participant");
-  const participantLastName = safeFilenameComponent(data.participantLastName, "Unknown");
-  const documentType = category === "ndisPlanDocument" ? "NDIS_Plan" : "Supporting_Document";
-  const timestamp = brisbaneDateTime(date);
-  const identifier = safeFilenameComponent(uniqueId, crypto.randomUUID().replaceAll("-", ""));
-  return `${participantFirstName}_${participantLastName}_${timestamp.date}_${timestamp.time}_${documentType}_${identifier}.${extension}`;
 }
 
 function uint32(view: DataView, offset: number): number {
@@ -471,12 +395,8 @@ function escapeHtml(value: unknown): string {
 
 function labelFor(key: string): string {
   const labels: Record<string, string> = {
-    intent: "Enquiry type", contactFor: "Contacting for", role: "Relationship", roleOther: "Relationship details",
-    relationshipToParticipant: "Relationship to participant", relationshipOther: "Relationship details",
+    intent: "Enquiry type", contactFor: "Contacting for", role: "Role", roleOther: "Role details",
     firstName: "First name", lastName: "Last name", email: "Email", phone: "Phone", support: "Support pathway",
-    participantFirstName: "Participant first name", participantLastName: "Participant last name",
-    referrerFirstName: "Referrer first name", referrerLastName: "Referrer last name",
-    referrerEmail: "Referrer email", referrerPhone: "Referrer phone",
     ndisPlan: "NDIS plan", fundingManagement: "Funding management", supportCoordinator: "Current Support Coordinator",
     changeCoordinator: "Looking to change coordinator", personFirstName: "Participant first name", personLastName: "Participant last name",
     primaryDisability: "Primary disability", secondaryDisabilities: "Secondary disabilities", ageRange: "Age range",
@@ -486,54 +406,17 @@ function labelFor(key: string): string {
   return labels[key] || key;
 }
 
-type EmailRow = { label: string; value: string };
-
-function emailTable(title: string, rows: EmailRow[]): string {
-  const rowsHtml = rows.filter(({ value }) => value).map(({ label, value }) => `<tr><th style="padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid #e7edf1;color:#1D252D;width:34%;font-size:14px">${escapeHtml(label)}</th><td style="padding:10px 12px;border-bottom:1px solid #e7edf1;color:#020A0A;font-size:14px;white-space:pre-wrap">${escapeHtml(value)}</td></tr>`).join("");
-  return `<h2 style="margin:22px 0 8px;color:#1D252D;font-size:18px">${escapeHtml(title)}</h2><table role="presentation" style="width:100%;border-collapse:collapse;background:#f8fbfd;border:1px solid #B7DCF6;border-radius:8px">${rowsHtml}</table>`;
-}
-
-export function emailContent(data: JsonRecord, attachmentCount: number, submissionId: string | number): { subject: string; html: string; text: string } {
-  const participantRows: EmailRow[] = [
-    { label: "Participant name", value: `${String(data.participantFirstName || "")} ${String(data.participantLastName || "")}`.trim() },
-    { label: "Age range", value: String(data.ageRange || "") },
-    { label: "Primary disability", value: String(data.primaryDisability || "") },
-    { label: "Secondary disabilities", value: String(data.secondaryDisabilities || "") }
-  ];
-  const isReferral = data.contactFor === "Someone else";
-  const contactRows: EmailRow[] = isReferral ? [
-    { label: "Referrer name", value: `${String(data.referrerFirstName || "")} ${String(data.referrerLastName || "")}`.trim() },
-    { label: "Relationship to participant", value: data.relationshipToParticipant === "Other" ? String(data.relationshipOther || "Other") : String(data.relationshipToParticipant || "") },
-    { label: "Referrer email", value: String(data.referrerEmail || "") },
-    { label: "Referrer phone", value: String(data.referrerPhone || "") }
-  ] : [
-    { label: "Contacting for", value: "Myself" },
-    { label: "Email", value: String(data.email || "") },
-    { label: "Phone", value: String(data.phone || "") }
-  ];
-  const grouped = new Set([
-    "clientSubmissionId", "consent", "firstName", "lastName", "email", "phone", "role", "roleOther",
-    "relationshipToParticipant", "relationshipOther", "participantFirstName", "participantLastName",
-    "referrerFirstName", "referrerLastName", "referrerEmail", "referrerPhone", "personFirstName", "personLastName",
-    "ageRange", "primaryDisability", "secondaryDisabilities"
-  ]);
-  const enquiryRows = Object.entries(data)
-    .filter(([key, value]) => !grouped.has(key) && value !== "")
-    .map(([key, value]) => ({ label: labelFor(key), value: String(value) }));
-  const sections = [
-    { title: "Participant details", rows: participantRows },
-    { title: isReferral ? "Referrer details" : "Participant contact", rows: contactRows },
-    { title: "Enquiry details", rows: enquiryRows }
-  ];
+function emailContent(data: JsonRecord, attachmentCount: number, submissionId: string | number): { subject: string; html: string; text: string } {
+  const hidden = new Set(["clientSubmissionId", "consent"]);
+  const rows = Object.entries(data).filter(([key, value]) => !hidden.has(key) && value !== "").map(([key, value]) => ({ label: labelFor(key), value: String(value) }));
+  const rowsHtml = rows.map(({ label, value }) => `<tr><th style="padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid #e7edf1;color:#1D252D;width:34%;font-size:14px">${escapeHtml(label)}</th><td style="padding:10px 12px;border-bottom:1px solid #e7edf1;color:#020A0A;font-size:14px;white-space:pre-wrap">${escapeHtml(value)}</td></tr>`).join("");
   const documentNotice = attachmentCount > 0
     ? `<div style="margin:20px 0;padding:14px 16px;border-left:4px solid #FF5900;background:#fff5ef;color:#1D252D"><strong>${attachmentCount} private document${attachmentCount === 1 ? "" : "s"} stored.</strong><br>Documents are not attached to this email. Access them only through the approved private Supabase workflow.</div>`
     : "";
   const support = escapeHtml(data.support || "website");
   const subject = `New Pure Coaching ${String(data.support || "website")} enquiry`;
-  const htmlSections = sections.map(({ title, rows }) => emailTable(title, rows)).join("");
-  const html = `<!doctype html><html><body style="margin:0;background:#f4f7f9;font-family:Arial,sans-serif;color:#020A0A"><div style="max-width:680px;margin:0 auto;padding:28px 16px"><div style="height:8px;background:#FF5900;border-radius:12px 12px 0 0"></div><div style="background:#fff;padding:28px;border-radius:0 0 12px 12px"><p style="margin:0 0 8px;color:#FF5900;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase">Pure Coaching website</p><h1 style="margin:0 0 8px;color:#1D252D;font-size:26px">New ${support} enquiry</h1><p style="margin:0 0 22px;color:#42515c">Submission reference: ${escapeHtml(submissionId)}</p>${documentNotice}${htmlSections}<p style="margin:22px 0 0;color:#5d6971;font-size:12px">This notification contains personal information. Handle it according to Pure Coaching's privacy and retention procedures.</p></div></div></body></html>`;
-  const textSections = sections.flatMap(({ title, rows }) => [title, ...rows.filter(({ value }) => value).map(({ label, value }) => `${label}: ${value}`), ""]);
-  const text = [`New Pure Coaching ${String(data.support || "website")} enquiry`, `Submission reference: ${submissionId}`, "", ...textSections, attachmentCount ? `${attachmentCount} private document(s) stored in Supabase. Documents are not attached to this email.` : ""].filter((line, index, lines) => line || lines[index - 1]).join("\n");
+  const html = `<!doctype html><html><body style="margin:0;background:#f4f7f9;font-family:Arial,sans-serif;color:#020A0A"><div style="max-width:680px;margin:0 auto;padding:28px 16px"><div style="height:8px;background:#FF5900;border-radius:12px 12px 0 0"></div><div style="background:#fff;padding:28px;border-radius:0 0 12px 12px"><p style="margin:0 0 8px;color:#FF5900;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase">Pure Coaching website</p><h1 style="margin:0 0 8px;color:#1D252D;font-size:26px">New ${support} enquiry</h1><p style="margin:0 0 22px;color:#42515c">Submission reference: ${escapeHtml(submissionId)}</p>${documentNotice}<table role="presentation" style="width:100%;border-collapse:collapse;background:#f8fbfd;border:1px solid #B7DCF6;border-radius:8px">${rowsHtml}</table><p style="margin:22px 0 0;color:#5d6971;font-size:12px">This notification contains personal information. Handle it according to Pure Coaching's privacy and retention procedures.</p></div></div></body></html>`;
+  const text = [`New Pure Coaching ${String(data.support || "website")} enquiry`, `Submission reference: ${submissionId}`, "", ...rows.map(({ label, value }) => `${label}: ${value}`), "", attachmentCount ? `${attachmentCount} private document(s) stored in Supabase. Documents are not attached to this email.` : ""].filter(Boolean).join("\n");
   return { subject, html, text };
 }
 
@@ -680,8 +563,7 @@ export async function handleRequest(request: Request): Promise<Response> {
     submissionId = storedSubmissionId;
 
     plannedAttachments = files.map((entry) => {
-      const filename = storedDocumentFilename(data, entry.category, entry.extension);
-      const path = `${storedSubmissionId}/${entry.category}/${filename}`;
+      const path = `${storedSubmissionId}/${entry.category}/${crypto.randomUUID()}.${entry.extension}`;
       return { category: entry.category, bucket: BUCKET, path, contentType: fileTypes[entry.extension], size: entry.file.size, state: "pending" as const };
     });
     await updateOne(supabase, storedSubmissionId, { attachments: plannedAttachments });

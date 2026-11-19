@@ -7,7 +7,6 @@
     <title>Getting to Know You | Pure Coaching Cairns</title>
     <link rel="stylesheet" href="style.css?v=private-purchase-flow">
     <script src="script.js" defer></script>
-    <script src="private-questionnaire.js" defer></script>
   </head>
   <body class="page-private-questionnaire">
     <header class="site-header" data-header>
@@ -31,17 +30,12 @@
           <fieldset class="private-questionnaire__group">
             <legend>Who are the sessions for?</legend>
             <div class="choice-grid choice-grid--two">
-              <label class="choice"><input type="radio" name="sessionsFor" value="Myself" required><span><strong>Myself</strong></span></label>
-              <label class="choice"><input type="radio" name="sessionsFor" value="Someone else" required><span><strong>Someone else</strong></span></label>
+              <label class="choice"><input type="radio" name="sessionsFor" value="Myself"><span><strong>Myself</strong></span></label>
+              <label class="choice"><input type="radio" name="sessionsFor" value="Someone else"><span><strong>Someone else</strong></span></label>
             </div>
           </fieldset>
 
-          <div class="form-grid" data-questionnaire-participant hidden>
-            <div class="field"><label for="questionnaireParticipantFirstName">Participant's first name</label><input id="questionnaireParticipantFirstName" name="participantFirstName" type="text" autocomplete="off" disabled></div>
-            <div class="field"><label for="questionnaireParticipantLastName">Participant's last name</label><input id="questionnaireParticipantLastName" name="participantLastName" type="text" autocomplete="off" disabled></div>
-            <div class="field field--full"><label for="questionnaireRelationship">Your relationship to the participant</label><select id="questionnaireRelationship" name="relationshipToParticipant" disabled><option value="" disabled selected>Select an option</option><option>Parent</option><option>Guardian</option><option>Support Coordinator</option><option>Family member</option><option>Carer</option><option>Other</option></select></div>
-            <div class="field field--full" data-questionnaire-relationship-other hidden><label for="questionnaireRelationshipOther">Please describe your relationship</label><input id="questionnaireRelationshipOther" name="relationshipOther" type="text" autocomplete="off" disabled></div>
-          </div>
+          <div class="field field--full"><label for="participantName">Participant's name <span>(if different from the purchaser)</span></label><input id="participantName" name="participantName" type="text" autocomplete="off"></div>
           <div class="field field--full"><label for="personalGoals">Personal goals <span>(optional)</span></label><p class="field-help">What would you like to work towards through your sessions?</p><textarea id="personalGoals" name="personalGoals" rows="4"></textarea></div>
           <div class="field field--full"><label for="interests">Interests and preferred activities <span>(optional)</span></label><p class="field-help">Tell us about activities, places or experiences you enjoy or would like to try.</p><textarea id="interests" name="interests" rows="4"></textarea></div>
           <div class="field field--full"><label for="supportPreferences">Support preferences and anything else we should know <span>(optional)</span></label><p class="field-help">Share anything that may help us make support comfortable, meaningful and suited to you.</p><textarea id="supportPreferences" name="supportPreferences" rows="5"></textarea></div>

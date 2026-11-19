@@ -198,20 +198,6 @@ The Dashboard route is suitable here because the Function has one source file an
 
 For the single controlled browser-to-database-to-Storage-to-Resend verification, follow `docs/single-intake-integration-test.md`. It keeps the committed public configuration disabled and activates the real form only in a session-scoped local preview.
 
-### Participant/referrer and private document naming update
-
-Before the next controlled test, replace the deployed `submit-form` Dashboard source with the complete tracked `supabase/functions/submit-form/index.ts` from this branch. No SQL migration is required: the existing `form_type` column and JSONB `form_data`/`attachments` columns remain compatible, and no existing rows are changed.
-
-The updated Function:
-
-- stores an explicit participant name for self-enquiries and third-party referrals;
-- stores referrer name/contact/relationship separately for third-party referrals while retaining the legacy `role`, `roleOther`, `personFirstName` and `personLastName` JSON keys for existing reporting;
-- groups participant and referrer details separately in the staff email;
-- creates private object names from the participant name, Queensland local timestamp, document category, a server-generated UUID and the validated extension;
-- preserves the existing `<submission-id>/<category>/` private folder structure and never creates public URLs.
-
-The existing migrations, private bucket policies, Function secrets and JWT-disabled Function setting are unchanged. Reconfirm them after replacing the Dashboard source. Do not activate `form-submission-config.js` globally; use the localhost preview procedure for the next synthetic test.
-
 ## 7. Activate the frontend last
 
 After deployment and security testing, edit only the public values in `form-submission-config.js`:

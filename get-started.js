@@ -355,13 +355,9 @@ function initIntakeForm() {
   function renderReview() {
     review.replaceChildren();
     const contactFor = selected('contactFor')?.value || '';
-    const participantName = contactFor === 'Someone else'
-      ? `${value('personFirstName')} ${value('personLastName')}`
-      : `${value('firstName')} ${value('lastName')}`;
     const supportLabels = { private: 'Private Support', ndis: 'NDIS Support', 'child-safety': 'Child Safety', unsure: "I'm not sure" };
-    addReviewGroup(contactFor === 'Someone else' ? 'Referrer details' : 'Your details', 1, [
-      ['Contacting for', contactFor],
-      ['Relationship to participant', contactFor === 'Myself' ? 'Self' : (value('role') === 'Other' ? value('roleOther') : value('role'))],
+    addReviewGroup('About you', 1, [
+      ['Contacting for', contactFor], ['Role', contactFor === 'Myself' ? '' : (value('role') === 'Other' ? value('roleOther') : value('role'))],
       ['Name', `${value('firstName')} ${value('lastName')}`], ['Email', value('email')], ['Phone', value('phone')]
     ]);
     const coordination = isSupportCoordination();
@@ -381,7 +377,7 @@ function initIntakeForm() {
       addReviewGroup('Supporting documents', 4, Object.entries(documents).flatMap(([name, files]) =>
         files.map((file) => [documentConfig.fields[name].label, file.name])));
     }
-    addReviewGroup('Participant details', 3, [['Participant name', participantName],
+    addReviewGroup('About the person', 3, [['Person being referred', contactFor === 'Someone else' ? `${value('personFirstName')} ${value('personLastName')}` : 'Myself'],
       ['Primary Disability', ['ndis', 'private'].includes(state.support) ? value('primaryDisability') : ''],
       ['Secondary Disability or disabilities', ['ndis', 'private'].includes(state.support) ? value('secondaryDisabilities') : ''],
       ['Age range', selected('ageRange')?.value]]);
@@ -462,26 +458,16 @@ function initIntakeForm() {
   function buildSubmissionPayload() {
     const contactFor = selected('contactFor')?.value || '';
     const coordination = isSupportCoordination();
-    const relationshipToParticipant = contactFor === 'Myself' ? 'Self' : value('role');
-    const relationshipOther = contactFor === 'Someone else' && relationshipToParticipant === 'Other' ? value('roleOther') : '';
-    const participantFirstName = contactFor === 'Myself' ? value('firstName') : value('personFirstName');
-    const participantLastName = contactFor === 'Myself' ? value('lastName') : value('personLastName');
     return {
       clientSubmissionId: state.clientSubmissionId,
       intent: state.intent || 'general',
       contactFor,
-      relationshipToParticipant,
-      relationshipOther,
+      role: contactFor === 'Myself' ? '' : value('role'),
+      roleOther: contactFor === 'Myself' ? '' : value('roleOther'),
       firstName: value('firstName'),
       lastName: value('lastName'),
       email: value('email'),
       phone: value('phone'),
-      participantFirstName,
-      participantLastName,
-      referrerFirstName: contactFor === 'Someone else' ? value('firstName') : '',
-      referrerLastName: contactFor === 'Someone else' ? value('lastName') : '',
-      referrerEmail: contactFor === 'Someone else' ? value('email') : '',
-      referrerPhone: contactFor === 'Someone else' ? value('phone') : '',
       support: state.support,
       ndisPlan: state.support === 'ndis' && !coordination ? selected('ndisPlan')?.value || '' : '',
       fundingManagement: state.support === 'ndis' ? selected('fundingManagement')?.value || '' : '',
