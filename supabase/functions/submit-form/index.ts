@@ -605,4 +605,4 @@ export async function handleRequest(request: Request): Promise<Response> {
   }
 }
 
-if (import.meta.main) Deno.serve(handleRequest);
+export default { fetch: handleRequest };

@@ -186,7 +186,7 @@ Use the Supabase Dashboard Edge Function editor only after explicit deployment a
 
 1. Open the correct project and confirm the four custom secrets are present by **name only**. Do not reveal or copy their values.
 2. Choose **Edge Functions → Deploy a new function → Via Editor** and name it exactly `submit-form`.
-3. Replace the generated source with the reviewed `supabase/functions/submit-form/index.ts` from this branch.
+3. Replace the generated source with the **entire contents** of `supabase/functions/submit-form/index.ts` from this branch. Paste it as plain TypeScript with no Markdown fences, wrappers or test files. The final line must remain `export default { fetch: handleRequest };`; this is the current Dashboard-compatible module entrypoint.
 4. Use the editor's built-in type check and stop if it reports any error.
 5. Deploy the function, then open its detail/settings page and turn **JWT verification off**. The browser form is unauthenticated; the Function performs origin, Turnstile, rate-limit and validation checks itself.
 6. Keep `form-submission-config.js` unchanged with `enabled: false`, an empty endpoint and an empty Turnstile site key.
