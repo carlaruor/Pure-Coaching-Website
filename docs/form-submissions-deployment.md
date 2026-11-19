@@ -196,6 +196,8 @@ Use the Supabase Dashboard Edge Function editor only after explicit deployment a
 
 The Dashboard route is suitable here because the Function has one source file and the Dashboard editor provides Deno/Supabase type checking. CLI deployment remains preferable for repeatability because it applies the tracked `config.toml` automatically; with the Dashboard route, the JWT setting must be checked manually.
 
+For the single controlled browser-to-database-to-Storage-to-Resend verification, follow `docs/single-intake-integration-test.md`. It keeps the committed public configuration disabled and activates the real form only in a session-scoped local preview.
+
 ## 7. Activate the frontend last
 
 After deployment and security testing, edit only the public values in `form-submission-config.js`:
