@@ -7,7 +7,7 @@
 const productionFormSubmissionConfig = {
   enabled: false,
   endpoint: 'https://ovsedudlfslldvhmswjy.supabase.co/functions/v1/submit-form',
-  turnstileSiteKey: ''
+  turnstileSiteKey: 'YOUR_PUBLIC_TURNSTILE_SITE_KEY'
 };
 
 function localPreviewFormSubmissionConfig() {

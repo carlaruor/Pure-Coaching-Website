@@ -1,6 +1,6 @@
 # Secure form submission deployment
 
-The implementation is intentionally **inactive** in the public website configuration. The reviewed production Function URL is committed, but `enabled` remains `false` and the public Turnstile site key remains unset. Review the Edge Function, SQL migration, data-handling process and retention policy before enabling it.
+The implementation is intentionally **inactive** in the public website configuration. The reviewed production Function URL is committed, but `enabled` remains `false` and the public Turnstile site key remains a non-functional placeholder. Review the Edge Function, SQL migration, data-handling process and retention policy before enabling it.
 
 `supabase/config.toml` deliberately contains only a non-secret local project identifier. Select the remote project explicitly through `supabase link --project-ref ...` or by opening the intended project in the Dashboard; never infer the deployment target from the repository name.
 
@@ -204,7 +204,7 @@ Use the Supabase Dashboard Edge Function editor only after explicit deployment a
 3. Replace the generated source with the **entire contents** of `supabase/functions/submit-form/index.ts` from this branch. Paste it as plain TypeScript with no Markdown fences, wrappers or test files. The final line must remain `export default { fetch: handleRequest };`; this is the current Dashboard-compatible module entrypoint.
 4. Use the editor's built-in type check and stop if it reports any error.
 5. Deploy the function, then open its detail/settings page and turn **JWT verification off**. The browser form is unauthenticated; the Function performs origin, Turnstile, rate-limit and validation checks itself.
-6. Keep `form-submission-config.js` unchanged with `enabled: false`, the reviewed production endpoint and an empty Turnstile site key.
+6. Keep `form-submission-config.js` unchanged with `enabled: false`, the reviewed production endpoint and `YOUR_PUBLIC_TURNSTILE_SITE_KEY` as the non-functional Turnstile placeholder.
 7. Run rejection tests first: disallowed origin, missing Turnstile token, malformed payload and direct anonymous Storage access must all fail.
 8. For the one successful end-to-end test, use a private, temporary test harness on an allowed test origin with a valid Turnstile widget and synthetic names, contact details and documents only. Do not commit that harness or its public test configuration.
 9. Confirm one database row, only private Storage references, the rate-limit counters, and exactly one notification to Pure Coaching. Delete the synthetic submission and documents using an authorised administrative process after recording the test result.
