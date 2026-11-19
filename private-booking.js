@@ -32,6 +32,32 @@
             </label>
           </div>
         </fieldset>
+        <fieldset class="private-booking__personal" data-private-sessions-for>
+          <legend>Who are the sessions for?</legend>
+          <div class="private-booking__days">
+            <label class="private-booking__choice"><input name="sessionsFor" type="radio" value="Myself" required><span>Myself</span></label>
+            <label class="private-booking__choice"><input name="sessionsFor" type="radio" value="Someone else" required><span>Someone else</span></label>
+          </div>
+        </fieldset>
+        <div class="private-booking__personal" data-private-participant hidden>
+          <p><strong>Participant receiving support</strong></p>
+          <div class="private-booking__personal-grid">
+            <label>Participant's first name
+              <input name="participantFirstName" type="text" autocomplete="off" disabled>
+            </label>
+            <label>Participant's last name
+              <input name="participantLastName" type="text" autocomplete="off" disabled>
+            </label>
+            <label>Relationship to participant
+              <select name="relationshipToParticipant" disabled>
+                <option value="" disabled selected>Select an option</option><option>Parent</option><option>Guardian</option><option>Support Coordinator</option><option>Family member</option><option>Carer</option><option>Other</option>
+              </select>
+            </label>
+            <label data-private-relationship-other hidden>Please describe your relationship
+              <input name="relationshipOther" type="text" autocomplete="off" disabled>
+            </label>
+          </div>
+        </div>
         <div class="private-booking__availability">
           <h2 id="booking-title" tabindex="-1">Your Preferred Availability</h2>
           <p id="booking-description">Select the days and times that work best for you. You can choose more than one day.</p>
@@ -69,6 +95,22 @@
   }
   choices(days, '.private-booking__days', 'checkbox', 'days');
   choices(times, '.private-booking__times', 'radio', 'time');
+  const participantFields = panel.querySelector('[data-private-participant]');
+  const relationshipOtherField = panel.querySelector('[data-private-relationship-other]');
+  function updateParticipantFields() {
+    const forSomeoneElse = form.elements.sessionsFor.value === 'Someone else';
+    participantFields.hidden = !forSomeoneElse;
+    participantFields.querySelectorAll('input, select').forEach((control) => {
+      control.disabled = !forSomeoneElse;
+      control.required = forSomeoneElse;
+      if (!forSomeoneElse) control.value = '';
+    });
+    const otherRelationship = forSomeoneElse && form.elements.relationshipToParticipant.value === 'Other';
+    relationshipOtherField.hidden = !otherRelationship;
+    form.elements.relationshipOther.disabled = !otherRelationship;
+    form.elements.relationshipOther.required = otherRelationship;
+    if (!otherRelationship) form.elements.relationshipOther.value = '';
+  }
   let activeCard;
   let activeButton;
   cards[0].parentElement.after(panel);
@@ -119,7 +161,10 @@
       }, reducedMotion ? 0 : 260);
     });
   });
-  form.addEventListener('change', () => { panel.querySelector('.private-booking__error').textContent = ''; });
+  form.addEventListener('change', () => {
+    panel.querySelector('.private-booking__error').textContent = '';
+    updateParticipantFields();
+  });
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     const paymentButton = form.querySelector('button[type="submit"]');
@@ -137,6 +182,12 @@
         email: form.elements.email.value.trim(),
         phone: form.elements.phone.value.trim()
       },
+      participant: {
+        firstName: form.elements.sessionsFor.value === 'Myself' ? form.elements.firstName.value.trim() : form.elements.participantFirstName.value.trim(),
+        lastName: form.elements.sessionsFor.value === 'Myself' ? form.elements.lastName.value.trim() : form.elements.participantLastName.value.trim(),
+        relationshipToPurchaser: form.elements.sessionsFor.value === 'Myself' ? 'Self' : form.elements.relationshipToParticipant.value,
+        relationshipOther: form.elements.relationshipOther.value.trim()
+      },
       booking: {
         package: activeCard.querySelector('h3').textContent,
         price: activeCard.querySelector('.package-card__price').textContent.trim(),
@@ -153,4 +204,5 @@
     }
     panel.querySelector('.private-booking__storage-error').textContent = 'Online payment is not connected yet. No payment has been taken.';
   });
+  updateParticipantFields();
 })();

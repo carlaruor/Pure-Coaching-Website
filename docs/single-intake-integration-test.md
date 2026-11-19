@@ -117,6 +117,13 @@ select
   form_type,
   form_data ->> 'clientSubmissionId' as client_submission_id,
   form_data ->> 'message' as test_marker,
+  form_data ->> 'participantFirstName' as participant_first_name,
+  form_data ->> 'participantLastName' as participant_last_name,
+  form_data ->> 'relationshipToParticipant' as relationship_to_participant,
+  form_data ->> 'referrerFirstName' as referrer_first_name,
+  form_data ->> 'referrerLastName' as referrer_last_name,
+  form_data ->> 'referrerEmail' as referrer_email,
+  form_data ->> 'referrerPhone' as referrer_phone,
   attachments,
   email_status,
   email_sent_at,
@@ -132,8 +139,11 @@ Verify all of the following:
 
 - exactly one row exists and `form_type = 'intake'`;
 - `client_submission_id` is present;
+- `participantFirstName = 'Synthetic'`, `participantLastName = 'Integration Test'` and `relationshipToParticipant = 'Self'` inside `form_data`;
+- the third-party-only `referrerFirstName`, `referrerLastName`, `referrerEmail` and `referrerPhone` values are empty;
 - `attachments` contains exactly one item;
-- that item has bucket `referral-documents`, state `stored`, an unpredictable path, PDF content type and no original filename or public URL;
+- that item has bucket `referral-documents`, state `stored`, PDF content type and no original filename or public URL;
+- its private path retains the submission UUID/category folders and ends with a server-generated Queensland-time filename matching `Synthetic_Integration_Test_YYYY-MM-DD_HHmm_NDIS_Plan_<unique-id>.pdf`;
 - `email_status = 'sent'`;
 - `email_attempt_count = 1`;
 - `email_sent_at` and `email_provider_id` are populated;
@@ -152,6 +162,7 @@ In Resend, locate the message whose provider ID exactly matches `email_provider_
 - sender is `Pure Coaching Website <notifications@pure-coaching.com.au>`;
 - the subject identifies a new NDIS enquiry;
 - the synthetic form values are rendered correctly;
+- participant details and participant contact appear in clearly separated email sections;
 - the message says one private document was stored;
 - there is no applicant confirmation email;
 - there is no file attachment, public document URL or signed download link.

@@ -8210,13 +8210,16 @@ body.has-modal-open {
 .private-booking fieldset { min-width: 0; padding: 0; margin: 18px 0 0; border: 0; }
 .private-booking fieldset:first-of-type { grid-column: 1 / -1; }
 .private-booking legend { margin-bottom: 8px; font-weight: 700; font-size: .9rem; }
-.private-booking__personal { margin-top: 0 !important; }
+.private-booking__personal { grid-column: 1 / -1; margin-top: 0 !important; }
+.private-booking [data-private-sessions-for] { margin-top: 24px !important; padding-top: 24px; border-top: 1px solid var(--color-border); }
+.private-booking [data-private-sessions-for] .private-booking__days { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 440px; margin-top: 12px; }
+.private-booking [data-private-participant] { margin-top: 18px !important; }
 .private-booking__personal > legend { margin-bottom: 0; color: var(--color-navy); font-size: clamp(1.3rem, 3vw, 1.65rem); line-height: 1.3; }
 .private-booking__personal > p { margin-top: 8px; color: var(--color-muted); font-size: .9rem; }
 .private-booking__personal-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; margin-top: 18px; }
 .private-booking__personal-grid label { color: var(--color-navy); font-size: .86rem; font-weight: 700; }
-.private-booking__personal-grid input { display: block; width: 100%; min-height: 46px; margin-top: 7px; padding: 10px 12px; border: 1px solid var(--color-border-strong); border-radius: var(--radius-small); color: var(--color-text); background: var(--color-white); font-weight: 400; }
-.private-booking__personal-grid input:focus { border-color: var(--color-orange); outline: 3px solid color-mix(in srgb, var(--color-orange) 18%, transparent); outline-offset: 1px; }
+.private-booking__personal-grid :is(input, select) { display: block; width: 100%; min-height: 46px; margin-top: 7px; padding: 10px 12px; border: 1px solid var(--color-border-strong); border-radius: var(--radius-small); color: var(--color-text); background: var(--color-white); font-weight: 400; }
+.private-booking__personal-grid :is(input, select):focus { border-color: var(--color-orange); outline: 3px solid color-mix(in srgb, var(--color-orange) 18%, transparent); outline-offset: 1px; }
 .private-booking__days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
 .private-booking__times { display: grid; gap: 6px; }
 .private-booking__choice { position: relative; cursor: pointer; }
@@ -8396,6 +8399,10 @@ body.has-modal-open {
 }
 
 .private-questionnaire__form > .field {
+  margin-top: 26px;
+}
+
+.private-questionnaire__form [data-questionnaire-participant] {
   margin-top: 26px;
 }
 

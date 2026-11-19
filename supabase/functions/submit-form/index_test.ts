@@ -1,6 +1,8 @@
 import {
   cleanupIncompleteSubmission,
+  emailContent,
   parseSupabaseSecretKeys,
+  storedDocumentFilename,
   type StoredAttachment,
   trustedClientIp,
   validateDocxArchive,
@@ -102,9 +104,86 @@ Deno.test("uses only a valid gateway-supplied client IP", () => {
 });
 
 Deno.test("validates all fields before an idempotency claim", () => {
-  assert(validatePayload(validPayload()).email === "synthetic@example.invalid");
+  const validated = validatePayload(validPayload());
+  assert(validated.email === "synthetic@example.invalid");
+  assert(validated.participantFirstName === "Synthetic");
+  assert(validated.participantLastName === "Test");
+  assert(validated.relationshipToParticipant === "Self");
   const invalid = { ...validPayload(), email: "not-an-email" };
   assertThrows(() => validatePayload(invalid), "valid email");
+});
+
+Deno.test("separates participant and referrer details for third-party referrals", () => {
+  const validated = validatePayload({
+    ...validPayload(),
+    contactFor: "Someone else",
+    relationshipToParticipant: "Support Coordinator",
+    participantFirstName: "Synthetic Participant",
+    participantLastName: "Example",
+    firstName: "Synthetic Referrer",
+    lastName: "Tester"
+  });
+  assert(validated.participantFirstName === "Synthetic Participant");
+  assert(validated.participantLastName === "Example");
+  assert(validated.referrerFirstName === "Synthetic Referrer");
+  assert(validated.referrerLastName === "Tester");
+  assert(validated.relationshipToParticipant === "Support Coordinator");
+  const legacy = validatePayload({
+    ...validPayload(),
+    contactFor: "Someone else",
+    role: "Parent or family member",
+    personFirstName: "Legacy Participant",
+    personLastName: "Example",
+    firstName: "Legacy Referrer",
+    lastName: "Tester"
+  });
+  assert(legacy.participantFirstName === "Legacy Participant");
+  assert(legacy.relationshipToParticipant === "Parent or family member");
+  assertThrows(() => validatePayload({
+    ...validPayload(),
+    contactFor: "Someone else",
+    relationshipToParticipant: "Guardian"
+  }), "participant's first and last name");
+});
+
+Deno.test("creates safe participant document names in Queensland local time", () => {
+  const data = { participantFirstName: "Emma/../", participantLastName: "Smíth" };
+  const date = new Date("2026-11-19T01:50:00.000Z");
+  const first = storedDocumentFilename(data, "ndisPlanDocument", "pdf", date, "89a7d938");
+  const second = storedDocumentFilename(data, "ndisPlanDocument", "pdf", date, "27bc61ef");
+  const report = storedDocumentFilename(data, "supportingReports", "docx", date, "b3115d72");
+  assert(first === "Emma_Smith_2026-11-19_1150_NDIS_Plan_89a7d938.pdf", first);
+  assert(second !== first, "Server-generated identifiers must prevent filename collisions");
+  assert(report === "Emma_Smith_2026-11-19_1150_Supporting_Document_b3115d72.docx", report);
+  assert(!first.includes("..") && !first.includes("/"), "Filename contains an unsafe path component");
+});
+
+Deno.test("accepts multiple validated reports even when original filenames match", async () => {
+  const pdf = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31]);
+  const formData = new FormData();
+  formData.append("supportingReports", new File([pdf], "duplicate.pdf", { type: "application/pdf" }));
+  formData.append("supportingReports", new File([pdf], "duplicate.pdf", { type: "application/pdf" }));
+  const files = await validateFiles(formData, "ndis");
+  assert(files.length === 2);
+  assert(files.every((entry) => entry.extension === "pdf"));
+});
+
+Deno.test("staff email clearly separates participant and referrer details", () => {
+  const data = validatePayload({
+    ...validPayload(),
+    contactFor: "Someone else",
+    relationshipToParticipant: "Family member",
+    participantFirstName: "Synthetic Participant",
+    participantLastName: "Example",
+    firstName: "Synthetic Referrer",
+    lastName: "Tester"
+  });
+  const content = emailContent(data, 1, "synthetic-reference");
+  assert(content.html.includes("Participant details"));
+  assert(content.html.includes("Referrer details"));
+  assert(content.html.includes("Synthetic Participant Example"));
+  assert(content.html.includes("Synthetic Referrer Tester"));
+  assert(!content.html.includes("duplicate.pdf"));
 });
 
 Deno.test("accepts a structurally valid DOCX and rejects misleading ZIP files", async () => {
