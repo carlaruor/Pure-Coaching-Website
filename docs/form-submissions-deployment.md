@@ -34,7 +34,7 @@ Do not set `enabled: true` until all of these are complete:
 1. Copy the existing public Turnstile site key from the reviewed Cloudflare widget into `form-submission-config.js`. The key is not present in this repository; do not use a Turnstile test key in production.
 2. Configure that widget for the exact hostname `carlaruor.github.io` and keep its secret only in the Edge Function secret store.
 3. Confirm `ALLOWED_ORIGINS` includes the exact origin `https://carlaruor.github.io`. Origins never include `/Pure-Coaching-Website/`.
-4. Publish a reviewed privacy and collection notice, then replace the form's current `href="#"` Privacy Policy link. The notice must cover the purpose of collection, NDIS/health information, private document storage, staff access, email notifications, disclosure, correction/contact rights and complaints.
+4. Obtain business and appropriate legal/privacy approval for `privacy-policy.html`, then publish it. The page is visibly marked as a draft and the public intake must remain disabled until the draft notice and its operational commitments have been approved.
 5. Approve a documented retention period and implement a scheduled, audited server-side deletion process covering both database rows and private Storage objects. No retention worker currently exists.
 6. Implement and verify a malware-scanning/quarantine workflow before staff download uploaded documents, or keep document collection disabled until one exists. Current signature/container validation is not malware scanning.
 7. Approve the staff access process for private files, including least privilege, access logging, incident response and secure deletion. Do not place signed or public links in email.
