@@ -1,6 +1,6 @@
 # Secure form submission deployment
 
-The implementation is intentionally **inactive** in the public website configuration. Review the Edge Function, SQL migration, data-handling process and retention policy before enabling it.
+The implementation is intentionally **inactive** in the public website configuration. The reviewed production Function URL is committed, but `enabled` remains `false` and the public Turnstile site key remains unset. Review the Edge Function, SQL migration, data-handling process and retention policy before enabling it.
 
 `supabase/config.toml` deliberately contains only a non-secret local project identifier. Select the remote project explicitly through `supabase link --project-ref ...` or by opening the intended project in the Dashboard; never infer the deployment target from the repository name.
 
@@ -9,7 +9,7 @@ The implementation is intentionally **inactive** in the public website configura
 - `get-started.js` sends one multipart request to `submit-form` only when `form-submission-config.js` is explicitly enabled.
 - The browser receives no Supabase key and no Resend key.
 - The Edge Function verifies the request origin, Cloudflare Turnstile, field rules, attachment rules and database-backed rate limits.
-- Valid records are stored in `form_submissions`; files are stored under unpredictable paths in the private `referral-documents` bucket.
+- Valid records are stored in `form_submissions`; files retain private submission/category folders and use sanitised participant names, a Queensland timestamp, document type and server-generated unique identifier.
 - The database stores private bucket/path references, not public URLs.
 - Resend receives one staff notification per stored submission. Documents are never attached and no document URL is placed in email.
 - A failed notification leaves the database submission intact with `email_status = 'failed'`.
@@ -26,6 +26,19 @@ The implementation is intentionally **inactive** in the public website configura
 7. Choose a retention period. Use a scheduled, audited server-side process to delete expired Storage objects and their database references. Do not delete from the browser.
 8. Review Australian Privacy Principles and applicable NDIS privacy/security obligations with the organisation's adviser.
 9. Apply `20261117010000_harden_form_submission_delivery.sql` before deploying the Function. It adds non-destructive notification-attempt metadata required by the reviewed code.
+
+### Production activation blockers
+
+Do not set `enabled: true` until all of these are complete:
+
+1. Copy the existing public Turnstile site key from the reviewed Cloudflare widget into `form-submission-config.js`. The key is not present in this repository; do not use a Turnstile test key in production.
+2. Configure that widget for the exact hostname `carlaruor.github.io` and keep its secret only in the Edge Function secret store.
+3. Confirm `ALLOWED_ORIGINS` includes the exact origin `https://carlaruor.github.io`. Origins never include `/Pure-Coaching-Website/`.
+4. Publish a reviewed privacy and collection notice, then replace the form's current `href="#"` Privacy Policy link. The notice must cover the purpose of collection, NDIS/health information, private document storage, staff access, email notifications, disclosure, correction/contact rights and complaints.
+5. Approve a documented retention period and implement a scheduled, audited server-side deletion process covering both database rows and private Storage objects. No retention worker currently exists.
+6. Implement and verify a malware-scanning/quarantine workflow before staff download uploaded documents, or keep document collection disabled until one exists. Current signature/container validation is not malware scanning.
+7. Approve the staff access process for private files, including least privilege, access logging, incident response and secure deletion. Do not place signed or public links in email.
+8. Redeploy the reviewed Edge Function from this branch, run the rejection tests, and complete one synthetic end-to-end test from the GitHub Pages origin. Reconfirm one database row, private object references and exactly one staff notification.
 
 ## 2. Apply database controls
 
@@ -63,6 +76,8 @@ Expected results: the bucket is not public, the policy is restrictive, both brow
 
 Create a Cloudflare Turnstile widget for the exact production hostname. Keep its secret server-side. The site key is public and will later be placed in the browser configuration.
 
+For GitHub Pages, configure the widget hostname as `carlaruor.github.io`. Cloudflare hostname configuration does not include the repository path.
+
 ## 4. Set Edge Function secrets
 
 Set these values with placeholders replaced locally. Never commit the resulting command, shell history containing real values, or an environment file.
@@ -72,7 +87,7 @@ supabase secrets set \
   RESEND_API_KEY=YOUR_RESEND_API_KEY \
   TURNSTILE_SECRET_KEY=YOUR_TURNSTILE_SECRET \
   RATE_LIMIT_SALT=AT_LEAST_32_RANDOM_CHARACTERS \
-  ALLOWED_ORIGINS=https://YOUR_GITHUB_PAGES_ORIGIN
+  ALLOWED_ORIGINS=https://carlaruor.github.io
 ```
 
 `SUPABASE_URL` and `SUPABASE_SECRET_KEYS` are supplied to deployed Edge Functions by Supabase and do not need to be added manually. The Function reads the `default` server secret from that injected JSON map. Neither value may ever be copied into frontend JavaScript. The reviewed sender and recipient are fixed in server code as `Pure Coaching Website <notifications@pure-coaching.com.au>` and `info@pure-coaching.com.au`. Add both the custom domain and GitHub Pages origin to `ALLOWED_ORIGINS` only if both genuinely serve the form; separate multiple origins with commas and do not use `*`.
@@ -189,7 +204,7 @@ Use the Supabase Dashboard Edge Function editor only after explicit deployment a
 3. Replace the generated source with the **entire contents** of `supabase/functions/submit-form/index.ts` from this branch. Paste it as plain TypeScript with no Markdown fences, wrappers or test files. The final line must remain `export default { fetch: handleRequest };`; this is the current Dashboard-compatible module entrypoint.
 4. Use the editor's built-in type check and stop if it reports any error.
 5. Deploy the function, then open its detail/settings page and turn **JWT verification off**. The browser form is unauthenticated; the Function performs origin, Turnstile, rate-limit and validation checks itself.
-6. Keep `form-submission-config.js` unchanged with `enabled: false`, an empty endpoint and an empty Turnstile site key.
+6. Keep `form-submission-config.js` unchanged with `enabled: false`, the reviewed production endpoint and an empty Turnstile site key.
 7. Run rejection tests first: disallowed origin, missing Turnstile token, malformed payload and direct anonymous Storage access must all fail.
 8. For the one successful end-to-end test, use a private, temporary test harness on an allowed test origin with a valid Turnstile widget and synthetic names, contact details and documents only. Do not commit that harness or its public test configuration.
 9. Confirm one database row, only private Storage references, the rate-limit counters, and exactly one notification to Pure Coaching. Delete the synthetic submission and documents using an authorised administrative process after recording the test result.
@@ -200,17 +215,23 @@ For the single controlled browser-to-database-to-Storage-to-Resend verification,
 
 ## 7. Activate the frontend last
 
-After deployment and security testing, edit only the public values in `form-submission-config.js`:
+After deployment, policy/retention/file-handling approval and security testing, edit only the public values in `form-submission-config.js`:
 
 ```js
 window.PURE_FORM_SUBMISSION_CONFIG = Object.freeze({
   enabled: true,
-  endpoint: 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/submit-form',
+  endpoint: 'https://ovsedudlfslldvhmswjy.supabase.co/functions/v1/submit-form',
   turnstileSiteKey: 'YOUR_PUBLIC_TURNSTILE_SITE_KEY'
 });
 ```
 
 Deploy the static site and perform a final synthetic submission. Confirm the database record, private object paths, exactly one Resend notification and no applicant email.
+
+### GitHub Pages repository path
+
+The page is served at `https://carlaruor.github.io/Pure-Coaching-Website/get-started.html`. Its scripts and internal navigation use relative URLs, while the Edge Function and Turnstile script use absolute HTTPS URLs, so the `/Pure-Coaching-Website/` base path is preserved. The Function CORS check receives only `https://carlaruor.github.io` as the browser origin. Do not add the repository path to `ALLOWED_ORIGINS`.
+
+The localhost `sessionStorage` preview remains available only when the hostname is `localhost`, `127.0.0.1` or `::1` and `?form-preview=1` is present. Production configuration does not read or depend on that preview value.
 
 ## Private document access
 

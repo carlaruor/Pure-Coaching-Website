@@ -1,10 +1,12 @@
 'use strict';
 
 // Public runtime configuration only. Never place Supabase or Resend secrets here.
-// Keep `enabled` false until the Edge Function and security controls have been reviewed.
-const disabledFormSubmissionConfig = {
+// Production values remain disabled until every launch gate in the deployment
+// guide has passed. The Turnstile site key is public, but must be copied from
+// the reviewed Cloudflare widget rather than guessed or replaced with a test key.
+const productionFormSubmissionConfig = {
   enabled: false,
-  endpoint: '',
+  endpoint: 'https://ovsedudlfslldvhmswjy.supabase.co/functions/v1/submit-form',
   turnstileSiteKey: ''
 };
 
@@ -31,5 +33,5 @@ function localPreviewFormSubmissionConfig() {
 }
 
 window.PURE_FORM_SUBMISSION_CONFIG = Object.freeze(
-  localPreviewFormSubmissionConfig() || disabledFormSubmissionConfig
+  localPreviewFormSubmissionConfig() || productionFormSubmissionConfig
 );
