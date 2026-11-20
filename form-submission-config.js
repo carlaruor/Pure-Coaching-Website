@@ -1,11 +1,12 @@
 'use strict';
 
 // Public runtime configuration only. Never place Supabase or Resend secrets here.
-// Production values remain disabled until every launch gate in the deployment
-// guide has passed. The configured Turnstile site key is public and must
-// continue to match the reviewed Cloudflare widget rather than a test key.
+// Public submissions are enabled after completing the reviewed launch gates.
+// Document uploads remain disabled until their separate security controls are
+// approved. The configured Turnstile site key is public and must continue to
+// match the reviewed Cloudflare widget rather than a test key.
 const productionFormSubmissionConfig = {
-  enabled: false,
+  enabled: true,
   endpoint: 'https://ovsedudlfslldvhmswjy.supabase.co/functions/v1/submit-form',
   documentUploadsEnabled: false,
   turnstileSiteKey: '0x4AAAAAAGEZ9eLe8xa-7a_i'
