@@ -356,7 +356,7 @@ function initIntakeForm() {
   function renderReview() {
     review.replaceChildren();
     const contactFor = selected('contactFor')?.value || '';
-    const supportLabels = { private: 'Private Support', ndis: 'NDIS Support', 'child-safety': 'Child Safety', unsure: "I'm not sure" };
+    const supportLabels = { private: 'Private Support', ndis: 'NDIS Support', 'child-safety': 'Family and Children', unsure: "I'm not sure" };
     addReviewGroup('About you', 1, [
       ['Contacting for', contactFor], ['Role', contactFor === 'Myself' ? '' : (value('role') === 'Other' ? value('roleOther') : value('role'))],
       ['Name', `${value('firstName')} ${value('lastName')}`], ['Email', value('email')], ['Phone', value('phone')]
@@ -401,9 +401,9 @@ function initIntakeForm() {
         introduction: "You're enquiring about Private Support with Pure Coaching. No NDIS plan is required — we'll ask a few questions about what you're looking for."
       },
       'child-safety': {
-        label: 'Child Safety',
+        label: 'Family and Children',
         heading: 'Tell us how we can help.',
-        introduction: "You're making a Child Safety enquiry. We'll collect a few details so our team can understand what you're looking for and get in touch."
+        introduction: "You're making a Family and Children enquiry. We'll collect a few details so our team can understand what you're looking for and get in touch."
       }
     };
     const allowedIntent = ['enquiry', 'enrolment', 'referral', 'general', 'support-coordination'];
