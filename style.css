@@ -394,6 +394,12 @@ button {
   text-transform: uppercase;
 }
 
+@media (min-width: 1024px) {
+  .pathway-hero__content h2#child-title {
+    font-size: 2.5rem;
+  }
+}
+
 .pathway-hero__content p {
   min-height: 3.2em;
   margin-top: var(--space-md);
@@ -634,7 +640,7 @@ button {
 .approach__intro {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
-  align-items: end;
+  align-items: center;
   gap: clamp(48px, 8vw, 112px);
 }
 
@@ -670,6 +676,7 @@ button {
   color: var(--color-text);
   font-size: 1.0625rem;
   line-height: 1.75;
+  text-align: left;
 }
 
 .approach__pillars {
@@ -831,10 +838,19 @@ button {
   stroke-width: 2;
 }
 
-.activities-carousel__wrapper {
-  --carousel-control-size: 40px;
-  --carousel-control-offset: -18px;
+.activities-carousel__wrapper,
+.child-carousel,
+.daily-life-gallery,
+.ndis-support-carousel {
+  --carousel-control-size: 44px;
+  --carousel-control-offset: -16px;
   --carousel-icon-size: 20px;
+}
+
+.activities-carousel__wrapper .carousel__controls,
+.child-carousel .carousel__controls,
+.ndis-support-carousel .carousel__controls {
+  top: 90px;
 }
 
 .carousel__track {
@@ -846,12 +862,21 @@ button {
   scroll-behavior: smooth;
   scroll-padding-inline: 2px;
   scroll-snap-type: x mandatory;
-  scrollbar-color: var(--color-border-strong) transparent;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.carousel__track::-webkit-scrollbar {
+  display: none;
 }
 
 .carousel__track > * {
   scroll-snap-align: start;
+}
+
+.activities-carousel {
+  gap: 12px;
+  padding-bottom: 8px;
 }
 
 .activity-card {
@@ -1074,7 +1099,7 @@ button {
   position: relative;
   z-index: 1;
   grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
-  align-items: end;
+  align-items: center;
   gap: clamp(36px, 6vw, 80px);
 }
 
@@ -1136,10 +1161,11 @@ button {
 
 .journey-statement__copy {
   max-width: 450px;
-  margin-bottom: clamp(8px, 2vw, 28px);
+  margin-bottom: 0;
   color: var(--color-text);
   font-size: clamp(1.0625rem, 1.45vw, 1.25rem);
   line-height: 1.75;
+  text-align: left;
 }
 
 .instagram-showcase {
@@ -2067,14 +2093,7 @@ button {
 }
 
 .child-carousel {
-  --carousel-control-size: 38px;
-  --carousel-control-offset: -17px;
-  --carousel-icon-size: 19px;
   margin-top: 30px;
-}
-
-.child-carousel .carousel__controls {
-  top: 88px;
 }
 
 .child-carousel__track {
@@ -2086,14 +2105,24 @@ button {
   flex: 0 0 clamp(220px, 19vw, 250px);
   height: 180px;
   overflow: hidden;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-large);
   background-color: var(--color-border);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 
 .child-carousel__item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+@media (hover: hover) {
+  .child-carousel__item:hover {
+    border-color: var(--color-blue);
+    box-shadow: var(--shadow-control);
+    transform: translateY(-2px);
+  }
 }
 
 .carousel__pagination {
@@ -3980,16 +4009,6 @@ body.has-modal-open {
   margin-block: var(--space-sm) var(--space-lg);
 }
 
-.ndis-support-carousel {
-  --carousel-control-size: 44px;
-  --carousel-control-offset: -16px;
-  --carousel-icon-size: 20px;
-}
-
-.ndis-support-carousel .carousel__controls {
-  top: 90px;
-}
-
 .ndis-support-carousel__track {
   align-items: stretch;
   gap: 12px;
@@ -4006,6 +4025,8 @@ body.has-modal-open {
     flex-basis: min(72vw, 250px);
   }
 
+  .child-carousel,
+  .daily-life-gallery,
   .ndis-support-carousel {
     --carousel-control-offset: -12px;
   }
@@ -4158,12 +4179,6 @@ body.has-modal-open {
   margin-top: var(--space-md);
 }
 
-.daily-life-gallery {
-  --carousel-control-size: 40px;
-  --carousel-control-offset: -16px;
-  --carousel-icon-size: 19px;
-}
-
 .daily-life-gallery__track {
   gap: var(--space-sm);
   padding-bottom: 8px;
@@ -4173,8 +4188,10 @@ body.has-modal-open {
   flex: 0 0 clamp(240px, 27vw, 350px);
   overflow: hidden;
   aspect-ratio: 16 / 10;
-  border-radius: var(--radius-medium);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-large);
   background-color: var(--color-border);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 
 .daily-life-gallery__track figure > button {
@@ -4198,6 +4215,12 @@ body.has-modal-open {
 }
 
 @media (hover: hover) {
+  .daily-life-gallery__track figure:hover {
+    border-color: var(--color-blue);
+    box-shadow: var(--shadow-control);
+    transform: translateY(-2px);
+  }
+
   .daily-life-gallery__track figure > button:hover img {
     filter: saturate(1.04);
     transform: scale(1.025);
@@ -4607,7 +4630,7 @@ body.has-modal-open {
 
   .approach__intro {
     grid-template-columns: 1fr 1fr;
-    align-items: start;
+    align-items: center;
     gap: 48px;
   }
 
@@ -4815,7 +4838,7 @@ body.has-modal-open {
   }
 
   .activities-carousel {
-    gap: 14px;
+    gap: 12px;
   }
 
   .activity-card {
@@ -5001,12 +5024,7 @@ body.has-modal-open {
   }
 
   .child-carousel {
-    --carousel-control-offset: -10px;
     margin-top: 24px;
-  }
-
-  .child-carousel .carousel__controls {
-    top: 85px;
   }
 
   .child-carousel__track {
