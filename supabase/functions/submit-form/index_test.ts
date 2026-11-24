@@ -1,12 +1,16 @@
 import {
   cleanupIncompleteSubmission,
   documentUploadsEnabled,
+  employmentResumeObjectPath,
+  employmentResumeUploadsEnabled,
   enforceDocumentUploadSetting,
   parseSupabaseSecretKeys,
   storedDocumentFilename,
   type StoredAttachment,
   trustedClientIp,
   validateDocxArchive,
+  validateEmploymentPayload,
+  validateEmploymentResume,
   validateFiles,
   validatePayload
 } from "./index.ts";
@@ -23,6 +27,16 @@ function assertThrows(action: () => unknown, expected: string): void {
     return;
   }
   throw new Error(`Expected error containing ${expected}`);
+}
+
+async function assertRejects(action: () => Promise<unknown>, expected: string): Promise<void> {
+  try {
+    await action();
+  } catch (error) {
+    assert(error instanceof Error && error.message.includes(expected), `Expected error containing ${expected}`);
+    return;
+  }
+  throw new Error(`Expected rejection containing ${expected}`);
 }
 
 function uint16(value: number): Uint8Array {
@@ -92,6 +106,21 @@ function validPayload(): Record<string, unknown> {
   };
 }
 
+function validEmploymentPayload(): Record<string, unknown> {
+  return {
+    clientSubmissionId: "employment-synthetic-000001",
+    firstName: "Emma/../",
+    lastName: "Smíth",
+    email: "applicant@example.invalid",
+    phone: "0400000000",
+    previousExperience: "Yes",
+    experience: "Synthetic support experience",
+    interestReason: "Synthetic test only",
+    consent: true,
+    website: ""
+  };
+}
+
 Deno.test("parses the deployed SUPABASE_SECRET_KEYS dictionary", () => {
   assert(parseSupabaseSecretKeys('{"default":"sb_secret_synthetic"}') === "sb_secret_synthetic");
   assertThrows(() => parseSupabaseSecretKeys('{"other":"value"}'), "Missing default");
@@ -116,6 +145,52 @@ Deno.test("enables document uploads only for the exact true environment value", 
   assert(!documentUploadsEnabled("false"));
   assert(!documentUploadsEnabled("TRUE"));
   assert(!documentUploadsEnabled(" true "));
+});
+
+Deno.test("enables employment résumé uploads only for the exact true environment value", () => {
+  assert(employmentResumeUploadsEnabled("true"));
+  assert(!employmentResumeUploadsEnabled(undefined));
+  assert(!employmentResumeUploadsEnabled("false"));
+  assert(!employmentResumeUploadsEnabled("TRUE"));
+});
+
+Deno.test("validates employment fields and creates the required private résumé path", () => {
+  const data = validateEmploymentPayload(validEmploymentPayload());
+  const path = employmentResumeObjectPath(data, new Date("2026-11-20T04:35:00.000Z"), "482917");
+  assert(path === "Emma_Smith_2026-11-20_1435_482917/resume.pdf", path);
+  assertThrows(() => validateEmploymentPayload({ ...validEmploymentPayload(), previousExperience: "Maybe" }), "previousExperience");
+  assertThrows(() => validateEmploymentPayload({ ...validEmploymentPayload(), consent: false }), "Consent");
+});
+
+Deno.test("accepts an optional valid PDF résumé and rejects it while disabled", async () => {
+  const withoutResume = new FormData();
+  assert(await validateEmploymentResume(withoutResume, true) === null);
+
+  const withResume = new FormData();
+  withResume.set("resume", new File([new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31])], "resume.pdf", { type: "application/pdf" }));
+  assert((await validateEmploymentResume(withResume, true))?.name === "resume.pdf");
+  try {
+    await validateEmploymentResume(withResume, false);
+  } catch (error) {
+    assert(error instanceof Error && error.message.includes("not currently available"));
+    return;
+  }
+  throw new Error("Expected a direct résumé upload to be rejected while disabled");
+});
+
+Deno.test("rejects invalid, oversized and duplicate résumé uploads", async () => {
+  const invalid = new FormData();
+  invalid.set("resume", new File(["not a pdf"], "resume.pdf", { type: "application/pdf" }));
+  await assertRejects(() => validateEmploymentResume(invalid, true), "contents");
+
+  const oversized = new FormData();
+  oversized.set("resume", new File([new Uint8Array(5 * 1024 * 1024 + 1)], "resume.pdf", { type: "application/pdf" }));
+  await assertRejects(() => validateEmploymentResume(oversized, true), "5 MB");
+
+  const duplicate = new FormData();
+  duplicate.append("resume", new File(["%PDF-1"], "one.pdf", { type: "application/pdf" }));
+  duplicate.append("resume", new File(["%PDF-1"], "two.pdf", { type: "application/pdf" }));
+  await assertRejects(() => validateEmploymentResume(duplicate, true), "Only one");
 });
 
 Deno.test("accepts attachment-free submissions and rejects direct files while uploads are disabled", () => {

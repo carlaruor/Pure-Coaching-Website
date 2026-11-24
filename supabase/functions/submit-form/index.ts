@@ -2,6 +2,9 @@ import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 
 const FORM_TYPE = "intake";
 const BUCKET = "referral-documents";
+const EMPLOYMENT_FORM_TYPE = "employment_interest";
+const EMPLOYMENT_BUCKET = "employment-resumes";
+const MAX_RESUME_BYTES = 5 * 1024 * 1024;
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const MAX_TOTAL_BYTES = 35 * 1024 * 1024;
 const MAX_REQUEST_BYTES = MAX_TOTAL_BYTES + 1024 * 1024;
@@ -99,6 +102,10 @@ function allowedOrigins(): Set<string> {
 }
 
 export function documentUploadsEnabled(value: string | undefined = Deno.env.get("DOCUMENT_UPLOADS_ENABLED")): boolean {
+  return value === "true";
+}
+
+export function employmentResumeUploadsEnabled(value: string | undefined = Deno.env.get("EMPLOYMENT_RESUME_UPLOADS_ENABLED")): boolean {
   return value === "true";
 }
 
@@ -233,6 +240,28 @@ export function validatePayload(input: unknown): JsonRecord {
   };
 }
 
+export function validateEmploymentPayload(input: unknown): JsonRecord {
+  const source = asObject(input);
+  const clientSubmissionId = textField(source, "clientSubmissionId", 80, true);
+  if (!/^[a-zA-Z0-9-]{20,80}$/.test(clientSubmissionId)) {
+    throw new RequestError(400, "INVALID_SUBMISSION_ID", "The submission identifier is invalid.");
+  }
+  const firstName = textField(source, "firstName", 100, true);
+  const lastName = textField(source, "lastName", 100, true);
+  const email = textField(source, "email", 254, true).toLowerCase();
+  const phone = textField(source, "phone", 30, true);
+  const previousExperience = textField(source, "previousExperience", 3, true);
+  const experience = textField(source, "experience", 5000);
+  const interestReason = textField(source, "interestReason", 5000);
+  const website = textField(source, "website", 200);
+  if (website) throw new RequestError(400, "SPAM_REJECTED", "The submission could not be accepted.");
+  if (!validateEmail(email)) throw new RequestError(400, "INVALID_EMAIL", "Please provide a valid email address.");
+  if (!validateAustralianPhone(phone)) throw new RequestError(400, "INVALID_PHONE", "Please provide a valid Australian phone number.");
+  if (!["Yes", "No"].includes(previousExperience)) throw new RequestError(400, "INVALID_FIELD", "The previousExperience field is invalid.");
+  if (source.consent !== true) throw new RequestError(400, "CONSENT_REQUIRED", "Consent is required.");
+  return { clientSubmissionId, firstName, lastName, email, phone, previousExperience, experience, interestReason, consent: true };
+}
+
 function extensionFor(file: File): keyof typeof fileTypes {
   const extension = file.name.split(".").pop()?.toLowerCase() || "";
   if (!(extension in fileTypes)) throw new RequestError(400, "INVALID_FILE_TYPE", "Documents must be PDF, DOC or DOCX files.");
@@ -261,6 +290,26 @@ function brisbaneDateTime(date: Date): { date: string; time: string } {
   }).formatToParts(date);
   const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((entry) => entry.type === type)?.value || "";
   return { date: `${part("year")}-${part("month")}-${part("day")}`, time: `${part("hour")}${part("minute")}` };
+}
+
+function numericUniqueId(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(6));
+  let value = 0n;
+  for (const byte of bytes) value = (value << 8n) | BigInt(byte);
+  return (value % 1_000_000_000_000n).toString().padStart(12, "0");
+}
+
+export function employmentResumeObjectPath(
+  data: JsonRecord,
+  date = new Date(),
+  uniqueId = numericUniqueId()
+): string {
+  const firstName = safeFilenameComponent(data.firstName, "Applicant");
+  const lastName = safeFilenameComponent(data.lastName, "Unknown");
+  const timestamp = brisbaneDateTime(date);
+  const identifier = String(uniqueId).replace(/\D/g, "").slice(0, 18);
+  if (identifier.length < 6) throw new RequestError(500, "STORAGE_PATH_ERROR", "The résumé storage path could not be generated.");
+  return `${firstName}_${lastName}_${timestamp.date}_${timestamp.time}_${identifier}/resume.pdf`;
 }
 
 function participantName(data: JsonRecord): { firstName: string; lastName: string } {
@@ -432,9 +481,54 @@ export async function validateFiles(formData: FormData, support: unknown): Promi
   return validated;
 }
 
+export async function validateEmploymentResume(formData: FormData, enabled: boolean): Promise<File | null> {
+  const entries = formData.getAll("resume");
+  if (entries.length > 1) throw new RequestError(400, "TOO_MANY_FILES", "Only one résumé may be attached.");
+  if (!entries.length) return null;
+  const resume = entries[0];
+  if (!(resume instanceof File)) throw new RequestError(400, "INVALID_FILE", "The attached résumé is invalid.");
+  if (!enabled) {
+    throw new RequestError(400, "EMPLOYMENT_RESUME_UPLOADS_DISABLED", "Résumé uploads are not currently available. Please submit without an attachment.");
+  }
+  if (resume.size < 5 || resume.size > MAX_RESUME_BYTES) {
+    throw new RequestError(400, "INVALID_FILE_SIZE", "The résumé must be a PDF no larger than 5 MB.");
+  }
+  if (!/\.pdf$/i.test(resume.name)) throw new RequestError(400, "INVALID_FILE_TYPE", "The résumé must be a PDF file.");
+  if (resume.type && !["application/pdf", "application/octet-stream"].includes(resume.type)) {
+    throw new RequestError(400, "INVALID_FILE_TYPE", "The résumé type does not match its filename.");
+  }
+  const bytes = new Uint8Array(await resume.slice(0, 5).arrayBuffer());
+  if (bytes.length < 5 || bytes[0] !== 0x25 || bytes[1] !== 0x50 || bytes[2] !== 0x44 || bytes[3] !== 0x46 || bytes[4] !== 0x2d) {
+    throw new RequestError(400, "INVALID_FILE_CONTENT", "The résumé contents do not match a PDF file.");
+  }
+  return resume;
+}
+
 async function sha256(value: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function enforceRateLimits(supabase: SupabaseClient, request: Request, email: unknown): Promise<void> {
+  // Supabase's gateway supplies cf-connecting-ip. Never trust a caller-supplied
+  // forwarding header. Missing gateway data shares a conservative fallback.
+  const ip = trustedClientIp(request) || "gateway-ip-unavailable";
+  const salt = requiredEnv("RATE_LIMIT_SALT");
+  const keys = [
+    [await sha256(`${salt}:ip:${ip}`), 5, 900],
+    [await sha256(`${salt}:email:${String(email)}`), 3, 3600]
+  ] as const;
+  for (const [rateKey, limit, windowSeconds] of keys) {
+    const result = await supabase.rpc("enforce_form_submission_rate_limit", {
+      p_rate_key: rateKey,
+      p_limit: limit,
+      p_window_seconds: windowSeconds
+    });
+    if (result.error) throw new Error("Rate limit service unavailable");
+    if (result.data !== true) {
+      throw new RequestError(429, "RATE_LIMITED", "Too many submissions. Please wait before trying again.");
+    }
+  }
 }
 
 export function trustedClientIp(request: Request): string | null {
@@ -446,7 +540,7 @@ export function trustedClientIp(request: Request): string | null {
   return null;
 }
 
-async function verifyTurnstile(token: string, request: Request, origin: string): Promise<void> {
+async function verifyTurnstile(token: string, request: Request, origin: string, expectedAction = "intake"): Promise<void> {
   if (!token || token.length > 2048) throw new RequestError(400, "SECURITY_CHECK_REQUIRED", "Please complete the security check.");
   const body = new URLSearchParams({ secret: requiredEnv("TURNSTILE_SECRET_KEY"), response: token });
   const ip = trustedClientIp(request);
@@ -454,7 +548,7 @@ async function verifyTurnstile(token: string, request: Request, origin: string):
   const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body });
   const result = await response.json().catch(() => null) as { success?: boolean; hostname?: string; action?: string } | null;
   const expectedHostname = new URL(origin).hostname;
-  if (!response.ok || !result?.success || (result.hostname && result.hostname !== expectedHostname) || (result.action && result.action !== "intake")) {
+  if (!response.ok || !result?.success || (result.hostname && result.hostname !== expectedHostname) || (result.action && result.action !== expectedAction)) {
     throw new RequestError(400, "SECURITY_CHECK_FAILED", "The security check could not be verified.");
   }
 }
@@ -524,6 +618,58 @@ async function sendNotification(data: JsonRecord, attachmentCount: number, submi
   }
 }
 
+function employmentEmailContent(data: JsonRecord, hasResume: boolean, applicationId: string | number): { subject: string; html: string; text: string } {
+  const fields = [
+    ["First name", data.firstName],
+    ["Last name", data.lastName],
+    ["Email", data.email],
+    ["Phone", data.phone],
+    ["Previous support experience", data.previousExperience],
+    ["Experience", data.experience || "Not provided"],
+    ["Why they are interested", data.interestReason || "Not provided"]
+  ];
+  const rows = fields.map(([label, value]) => `<tr><th style="padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid #e7edf1;color:#1D252D;width:34%;font-size:14px">${escapeHtml(label)}</th><td style="padding:10px 12px;border-bottom:1px solid #e7edf1;color:#020A0A;font-size:14px;white-space:pre-wrap">${escapeHtml(value)}</td></tr>`).join("");
+  const resumeNotice = hasResume
+    ? '<div style="margin:20px 0;padding:14px 16px;border-left:4px solid #FF5900;background:#fff5ef;color:#1D252D"><strong>A private résumé was stored.</strong><br>It is not attached to this email. Access it only through the approved private review process.</div>'
+    : "";
+  const subject = "New Pure Coaching employment expression of interest";
+  const html = `<!doctype html><html><body style="margin:0;background:#f4f7f9;font-family:Arial,sans-serif;color:#020A0A"><div style="max-width:680px;margin:0 auto;padding:28px 16px"><div style="height:8px;background:#FF5900;border-radius:12px 12px 0 0"></div><div style="background:#fff;padding:28px;border-radius:0 0 12px 12px"><p style="margin:0 0 8px;color:#FF5900;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase">Pure Coaching website</p><h1 style="margin:0 0 8px;color:#1D252D;font-size:26px">New employment expression of interest</h1><p style="margin:0 0 22px;color:#42515c">Application reference: ${escapeHtml(applicationId)}</p>${resumeNotice}<table role="presentation" style="width:100%;border-collapse:collapse;background:#f8fbfd;border:1px solid #B7DCF6;border-radius:8px">${rows}</table><p style="margin:22px 0 0;color:#5d6971;font-size:12px">This notification contains personal information. Handle it according to Pure Coaching's privacy and retention procedures.</p></div></div></body></html>`;
+  const text = [subject, `Application reference: ${applicationId}`, "", ...fields.map(([label, value]) => `${label}: ${value}`), "", hasResume ? "A private résumé is stored in Supabase. It is not attached to this email." : ""].filter(Boolean).join("\n");
+  return { subject, html, text };
+}
+
+async function sendEmploymentNotification(data: JsonRecord, hasResume: boolean, applicationId: string | number): Promise<NotificationResult> {
+  const content = employmentEmailContent(data, hasResume, applicationId);
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${requiredEnv("RESEND_API_KEY")}`,
+        "Content-Type": "application/json",
+        "Idempotency-Key": `pure-employment/${applicationId}`
+      },
+      body: JSON.stringify({
+        from: NOTIFICATION_FROM,
+        to: [NOTIFICATION_TO],
+        reply_to: String(data.email),
+        subject: content.subject,
+        html: content.html,
+        text: content.text
+      }),
+      signal: AbortSignal.timeout(RESEND_TIMEOUT_MS)
+    });
+    const result = await response.json().catch(() => null) as { id?: unknown; name?: unknown } | null;
+    return {
+      sent: response.ok && typeof result?.id === "string" && result.id.length > 0,
+      providerId: response.ok && typeof result?.id === "string" ? result.id : null,
+      retryable: response.status === 408 || response.status === 429 || response.status >= 500 ||
+        (response.status === 409 && result?.name === "concurrent_idempotent_requests")
+    };
+  } catch {
+    return { sent: false, providerId: null, retryable: true };
+  }
+}
+
 async function updateOne(supabase: SupabaseClient, submissionId: string | number, values: JsonRecord): Promise<void> {
   const result = await supabase.from("form_submissions").update(values).eq("id", submissionId).select("id").single();
   if (result.error || !result.data) throw new Error("Submission state update failed");
@@ -549,6 +695,103 @@ export async function cleanupIncompleteSubmission(
 
   const deletion = await supabase.from("form_submissions").delete().eq("id", submissionId).select("id").single();
   return !deletion.error && Boolean(deletion.data);
+}
+
+async function updateEmploymentApplication(supabase: SupabaseClient, id: string | number, values: JsonRecord): Promise<void> {
+  const result = await supabase.from("employment_applications").update(values).eq("id", id).select("id").single();
+  if (result.error || !result.data) throw new Error("Employment application state update failed");
+}
+
+async function cleanupEmploymentApplication(supabase: SupabaseClient, id: string | number, resumePath: string | null): Promise<boolean> {
+  if (resumePath) {
+    const removal = await supabase.storage.from(EMPLOYMENT_BUCKET).remove([resumePath]);
+    if (removal.error) return false;
+    const folder = resumePath.slice(0, resumePath.lastIndexOf("/"));
+    const listing = await supabase.storage.from(EMPLOYMENT_BUCKET).list(folder, { limit: 2 });
+    if (listing.error || listing.data?.some((item) => item.name === "resume.pdf")) return false;
+  }
+  const deletion = await supabase.from("employment_applications").delete().eq("id", id).select("id").single();
+  return !deletion.error && Boolean(deletion.data);
+}
+
+async function handleEmploymentSubmission(formData: FormData, request: Request, origin: string, supabase: SupabaseClient): Promise<Response> {
+  let applicationId: string | number | null = null;
+  let resumePath: string | null = null;
+  let storageFinalized = false;
+  try {
+    const payloadText = formData.get("payload");
+    if (typeof payloadText !== "string" || payloadText.length > 20000) {
+      throw new RequestError(400, "INVALID_PAYLOAD", "The submitted form data is invalid.");
+    }
+    let parsed: unknown;
+    try { parsed = JSON.parse(payloadText); } catch { throw new RequestError(400, "INVALID_PAYLOAD", "The submitted form data is invalid."); }
+    const data = validateEmploymentPayload(parsed);
+    const resume = await validateEmploymentResume(formData, employmentResumeUploadsEnabled());
+    await verifyTurnstile(String(formData.get("turnstileToken") || ""), request, origin, EMPLOYMENT_FORM_TYPE);
+    await enforceRateLimits(supabase, request, data.email);
+
+    resumePath = resume ? employmentResumeObjectPath(data) : null;
+    const inserted = await supabase.from("employment_applications").insert({
+      client_submission_id: data.clientSubmissionId,
+      first_name: data.firstName,
+      last_name: data.lastName,
+      email: data.email,
+      phone: data.phone,
+      previous_support_experience: data.previousExperience === "Yes",
+      experience_description: data.experience || null,
+      motivation: data.interestReason || null,
+      resume_object_path: resumePath,
+      email_status: "pending",
+      email_attempt_count: 0,
+      email_retryable: false
+    }).select("id").single();
+    if (inserted.error) {
+      if (inserted.error.code === "23505") {
+        throw new RequestError(409, "DUPLICATE_SUBMISSION", "This submission identifier has already been used. Please start a new submission.");
+      }
+      throw new Error("Employment application storage failed");
+    }
+    if (typeof inserted.data?.id !== "string" && typeof inserted.data?.id !== "number") {
+      throw new Error("Employment application storage returned an invalid identifier");
+    }
+    applicationId = inserted.data.id;
+
+    if (resume && resumePath) {
+      const upload = await supabase.storage.from(EMPLOYMENT_BUCKET).upload(resumePath, resume, {
+        contentType: "application/pdf",
+        upsert: false,
+        cacheControl: "0"
+      });
+      if (upload.error) throw new Error("Private résumé storage failed");
+    }
+    storageFinalized = true;
+
+    const attemptedAt = new Date().toISOString();
+    await updateEmploymentApplication(supabase, applicationId, {
+      email_attempt_count: 1,
+      email_last_attempt_at: attemptedAt,
+      email_retryable: false
+    });
+    const notification = await sendEmploymentNotification(data, Boolean(resume), applicationId);
+    await updateEmploymentApplication(supabase, applicationId, {
+      email_status: notification.sent ? "sent" : "failed",
+      email_sent_at: notification.sent ? new Date().toISOString() : null,
+      email_provider_id: notification.providerId,
+      email_retryable: !notification.sent && notification.retryable
+    });
+    if (!notification.sent) console.error("Employment notification delivery failed", { applicationId, retryable: notification.retryable });
+    return jsonResponse(origin, 200, { ok: true });
+  } catch (error) {
+    if (applicationId !== null && !storageFinalized) {
+      try {
+        const cleaned = await cleanupEmploymentApplication(supabase, applicationId, resumePath);
+        if (!cleaned) console.error("Employment application cleanup requires administrative recovery", { applicationId });
+      } catch {
+        console.error("Employment application cleanup requires administrative recovery", { applicationId });
+      }
+    }
+    throw error;
+  }
 }
 
 export async function handleRequest(request: Request): Promise<Response> {
@@ -585,7 +828,11 @@ export async function handleRequest(request: Request): Promise<Response> {
       auth: { persistSession: false, autoRefreshToken: false }
     });
     const formData = await request.formData();
-    if (formData.get("formType") !== FORM_TYPE) throw new RequestError(400, "INVALID_FORM_TYPE", "This form type is not supported.");
+    const formType = formData.get("formType");
+    if (formType === EMPLOYMENT_FORM_TYPE) {
+      return await handleEmploymentSubmission(formData, request, origin, supabase);
+    }
+    if (formType !== FORM_TYPE) throw new RequestError(400, "INVALID_FORM_TYPE", "This form type is not supported.");
     const uploadsEnabled = documentUploadsEnabled();
     enforceDocumentUploadSetting(formData, uploadsEnabled);
 
@@ -597,21 +844,7 @@ export async function handleRequest(request: Request): Promise<Response> {
     const files = uploadsEnabled ? await validateFiles(formData, data.support) : [];
     await verifyTurnstile(String(formData.get("turnstileToken") || ""), request, origin);
 
-    // Supabase's hosted gateway supplies cf-connecting-ip. Never use a
-    // caller-controlled X-Forwarded-For value. If the trusted header is absent,
-    // all such requests share a deliberately conservative fallback bucket.
-    const ip = trustedClientIp(request) || "gateway-ip-unavailable";
-    const salt = requiredEnv("RATE_LIMIT_SALT");
-    const ipKey = await sha256(`${salt}:ip:${ip}`);
-    const emailKey = await sha256(`${salt}:email:${data.email}`);
-    for (const [rateKey, limit, windowSeconds] of [[ipKey, 5, 900], [emailKey, 3, 3600]] as const) {
-      // PostgREST exposes only this service-role-only public wrapper. Its
-      // implementation delegates to private.check_form_submission_rate_limit;
-      // the private schema itself must remain absent from API exposed schemas.
-      const result = await supabase.rpc("enforce_form_submission_rate_limit", { p_rate_key: rateKey, p_limit: limit, p_window_seconds: windowSeconds });
-      if (result.error) throw new Error("Rate limit service unavailable");
-      if (result.data !== true) throw new RequestError(429, "RATE_LIMITED", "Too many submissions. Please wait before trying again.");
-    }
+    await enforceRateLimits(supabase, request, data.email);
 
     const inserted = await supabase.from("form_submissions").insert({
       form_type: FORM_TYPE,

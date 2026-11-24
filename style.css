@@ -9033,6 +9033,13 @@ body.has-modal-open {
   line-height: 1.2;
 }
 
+.privacy-policy__body h3 {
+  margin-top: 28px;
+  color: var(--color-navy);
+  font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+  line-height: 1.3;
+}
+
 .privacy-policy__body p,
 .privacy-policy__body li {
   color: var(--color-text);

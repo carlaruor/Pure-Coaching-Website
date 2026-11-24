@@ -490,13 +490,22 @@ function initAccordion(accordion) {
 function initInterestForm(form) {
   const status = form.querySelector('[data-interest-status]');
   const confirmation = form.parentElement.querySelector('[data-interest-confirmation]');
-  const documentUploadsEnabled = window.PURE_FORM_SUBMISSION_CONFIG?.documentUploadsEnabled === true;
+  const submitButton = form.querySelector('button[type="submit"]');
+  const config = window.PURE_FORM_SUBMISSION_CONFIG || {};
+  const submissionsEnabled = config.enabled === true && config.employmentSubmissionsEnabled === true;
+  const resumeUploadsEnabled = submissionsEnabled && config.employmentResumeUploadsEnabled === true;
+  const state = {
+    submitting: false,
+    turnstileToken: '',
+    clientSubmissionId: crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`
+  };
+  let turnstileWidgetId = null;
 
   form.querySelectorAll('[data-document-upload-section]').forEach((section) => {
-    section.hidden = !documentUploadsEnabled;
+    section.hidden = !resumeUploadsEnabled;
     section.querySelectorAll('input[type="file"]').forEach((control) => {
-      control.disabled = !documentUploadsEnabled;
-      if (!documentUploadsEnabled) {
+      control.disabled = !resumeUploadsEnabled;
+      if (!resumeUploadsEnabled) {
         control.required = false;
         control.value = '';
         control.removeAttribute('aria-invalid');
@@ -504,10 +513,38 @@ function initInterestForm(form) {
     });
   });
 
+  const submissionIsConfigured = () => (
+    submissionsEnabled
+    && typeof config.endpoint === 'string'
+    && config.endpoint.startsWith('https://')
+    && typeof config.turnstileSiteKey === 'string'
+    && config.turnstileSiteKey.length > 0
+  );
+
+  const loadTurnstile = () => {
+    if (window.turnstile) return Promise.resolve(window.turnstile);
+    if (window.PURE_TURNSTILE_SCRIPT_PROMISE) return window.PURE_TURNSTILE_SCRIPT_PROMISE;
+    window.PURE_TURNSTILE_SCRIPT_PROMISE = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      script.async = true;
+      script.defer = true;
+      script.addEventListener('load', () => resolve(window.turnstile), { once: true });
+      script.addEventListener('error', () => reject(new Error('Turnstile failed to load.')), { once: true });
+      document.head.append(script);
+    });
+    return window.PURE_TURNSTILE_SCRIPT_PROMISE;
+  };
+
   form.querySelectorAll('[data-interest-error]').forEach((error) => {
     const control = form.elements.namedItem(error.dataset.interestError);
     error.id = `interest-${error.dataset.interestError}-error`;
-    control?.setAttribute('aria-describedby', error.id);
+    const controls = control instanceof RadioNodeList ? Array.from(control) : [control];
+    controls.filter((item) => item instanceof HTMLElement).forEach((item) => {
+      const describedBy = new Set((item.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean));
+      describedBy.add(error.id);
+      item.setAttribute('aria-describedby', Array.from(describedBy).join(' '));
+    });
   });
 
   const clearError = (control) => {
@@ -522,10 +559,50 @@ function initInterestForm(form) {
     control.setAttribute('aria-invalid', 'true');
   };
 
+  const setNamedError = (name, message) => {
+    const error = form.querySelector(`[data-interest-error="${name}"]`);
+    if (error) error.textContent = message;
+  };
+
+  const resetTurnstile = () => {
+    state.turnstileToken = '';
+    if (window.turnstile && turnstileWidgetId !== null) window.turnstile.reset(turnstileWidgetId);
+  };
+
+  const initialiseTurnstile = async () => {
+    if (!submissionIsConfigured() || turnstileWidgetId !== null) return;
+    const container = form.querySelector('[data-interest-turnstile]');
+    container.hidden = false;
+    try {
+      const turnstile = await loadTurnstile();
+      turnstileWidgetId = turnstile.render(container, {
+        sitekey: config.turnstileSiteKey,
+        theme: 'light',
+        action: 'employment_interest',
+        callback: (token) => {
+          state.turnstileToken = token;
+          setNamedError('turnstileToken', '');
+        },
+        'expired-callback': () => { state.turnstileToken = ''; },
+        'error-callback': () => { state.turnstileToken = ''; }
+      });
+    } catch {
+      setNamedError('turnstileToken', 'The security check could not load. Please refresh the page or call us on 0407 234 842.');
+    }
+  };
+
+  submitButton.disabled = !submissionIsConfigured();
+  if (submissionIsConfigured()) initialiseTurnstile();
+  else {
+    status.textContent = 'Online employment expressions of interest are being prepared. Please contact us directly in the meantime.';
+    status.hidden = false;
+  }
+
   form.addEventListener('input', (event) => clearError(event.target));
   form.addEventListener('change', (event) => clearError(event.target));
-  form.addEventListener('submit', (event) => {
+  form.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (state.submitting) return;
     status.hidden = true;
     form.querySelectorAll('[aria-invalid="true"]').forEach(clearError);
     let firstInvalid = null;
@@ -542,6 +619,29 @@ function initInterestForm(form) {
       }
     });
 
+    const previousExperience = form.querySelector('input[name="previousExperience"]:checked');
+    if (!previousExperience) {
+      setNamedError('previousExperience', 'Please select Yes or No.');
+      firstInvalid ||= form.querySelector('input[name="previousExperience"]');
+    }
+
+    const consent = form.elements.namedItem('consent');
+    if (!consent.checked) {
+      setError(consent, 'Please confirm that Pure Coaching may use this information to assess and respond to your employment enquiry.');
+      firstInvalid ||= consent;
+    }
+
+    const resume = form.elements.namedItem('resume')?.files?.[0];
+    if (resumeUploadsEnabled && resume) {
+      if (!/\.pdf$/i.test(resume.name) || !['application/pdf', 'application/octet-stream', ''].includes(resume.type)) {
+        setNamedError('resume', 'Please choose a PDF résumé.');
+        firstInvalid ||= form.elements.namedItem('resume');
+      } else if (resume.size < 5 || resume.size > 5 * 1024 * 1024) {
+        setNamedError('resume', 'Your PDF résumé must be 5 MB or smaller.');
+        firstInvalid ||= form.elements.namedItem('resume');
+      }
+    }
+
     if (firstInvalid) {
       status.textContent = 'Please check the highlighted information before continuing.';
       status.hidden = false;
@@ -549,10 +649,57 @@ function initInterestForm(form) {
       return;
     }
 
-    // Future backend/API and optional resume upload should be connected here.
-    form.hidden = true;
-    confirmation.hidden = false;
-    confirmation.focus();
+    if (!submissionIsConfigured()) return;
+    if (!state.turnstileToken) {
+      setNamedError('turnstileToken', 'Please complete the security check before sending your expression of interest.');
+      form.querySelector('[data-interest-turnstile]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    const payload = {
+      clientSubmissionId: state.clientSubmissionId,
+      firstName: form.elements.namedItem('firstName').value.trim(),
+      lastName: form.elements.namedItem('lastName').value.trim(),
+      email: form.elements.namedItem('email').value.trim(),
+      phone: form.elements.namedItem('phone').value.trim(),
+      previousExperience: previousExperience.value,
+      experience: form.elements.namedItem('experience').value.trim(),
+      interestReason: form.elements.namedItem('interestReason').value.trim(),
+      consent: form.elements.namedItem('consent').checked,
+      website: form.elements.namedItem('website').value.trim()
+    };
+    const request = new FormData();
+    request.append('formType', 'employment_interest');
+    request.append('payload', JSON.stringify(payload));
+    request.append('turnstileToken', state.turnstileToken);
+    if (resumeUploadsEnabled && resume) request.append('resume', resume, resume.name);
+
+    state.submitting = true;
+    submitButton.disabled = true;
+    submitButton.textContent = 'Sending…';
+    status.hidden = true;
+    try {
+      const response = await fetch(config.endpoint, {
+        method: 'POST',
+        body: request,
+        credentials: 'omit',
+        referrerPolicy: 'strict-origin-when-cross-origin',
+        headers: { Accept: 'application/json' }
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || result.ok !== true) throw new Error(result.error || 'Submission failed.');
+      form.hidden = true;
+      confirmation.hidden = false;
+      confirmation.focus();
+    } catch (error) {
+      status.textContent = error instanceof Error && error.message ? error.message : 'We could not send your expression of interest. Please try again.';
+      status.hidden = false;
+      resetTurnstile();
+      state.submitting = false;
+      submitButton.disabled = false;
+      submitButton.textContent = 'Send Expression of Interest →';
+      status.focus?.();
+    }
   });
 }
 

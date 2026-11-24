@@ -9,6 +9,8 @@ const productionFormSubmissionConfig = {
   enabled: true,
   endpoint: 'https://ovsedudlfslldvhmswjy.supabase.co/functions/v1/submit-form',
   documentUploadsEnabled: false,
+  employmentSubmissionsEnabled: true,
+  employmentResumeUploadsEnabled: true,
   turnstileSiteKey: '0x4AAAAAAGEZ9eLe8xa-7a_i'
 };
 
@@ -33,6 +35,8 @@ function localPreviewFormSubmissionConfig() {
       endpoint: endpoint.href,
       turnstileSiteKey,
       documentUploadsEnabled: stored?.documentUploadsEnabled === true,
+      employmentSubmissionsEnabled: stored?.employmentSubmissionsEnabled === true,
+      employmentResumeUploadsEnabled: stored?.employmentResumeUploadsEnabled === true,
       preview: true
     };
   } catch {
