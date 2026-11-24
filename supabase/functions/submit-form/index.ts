@@ -47,6 +47,23 @@ const fileTypes = {
 } as const;
 
 type JsonRecord = Record<string, unknown>;
+export type IntakeSubmissionType =
+  | "intake"
+  | "referral"
+  | "ndis_support"
+  | "support_coordination"
+  | "family_and_children"
+  | "private_support";
+
+const intakeEmailSubjects: Record<IntakeSubmissionType, string> = {
+  intake: "New Pure Coaching General Enquiry",
+  referral: "New Pure Coaching Referral",
+  ndis_support: "New Pure Coaching NDIS Support Enquiry",
+  support_coordination: "New Pure Coaching Support Coordination Enquiry",
+  family_and_children: "New Pure Coaching Family and Children Enquiry",
+  private_support: "New Pure Coaching Private Support Enquiry"
+};
+
 export type StoredAttachment = {
   category: "ndisPlanDocument" | "supportingReports";
   bucket: string;
@@ -238,6 +255,28 @@ export function validatePayload(input: unknown): JsonRecord {
     contactTimeOther,
     consent: true
   };
+}
+
+export function deriveIntakeSubmissionType(data: JsonRecord): IntakeSubmissionType {
+  const intent = String(data.intent || "");
+  const support = String(data.support || "");
+
+  if (intent === "general") return "intake";
+  if (intent === "referral") return "referral";
+  if (intent === "enrolment" && support === "ndis") return "ndis_support";
+  if (intent === "support-coordination" && support === "ndis") return "support_coordination";
+  if (intent === "enquiry" && support === "child-safety") return "family_and_children";
+  if (intent === "enquiry" && support === "private") return "private_support";
+
+  throw new RequestError(
+    400,
+    "INVALID_ENTRY_POINT",
+    "The enquiry entry point is invalid or inconsistent with the selected pathway."
+  );
+}
+
+export function intakeEmailSubject(formType: IntakeSubmissionType): string {
+  return intakeEmailSubjects[formType];
 }
 
 export function validateEmploymentPayload(input: unknown): JsonRecord {
@@ -572,22 +611,31 @@ function labelFor(key: string): string {
   return labels[key] || key;
 }
 
-function emailContent(data: JsonRecord, attachmentCount: number, submissionId: string | number): { subject: string; html: string; text: string } {
+function emailContent(
+  data: JsonRecord,
+  attachmentCount: number,
+  submissionId: string | number,
+  formType: IntakeSubmissionType
+): { subject: string; html: string; text: string } {
   const hidden = new Set(["clientSubmissionId", "consent"]);
   const rows = Object.entries(data).filter(([key, value]) => !hidden.has(key) && value !== "").map(([key, value]) => ({ label: labelFor(key), value: String(value) }));
   const rowsHtml = rows.map(({ label, value }) => `<tr><th style="padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid #e7edf1;color:#1D252D;width:34%;font-size:14px">${escapeHtml(label)}</th><td style="padding:10px 12px;border-bottom:1px solid #e7edf1;color:#020A0A;font-size:14px;white-space:pre-wrap">${escapeHtml(value)}</td></tr>`).join("");
   const documentNotice = attachmentCount > 0
     ? `<div style="margin:20px 0;padding:14px 16px;border-left:4px solid #FF5900;background:#fff5ef;color:#1D252D"><strong>${attachmentCount} private document${attachmentCount === 1 ? "" : "s"} stored.</strong><br>Documents are not attached to this email. Access them only through the approved private Supabase workflow.</div>`
     : "";
-  const support = escapeHtml(data.support || "website");
-  const subject = `New Pure Coaching ${String(data.support || "website")} enquiry`;
-  const html = `<!doctype html><html><body style="margin:0;background:#f4f7f9;font-family:Arial,sans-serif;color:#020A0A"><div style="max-width:680px;margin:0 auto;padding:28px 16px"><div style="height:8px;background:#FF5900;border-radius:12px 12px 0 0"></div><div style="background:#fff;padding:28px;border-radius:0 0 12px 12px"><p style="margin:0 0 8px;color:#FF5900;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase">Pure Coaching website</p><h1 style="margin:0 0 8px;color:#1D252D;font-size:26px">New ${support} enquiry</h1><p style="margin:0 0 22px;color:#42515c">Submission reference: ${escapeHtml(submissionId)}</p>${documentNotice}<table role="presentation" style="width:100%;border-collapse:collapse;background:#f8fbfd;border:1px solid #B7DCF6;border-radius:8px">${rowsHtml}</table><p style="margin:22px 0 0;color:#5d6971;font-size:12px">This notification contains personal information. Handle it according to Pure Coaching's privacy and retention procedures.</p></div></div></body></html>`;
-  const text = [`New Pure Coaching ${String(data.support || "website")} enquiry`, `Submission reference: ${submissionId}`, "", ...rows.map(({ label, value }) => `${label}: ${value}`), "", attachmentCount ? `${attachmentCount} private document(s) stored in Supabase. Documents are not attached to this email.` : ""].filter(Boolean).join("\n");
+  const subject = intakeEmailSubject(formType);
+  const html = `<!doctype html><html><body style="margin:0;background:#f4f7f9;font-family:Arial,sans-serif;color:#020A0A"><div style="max-width:680px;margin:0 auto;padding:28px 16px"><div style="height:8px;background:#FF5900;border-radius:12px 12px 0 0"></div><div style="background:#fff;padding:28px;border-radius:0 0 12px 12px"><p style="margin:0 0 8px;color:#FF5900;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase">Pure Coaching website</p><h1 style="margin:0 0 8px;color:#1D252D;font-size:26px">${escapeHtml(subject)}</h1><p style="margin:0 0 22px;color:#42515c">Submission reference: ${escapeHtml(submissionId)}</p>${documentNotice}<table role="presentation" style="width:100%;border-collapse:collapse;background:#f8fbfd;border:1px solid #B7DCF6;border-radius:8px">${rowsHtml}</table><p style="margin:22px 0 0;color:#5d6971;font-size:12px">This notification contains personal information. Handle it according to Pure Coaching's privacy and retention procedures.</p></div></div></body></html>`;
+  const text = [subject, `Submission reference: ${submissionId}`, "", ...rows.map(({ label, value }) => `${label}: ${value}`), "", attachmentCount ? `${attachmentCount} private document(s) stored in Supabase. Documents are not attached to this email.` : ""].filter(Boolean).join("\n");
   return { subject, html, text };
 }
 
-async function sendNotification(data: JsonRecord, attachmentCount: number, submissionId: string | number): Promise<NotificationResult> {
-  const content = emailContent(data, attachmentCount, submissionId);
+async function sendNotification(
+  data: JsonRecord,
+  attachmentCount: number,
+  submissionId: string | number,
+  formType: IntakeSubmissionType
+): Promise<NotificationResult> {
+  const content = emailContent(data, attachmentCount, submissionId, formType);
   try {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -841,13 +889,14 @@ export async function handleRequest(request: Request): Promise<Response> {
     let parsed: unknown;
     try { parsed = JSON.parse(payloadText); } catch { throw new RequestError(400, "INVALID_PAYLOAD", "The submitted form data is invalid."); }
     const data = validatePayload(parsed);
+    const submissionType = deriveIntakeSubmissionType(data);
     const files = uploadsEnabled ? await validateFiles(formData, data.support) : [];
     await verifyTurnstile(String(formData.get("turnstileToken") || ""), request, origin);
 
     await enforceRateLimits(supabase, request, data.email);
 
     const inserted = await supabase.from("form_submissions").insert({
-      form_type: FORM_TYPE,
+      form_type: submissionType,
       form_data: data,
       attachments: [],
       email_status: "pending",
@@ -888,7 +937,7 @@ export async function handleRequest(request: Request): Promise<Response> {
 
     const attemptedAt = new Date().toISOString();
     await updateOne(supabase, storedSubmissionId, { email_attempt_count: 1, email_last_attempt_at: attemptedAt, email_retryable: false });
-    const notification = await sendNotification(data, storedAttachments.length, storedSubmissionId);
+    const notification = await sendNotification(data, storedAttachments.length, storedSubmissionId, submissionType);
     await updateOne(supabase, storedSubmissionId, {
       email_status: notification.sent ? "sent" : "failed",
       email_sent_at: notification.sent ? new Date().toISOString() : null,

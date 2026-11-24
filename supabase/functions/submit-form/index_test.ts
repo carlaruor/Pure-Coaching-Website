@@ -1,9 +1,11 @@
 import {
   cleanupIncompleteSubmission,
+  deriveIntakeSubmissionType,
   documentUploadsEnabled,
   employmentResumeObjectPath,
   employmentResumeUploadsEnabled,
   enforceDocumentUploadSetting,
+  intakeEmailSubject,
   parseSupabaseSecretKeys,
   storedDocumentFilename,
   type StoredAttachment,
@@ -137,6 +139,44 @@ Deno.test("validates all fields before an idempotency claim", () => {
   assert(validatePayload(validPayload()).email === "synthetic@example.invalid");
   const invalid = { ...validPayload(), email: "not-an-email" };
   assertThrows(() => validatePayload(invalid), "valid email");
+});
+
+Deno.test("classifies all six validated intake entry points and email subjects", () => {
+  const cases = [
+    [{ ...validPayload(), intent: "general" }, "intake", "New Pure Coaching General Enquiry"],
+    [{ ...validPayload(), intent: "referral" }, "referral", "New Pure Coaching Referral"],
+    [{ ...validPayload(), support: "ndis", intent: "enrolment", ndisPlan: "No" }, "ndis_support", "New Pure Coaching NDIS Support Enquiry"],
+    [{ ...validPayload(), support: "ndis", intent: "support-coordination", fundingManagement: "Self-managed", supportCoordinator: "No" }, "support_coordination", "New Pure Coaching Support Coordination Enquiry"],
+    [{ ...validPayload(), support: "child-safety", intent: "enquiry" }, "family_and_children", "New Pure Coaching Family and Children Enquiry"],
+    [{ ...validPayload(), support: "private", intent: "enquiry" }, "private_support", "New Pure Coaching Private Support Enquiry"]
+  ] as const;
+
+  for (const [payload, expectedType, expectedSubject] of cases) {
+    const type = deriveIntakeSubmissionType(validatePayload(payload));
+    assert(type === expectedType, `Expected ${expectedType}, received ${type}`);
+    assert(intakeEmailSubject(type) === expectedSubject, `Unexpected subject for ${type}`);
+  }
+});
+
+Deno.test("keeps generic and referral classification independent of selected support", () => {
+  const genericPrivate = deriveIntakeSubmissionType(validatePayload({ ...validPayload(), intent: "general", support: "private" }));
+  const genericNdis = deriveIntakeSubmissionType(validatePayload({ ...validPayload(), intent: "general", support: "ndis", ndisPlan: "No" }));
+  const referralPrivate = deriveIntakeSubmissionType(validatePayload({ ...validPayload(), intent: "referral", support: "private" }));
+  const referralFamily = deriveIntakeSubmissionType(validatePayload({ ...validPayload(), intent: "referral", support: "child-safety" }));
+  assert(genericPrivate === "intake" && genericNdis === "intake");
+  assert(referralPrivate === "referral" && referralFamily === "referral");
+});
+
+Deno.test("rejects invalid or inconsistent intake routing parameters", () => {
+  const invalidRoutes = [
+    { ...validPayload(), support: "private", intent: "enrolment" },
+    { ...validPayload(), support: "ndis", intent: "enquiry", ndisPlan: "No" },
+    { ...validPayload(), support: "child-safety", intent: "support-coordination" }
+  ];
+  invalidRoutes.forEach((payload) => {
+    const data = validatePayload(payload);
+    assertThrows(() => deriveIntakeSubmissionType(data), "entry point");
+  });
 });
 
 Deno.test("enables document uploads only for the exact true environment value", () => {
