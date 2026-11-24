@@ -7,6 +7,7 @@ import {
   enforceDocumentUploadSetting,
   intakeEmailSubject,
   parseSupabaseSecretKeys,
+  rateLimitEnabled,
   storedDocumentFilename,
   type StoredAttachment,
   trustedClientIp,
@@ -192,6 +193,15 @@ Deno.test("enables employment résumé uploads only for the exact true environme
   assert(!employmentResumeUploadsEnabled(undefined));
   assert(!employmentResumeUploadsEnabled("false"));
   assert(!employmentResumeUploadsEnabled("TRUE"));
+});
+
+Deno.test("disables rate limiting only for the exact false environment value", () => {
+  assert(!rateLimitEnabled("false"));
+  assert(rateLimitEnabled(undefined));
+  assert(rateLimitEnabled("true"));
+  assert(rateLimitEnabled("FALSE"));
+  assert(rateLimitEnabled(" false "));
+  assert(rateLimitEnabled("invalid"));
 });
 
 Deno.test("validates employment fields and creates the required private résumé path", () => {

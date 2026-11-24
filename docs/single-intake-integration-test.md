@@ -12,7 +12,7 @@ The public form remains disabled by default. The committed preview gate works on
    export default { fetch: handleRequest };
    ```
 
-2. Confirm JWT verification is disabled for `submit-form` and the secrets `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`, `RATE_LIMIT_SALT`, `ALLOWED_ORIGINS` and `DOCUMENT_UPLOADS_ENABLED` exist by name. Never reveal their values.
+2. Confirm JWT verification is disabled for `submit-form` and the secrets `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`, `RATE_LIMIT_SALT`, `RATE_LIMIT_ENABLED`, `ALLOWED_ORIGINS` and `DOCUMENT_UPLOADS_ENABLED` exist by name. Never reveal their values. Use `RATE_LIMIT_ENABLED=true` for the normal production test; only the exact value `false` bypasses rate limiting.
 3. Confirm both migrations have been applied, including `20261117010000_harden_form_submission_delivery.sql`.
 4. In the SQL editor, confirm `form_submissions` has `email_attempt_count`, `email_last_attempt_at`, `email_provider_id` and `email_retryable`.
 5. Confirm `referral-documents` is private and the browser roles cannot read, list, upload, update or delete its objects directly.

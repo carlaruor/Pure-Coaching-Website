@@ -88,11 +88,14 @@ supabase secrets set \
   RESEND_API_KEY=YOUR_RESEND_API_KEY \
   TURNSTILE_SECRET_KEY=YOUR_TURNSTILE_SECRET \
   RATE_LIMIT_SALT=AT_LEAST_32_RANDOM_CHARACTERS \
+  RATE_LIMIT_ENABLED=true \
   ALLOWED_ORIGINS=https://carlaruor.github.io \
   DOCUMENT_UPLOADS_ENABLED=false
 ```
 
 `SUPABASE_URL` and `SUPABASE_SECRET_KEYS` are supplied to deployed Edge Functions by Supabase and do not need to be added manually. The Function reads the `default` server secret from that injected JSON map. Neither value may ever be copied into frontend JavaScript. The reviewed sender and recipient are fixed in server code as `Pure Coaching Website <notifications@pure-coaching.com.au>` and `info@pure-coaching.com.au`. Add both the custom domain and GitHub Pages origin to `ALLOWED_ORIGINS` only if both genuinely serve the form; separate multiple origins with commas and do not use `*`.
+
+`RATE_LIMIT_ENABLED` is fail-closed: only the exact value `false` bypasses the existing IP and email submission limits. Set it to `true` for normal production enforcement. Missing, empty or invalid values continue to enforce rate limiting. Turnstile, validation and duplicate-submission protection remain active regardless of this setting.
 
 ## 5. Local review and testing
 

@@ -126,6 +126,10 @@ export function employmentResumeUploadsEnabled(value: string | undefined = Deno.
   return value === "true";
 }
 
+export function rateLimitEnabled(value: string | undefined = Deno.env.get("RATE_LIMIT_ENABLED")): boolean {
+  return value !== "false";
+}
+
 export function enforceDocumentUploadSetting(formData: FormData, enabled: boolean): void {
   if (enabled) return;
   const containsFile = Array.from(formData.values()).some((value) => value instanceof File);
@@ -549,6 +553,8 @@ async function sha256(value: string): Promise<string> {
 }
 
 async function enforceRateLimits(supabase: SupabaseClient, request: Request, email: unknown): Promise<void> {
+  if (!rateLimitEnabled()) return;
+
   // Supabase's gateway supplies cf-connecting-ip. Never trust a caller-supplied
   // forwarding header. Missing gateway data shares a conservative fallback.
   const ip = trustedClientIp(request) || "gateway-ip-unavailable";
