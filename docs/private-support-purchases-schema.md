@@ -4,6 +4,8 @@
 
 Migration `supabase/migrations/20261124000000_private_support_purchases.sql` prepares secure database storage for future Private Support package purchases. It does not connect Stripe, enable the disabled booking button, submit the optional questionnaire, send email, or change the frontend.
 
+Migration `supabase/migrations/20261127000000_private_support_checkout_drafts.sql` separately prepares short-lived, private booking drafts used while a Stripe-hosted Checkout Session is open. Drafts are not purchases. See `docs/private-support-checkout-deployment.md` for the security model, deployment order and cleanup procedure.
+
 Purchases remain separate from `form_submissions` and `employment_applications`. No customer table is introduced, and card details must never be stored in this table.
 
 ## Current booking model
