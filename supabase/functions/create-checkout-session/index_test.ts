@@ -3,6 +3,7 @@ import {
   createCheckoutHandler,
   PACKAGE_CATALOG,
   resolvePackage,
+  trustedClientIp,
   trustedRedirectUrl,
   validateBookingPayload,
   validateStripePrice,
@@ -67,9 +68,11 @@ function environment(
     STRIPE_PRICE_5_SESSIONS: "price_synthetic5",
     STRIPE_PRICE_10_SESSIONS: "price_synthetic10",
     STRIPE_PRICE_15_SESSIONS: "price_synthetic15",
+    PRIVATE_CHECKOUT_TESTER_TOKEN:
+      "synthetic-private-checkout-token-with-ample-entropy-1234567890",
     TURNSTILE_SECRET_KEY: "turnstile-synthetic-secret",
     RATE_LIMIT_SALT: "synthetic-rate-limit-salt-at-least-32-characters",
-    RATE_LIMIT_ENABLED: "true",
+    SB_REGION: "synthetic-edge-region",
     SUPABASE_URL: "https://synthetic.supabase.co",
     SUPABASE_SECRET_KEYS: '{"default":"sb_secret_synthetic"}',
     ...overrides,
@@ -80,18 +83,23 @@ function environment(
 function jsonRequest(
   payload: Record<string, unknown>,
   origin = "https://example.test",
+  testerToken =
+    "synthetic-private-checkout-token-with-ample-entropy-1234567890",
+  clientIp = "203.0.113.8",
 ): Request {
   const body = JSON.stringify(payload);
+  const headers = new Headers({
+    Origin: origin,
+    "Content-Type": "application/json",
+    "Content-Length": String(new TextEncoder().encode(body).length),
+  });
+  if (clientIp) headers.set("cf-connecting-ip", clientIp);
+  if (testerToken) headers.set("x-private-checkout-token", testerToken);
   return new Request(
     "https://synthetic.supabase.co/functions/v1/create-checkout-session",
     {
       method: "POST",
-      headers: {
-        Origin: origin,
-        "Content-Type": "application/json",
-        "Content-Length": String(new TextEncoder().encode(body).length),
-        "cf-connecting-ip": "203.0.113.8",
-      },
+      headers,
       body,
     },
   );
@@ -127,8 +135,19 @@ function successfulRpc(
       if (name === "enforce_form_submission_rate_limit") {
         return { data: true, error: null };
       }
-      if (name === "claim_private_support_checkout_draft") {
-        return { data: claimOutcome, error: null };
+      if (name === "claim_private_support_checkout_draft_v2") {
+        return {
+          data: {
+            ...claimOutcome,
+            ...(claimOutcome.outcome === "claimed"
+              ? {
+                stripeRequestData: args?.p_stripe_request_data,
+                requestExpiresAt: args?.p_stripe_request_expires_at,
+              }
+              : {}),
+          },
+          error: null,
+        };
       }
       if (name === "finalize_private_support_checkout_draft") {
         return { data: true, error: null };
@@ -191,6 +210,18 @@ Deno.test("rejects malformed JSON as a client error", async () => {
   );
   const result = await response.json();
   assert(response.status === 400 && result.code === "INVALID_JSON");
+});
+
+Deno.test("trusts the platform client IP only in a hosted Supabase environment", () => {
+  const request = new Request("https://synthetic.supabase.co", {
+    headers: { "cf-connecting-ip": "203.0.113.8" },
+  });
+  assert(trustedClientIp(request, environment()) === "203.0.113.8");
+  assert(trustedClientIp(request, environment({ SB_REGION: "" })) === null);
+  const invalid = new Request("https://synthetic.supabase.co", {
+    headers: { "cf-connecting-ip": "not-an-ip" },
+  });
+  assert(trustedClientIp(invalid, environment()) === null);
 });
 
 Deno.test("resolves only server-configured package price IDs", () => {
@@ -283,7 +314,7 @@ Deno.test("creates one Stripe Checkout Session using an opaque reference and ser
           JSON.stringify({
             id: "cs_test_synthetic123",
             url: "https://checkout.stripe.com/c/pay/cs_test_synthetic123",
-            expires_at: 1795640400,
+            expires_at: 1795579200,
             livemode: false,
           }),
           { status: 200 },
@@ -292,7 +323,7 @@ Deno.test("creates one Stripe Checkout Session using an opaque reference and ser
       return new Response("not found", { status: 404 });
     }) as typeof fetch;
   const handler = createCheckoutHandler({
-    env: environment(),
+    env: environment({ RATE_LIMIT_ENABLED: "false" }),
     fetch: fakeFetch,
     now: () => new Date("2026-11-25T03:00:00.000Z"),
     createSupabaseClient: () => successfulRpc(rpcCalls),
@@ -328,8 +359,14 @@ Deno.test("creates one Stripe Checkout Session using an opaque reference and ser
   );
   assert(
     rpcCalls.filter((call) =>
-      call.name === "claim_private_support_checkout_draft"
+      call.name === "claim_private_support_checkout_draft_v2"
     ).length === 1,
+  );
+  assert(
+    rpcCalls.filter((call) =>
+      call.name === "enforce_form_submission_rate_limit"
+    ).length === 2,
+    "Checkout rate limiting must not inherit the general form bypass",
   );
   assert(
     rpcCalls.filter((call) =>
@@ -397,6 +434,12 @@ Deno.test("keeps checkout disabled by default and rejects invalid origins and Tu
   );
   assert(wrongOriginResponse.status === 403);
 
+  const restrictedSandbox = createCheckoutHandler({ env: environment() });
+  const restrictedResponse = await restrictedSandbox(
+    jsonRequest(validPayload(), "https://example.test", ""),
+  );
+  assert(restrictedResponse.status === 401);
+
   const rpcCalls: Array<{ name: string; args?: Record<string, unknown> }> = [];
   const failedTurnstileFetch = (async (input: string | URL | Request) => {
     if (String(input).includes("turnstile")) {
@@ -431,6 +474,154 @@ Deno.test("keeps checkout disabled by default and rejects invalid origins and Tu
     jsonRequest(validPayload()),
   );
   assert(incompleteTurnstileResponse.status === 400);
+});
+
+Deno.test("uses the email limit without a global fallback when the trusted IP is unavailable", async () => {
+  const rpcCalls: Array<{ name: string; args?: Record<string, unknown> }> = [];
+  const handler = createCheckoutHandler({
+    env: environment({ RATE_LIMIT_ENABLED: "false" }),
+    fetch: (async (input: string | URL | Request) => {
+      if (String(input).includes("turnstile")) {
+        return new Response(
+          JSON.stringify({
+            success: true,
+            hostname: "example.test",
+            action: "private_checkout",
+          }),
+          { status: 200 },
+        );
+      }
+      throw new Error("Stripe must not be called for an existing checkout");
+    }) as typeof fetch,
+    createSupabaseClient: () =>
+      successfulRpc(rpcCalls, {
+        outcome: "existing",
+        reference: CHECKOUT_REFERENCE,
+        checkoutUrl: "https://checkout.stripe.com/c/pay/cs_test_existing",
+        sessionExpiresAt: "2026-11-25T04:00:00.000Z",
+      }),
+  });
+  const response = await handler(
+    jsonRequest(validPayload(), "https://example.test", undefined, ""),
+  );
+  assert(response.status === 200);
+  assert(
+    rpcCalls.filter((call) =>
+      call.name === "enforce_form_submission_rate_limit"
+    )
+      .length === 1,
+    "A missing trusted IP must not collapse all visitors into one rate bucket",
+  );
+});
+
+Deno.test("retries an ambiguous Stripe failure with identical persisted parameters", async () => {
+  let storedRequest: unknown;
+  let storedExpiry: unknown;
+  let checkoutAttempts = 0;
+  let failedDraftCalls = 0;
+  const checkoutBodies: string[] = [];
+  const idempotencyKeys: string[] = [];
+  const rpc: CheckoutRpcClient = {
+    async rpc(name, args) {
+      if (name === "enforce_form_submission_rate_limit") {
+        return { data: true, error: null };
+      }
+      if (name === "claim_private_support_checkout_draft_v2") {
+        storedRequest ??= args?.p_stripe_request_data;
+        storedExpiry ??= args?.p_stripe_request_expires_at;
+        return {
+          data: {
+            outcome: "claimed",
+            reference: CHECKOUT_REFERENCE,
+            claimCount: storedRequest ? 2 : 1,
+            stripeRequestData: storedRequest,
+            requestExpiresAt: storedExpiry,
+          },
+          error: null,
+        };
+      }
+      if (name === "finalize_private_support_checkout_draft") {
+        return { data: true, error: null };
+      }
+      if (name === "fail_private_support_checkout_draft") {
+        failedDraftCalls += 1;
+        return { data: true, error: null };
+      }
+      return { data: null, error: { message: "Unexpected RPC" } };
+    },
+  };
+  const fakeFetch = (async (
+    input: string | URL | Request,
+    init?: RequestInit,
+  ) => {
+    const url = String(input);
+    if (url.includes("turnstile")) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          hostname: "example.test",
+          action: "private_checkout",
+        }),
+        { status: 200 },
+      );
+    }
+    if (url.includes("/v1/prices/")) {
+      return new Response(JSON.stringify(stripePrice()), { status: 200 });
+    }
+    if (url.endsWith("/v1/checkout/sessions")) {
+      checkoutAttempts += 1;
+      checkoutBodies.push(String(init?.body));
+      idempotencyKeys.push(
+        new Headers(init?.headers).get("Idempotency-Key") || "",
+      );
+      if (checkoutAttempts === 1) {
+        return new Response(JSON.stringify({ error: { type: "api_error" } }), {
+          status: 500,
+        });
+      }
+      return new Response(
+        JSON.stringify({
+          id: "cs_test_recovered123",
+          url: "https://checkout.stripe.com/c/pay/cs_test_recovered123",
+          expires_at: 1795579200,
+          livemode: false,
+        }),
+        { status: 200 },
+      );
+    }
+    return new Response("not found", { status: 404 });
+  }) as typeof fetch;
+  let nowCalls = 0;
+  const handler = createCheckoutHandler({
+    env: environment(),
+    fetch: fakeFetch,
+    now: () => {
+      nowCalls += 1;
+      return new Date(
+        nowCalls === 1
+          ? "2026-11-25T03:00:00.000Z"
+          : "2026-11-25T03:05:00.000Z",
+      );
+    },
+    createSupabaseClient: () => rpc,
+  });
+
+  const first = await handler(jsonRequest(validPayload()));
+  const firstResult = await first.json();
+  assert(first.status === 503 && firstResult.code === "CHECKOUT_RETRY_PENDING");
+  const second = await handler(jsonRequest(validPayload()));
+  assert(second.status === 200, await second.text());
+  assert(
+    checkoutBodies.length === 2 && checkoutBodies[0] === checkoutBodies[1],
+  );
+  assert(idempotencyKeys[0] === idempotencyKeys[1]);
+  assert(
+    new URLSearchParams(checkoutBodies[1]).get("expires_at") === "1795579200",
+  );
+  assert(
+    failedDraftCalls === 0,
+    "Ambiguous provider failures must remain retryable",
+  );
 });
 
 Deno.test("rejects a concurrent duplicate before contacting Stripe", async () => {

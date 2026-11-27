@@ -60,7 +60,23 @@ type CheckoutClaim = {
   checkoutUrl?: string;
   sessionExpiresAt?: string;
   claimCount?: number;
+  stripeRequestData?: unknown;
+  requestExpiresAt?: string;
 };
+
+type PersistedStripeRequest = {
+  priceId: string;
+  customerEmail: string;
+  successUrl: string;
+  cancelUrl: string;
+  expiresAt: number;
+  mode: "payment";
+  quantity: 1;
+  locale: "en-GB";
+  submitType: "pay";
+};
+
+class AmbiguousStripeError extends Error {}
 
 export const PACKAGE_CATALOG = {
   "5-sessions": {
@@ -146,7 +162,8 @@ function corsHeaders(origin: string): HeadersInit {
   return {
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "content-type, accept",
+    "Access-Control-Allow-Headers":
+      "content-type, accept, x-private-checkout-token",
     "Access-Control-Max-Age": "86400",
     "Cache-Control": "no-store",
     "X-Content-Type-Options": "nosniff",
@@ -453,7 +470,13 @@ async function sha256(value: string): Promise<string> {
   ).join("");
 }
 
-function trustedClientIp(request: Request): string | null {
+export function trustedClientIp(
+  request: Request,
+  env: EnvReader,
+): string | null {
+  // Supabase documents cf-connecting-ip as a platform-populated gateway
+  // header. Only trust it inside the hosted Edge Function environment.
+  if (!env("SB_REGION") && !env("DENO_DEPLOYMENT_ID")) return null;
   const value = request.headers.get("cf-connecting-ip")?.trim().toLowerCase() ||
     "";
   if (!value || value.length > 45) return null;
@@ -486,7 +509,7 @@ async function verifyTurnstile(
     secret: requiredEnv("TURNSTILE_SECRET_KEY", env),
     response: token,
   });
-  const ip = trustedClientIp(request);
+  const ip = trustedClientIp(request, env);
   if (ip) body.set("remoteip", ip);
   const response = await fetcher(
     "https://challenges.cloudflare.com/turnstile/v0/siteverify",
@@ -516,13 +539,13 @@ async function enforceRateLimits(
   email: string,
   env: EnvReader,
 ): Promise<void> {
-  if (env("RATE_LIMIT_ENABLED") === "false") return;
   const salt = requiredEnv("RATE_LIMIT_SALT", env);
-  const ip = trustedClientIp(request) || "gateway-ip-unavailable";
-  const keys = [
-    [await sha256(`${salt}:private-checkout:ip:${ip}`), 5, 900],
-    [await sha256(`${salt}:private-checkout:email:${email}`), 3, 3600],
-  ] as const;
+  const ip = trustedClientIp(request, env);
+  const keys: Array<readonly [string, number, number]> = [];
+  if (ip) {
+    keys.push([await sha256(`${salt}:private-checkout:ip:${ip}`), 5, 900]);
+  }
+  keys.push([await sha256(`${salt}:private-checkout:email:${email}`), 3, 3600]);
   for (const [rateKey, limit, windowSeconds] of keys) {
     const result = await supabase.rpc("enforce_form_submission_rate_limit", {
       p_rate_key: rateKey,
@@ -538,6 +561,34 @@ async function enforceRateLimits(
       );
     }
   }
+}
+
+async function sandboxTesterAuthorised(
+  request: Request,
+  environment: StripeEnvironment,
+  env: EnvReader,
+): Promise<boolean> {
+  if (environment !== "test") return true;
+  const expected = requiredEnv("PRIVATE_CHECKOUT_TESTER_TOKEN", env);
+  if (expected.length < 43 || expected.length > 256) {
+    throw new Error(
+      "Invalid server configuration: PRIVATE_CHECKOUT_TESTER_TOKEN",
+    );
+  }
+  const provided = request.headers.get("x-private-checkout-token")?.trim() ||
+    "";
+  if (!provided || provided.length > 256) return false;
+  const [expectedDigest, providedDigest] = await Promise.all([
+    crypto.subtle.digest("SHA-256", new TextEncoder().encode(expected)),
+    crypto.subtle.digest("SHA-256", new TextEncoder().encode(provided)),
+  ]);
+  const expectedBytes = new Uint8Array(expectedDigest);
+  const providedBytes = new Uint8Array(providedDigest);
+  let difference = 0;
+  for (let index = 0; index < expectedBytes.length; index += 1) {
+    difference |= expectedBytes[index] ^ providedBytes[index];
+  }
+  return difference === 0;
 }
 
 async function fetchWithTimeout(
@@ -589,8 +640,10 @@ async function claimDraft(
   booking: ValidatedBooking,
   selectedPackage: PackageDefinition,
   payloadHash: string,
+  stripeRequestData: PersistedStripeRequest,
+  requestExpiresAt: Date,
 ): Promise<CheckoutClaim> {
-  const result = await supabase.rpc("claim_private_support_checkout_draft", {
+  const result = await supabase.rpc("claim_private_support_checkout_draft_v2", {
     p_client_request_id: booking.clientRequestId,
     p_payload_hash: payloadHash,
     p_booking_data: { purchaser: booking.purchaser, booking: booking.booking },
@@ -600,6 +653,8 @@ async function claimDraft(
     p_total_amount_cents: selectedPackage.amountCents,
     p_currency: selectedPackage.currency,
     p_stripe_price_id: selectedPackage.priceId,
+    p_stripe_request_data: stripeRequestData,
+    p_stripe_request_expires_at: requestExpiresAt.toISOString(),
   });
   if (
     result.error || !result.data || typeof result.data !== "object" ||
@@ -608,6 +663,62 @@ async function claimDraft(
     throw new Error("Checkout draft claim failed");
   }
   return result.data as CheckoutClaim;
+}
+
+function buildStripeRequestData(
+  selectedPackage: PackageDefinition,
+  booking: ValidatedBooking,
+  successUrl: string,
+  cancelUrl: string,
+  requestExpiresAt: Date,
+): PersistedStripeRequest {
+  return {
+    priceId: selectedPackage.priceId,
+    customerEmail: booking.purchaser.email,
+    successUrl,
+    cancelUrl,
+    expiresAt: Math.floor(requestExpiresAt.getTime() / 1000),
+    mode: "payment",
+    quantity: 1,
+    locale: "en-GB",
+    submitType: "pay",
+  };
+}
+
+function parsePersistedStripeRequest(
+  claim: CheckoutClaim,
+  booking: ValidatedBooking,
+  origins: Set<string>,
+  environment: StripeEnvironment,
+): PersistedStripeRequest {
+  if (
+    !claim.stripeRequestData || typeof claim.stripeRequestData !== "object" ||
+    Array.isArray(claim.stripeRequestData)
+  ) {
+    throw new Error("Stored Checkout Session parameters are invalid");
+  }
+  const source = claim.stripeRequestData as JsonRecord;
+  const requestExpiresAt = typeof claim.requestExpiresAt === "string"
+    ? new Date(claim.requestExpiresAt)
+    : new Date(Number.NaN);
+  const expiresAt = source.expiresAt;
+  if (
+    typeof source.priceId !== "string" ||
+    !/^price_[A-Za-z0-9]+$/.test(source.priceId) ||
+    source.customerEmail !== booking.purchaser.email ||
+    source.mode !== "payment" || source.quantity !== 1 ||
+    source.locale !== "en-GB" || source.submitType !== "pay" ||
+    typeof source.successUrl !== "string" ||
+    typeof source.cancelUrl !== "string" ||
+    typeof expiresAt !== "number" || !Number.isSafeInteger(expiresAt) ||
+    Number.isNaN(requestExpiresAt.getTime()) ||
+    Math.floor(requestExpiresAt.getTime() / 1000) !== expiresAt
+  ) {
+    throw new Error("Stored Checkout Session parameters are invalid");
+  }
+  trustedRedirectUrl(source.successUrl, origins, environment, true);
+  trustedRedirectUrl(source.cancelUrl, origins, environment);
+  return source as unknown as PersistedStripeRequest;
 }
 
 async function finalizeDraft(
@@ -701,48 +812,66 @@ async function createStripeCheckoutSession(
   fetcher: Fetcher,
   secretKey: string,
   environment: StripeEnvironment,
-  selectedPackage: PackageDefinition,
-  booking: ValidatedBooking,
+  stripeRequest: PersistedStripeRequest,
   reference: string,
-  successUrl: string,
-  cancelUrl: string,
   now: Date,
 ): Promise<{ id: string; url: string; expiresAt: string }> {
-  const expiresAt = Math.floor(now.getTime() / 1000) + SESSION_LIFETIME_SECONDS;
   const body = new URLSearchParams({
-    mode: "payment",
-    "line_items[0][price]": selectedPackage.priceId,
-    "line_items[0][quantity]": "1",
-    success_url: successUrl,
-    cancel_url: cancelUrl,
-    customer_email: booking.purchaser.email,
+    mode: stripeRequest.mode,
+    "line_items[0][price]": stripeRequest.priceId,
+    "line_items[0][quantity]": String(stripeRequest.quantity),
+    success_url: stripeRequest.successUrl,
+    cancel_url: stripeRequest.cancelUrl,
+    customer_email: stripeRequest.customerEmail,
     client_reference_id: reference,
     "metadata[checkout_reference]": reference,
     "payment_intent_data[metadata][checkout_reference]": reference,
-    expires_at: String(expiresAt),
-    locale: "en-GB",
-    submit_type: "pay",
+    expires_at: String(stripeRequest.expiresAt),
+    locale: stripeRequest.locale,
+    submit_type: stripeRequest.submitType,
   });
-  const response = await fetchWithTimeout(
-    fetcher,
-    "https://api.stripe.com/v1/checkout/sessions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${secretKey}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Idempotency-Key": `private-checkout/${reference}`,
-        "Stripe-Version": STRIPE_API_VERSION,
+  let response: Response;
+  try {
+    response = await fetchWithTimeout(
+      fetcher,
+      "https://api.stripe.com/v1/checkout/sessions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${secretKey}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+          "Idempotency-Key": `private-checkout/${reference}`,
+          "Stripe-Version": STRIPE_API_VERSION,
+        },
+        body,
       },
-      body,
-    },
-  );
+    );
+  } catch {
+    throw new AmbiguousStripeError(
+      "Stripe Checkout Session request outcome is unknown",
+    );
+  }
   const result = await response.json().catch(() => null) as JsonRecord | null;
   if (!response.ok) {
-    throw new RequestError(
-      502,
-      "CHECKOUT_PROVIDER_ERROR",
-      "The secure payment page could not be prepared.",
+    const stripeError = result?.error && typeof result.error === "object" &&
+        !Array.isArray(result.error)
+      ? result.error as JsonRecord
+      : null;
+    const errorType = typeof stripeError?.type === "string"
+      ? stripeError.type
+      : "";
+    if (
+      [401, 403].includes(response.status) ||
+      (response.status === 400 && errorType === "invalid_request_error")
+    ) {
+      throw new RequestError(
+        502,
+        "CHECKOUT_PROVIDER_REJECTED",
+        "The secure payment page could not be prepared.",
+      );
+    }
+    throw new AmbiguousStripeError(
+      "Stripe Checkout Session result is ambiguous",
     );
   }
   const id = typeof result?.id === "string" ? result.id : "";
@@ -754,10 +883,13 @@ async function createStripeCheckoutSession(
   if (
     !/^cs_(test|live)_[A-Za-z0-9]+$/.test(id) ||
     !url.startsWith("https://") ||
+    returnedExpiry !== stripeRequest.expiresAt ||
     returnedExpiry <= Math.floor(now.getTime() / 1000) ||
     result?.livemode !== expectedLiveMode
   ) {
-    throw new Error("Stripe returned an invalid Checkout Session");
+    throw new AmbiguousStripeError(
+      "Stripe returned an invalid Checkout Session response",
+    );
   }
   return { id, url, expiresAt: new Date(returnedExpiry * 1000).toISOString() };
 }
@@ -851,6 +983,13 @@ export function createCheckoutHandler(
       const turnstileToken = textField(source, "turnstileToken", 2048, true);
       const environment = stripeEnvironment(env);
       const secretKey = stripeSecret(env, environment);
+      if (!await sandboxTesterAuthorised(request, environment, env)) {
+        return jsonResponse(origin, 401, {
+          ok: false,
+          code: "SANDBOX_ACCESS_REQUIRED",
+          error: "Sandbox checkout access is restricted.",
+        });
+      }
       const selectedPackage = resolvePackage(booking.packageKey, env);
       const successUrl = trustedRedirectUrl(
         requiredEnv("PRIVATE_CHECKOUT_SUCCESS_URL", env),
@@ -870,12 +1009,6 @@ export function createCheckoutHandler(
 
       await verifyTurnstile(turnstileToken, request, origin, env, fetcher);
       await enforceRateLimits(supabase, request, booking.purchaser.email, env);
-      await retrieveStripePrice(
-        selectedPackage,
-        secretKey,
-        environment,
-        fetcher,
-      );
 
       const canonicalPayload = JSON.stringify({
         clientRequestId: booking.clientRequestId,
@@ -884,15 +1017,44 @@ export function createCheckoutHandler(
         booking: booking.booking,
       });
       const payloadHash = await sha256(canonicalPayload);
+      const requestNow = now();
+      const requestExpiresAt = new Date(
+        requestNow.getTime() + SESSION_LIFETIME_SECONDS * 1000,
+      );
+      const candidateStripeRequest = buildStripeRequestData(
+        selectedPackage,
+        booking,
+        successUrl,
+        cancelUrl,
+        requestExpiresAt,
+      );
       const claim = await claimDraft(
         supabase,
         booking,
         selectedPackage,
         payloadHash,
+        candidateStripeRequest,
+        requestExpiresAt,
       );
       const existingResponse = checkoutClaimResponse(origin, claim);
       if (existingResponse) return existingResponse;
       const reference = claim.reference as string;
+      const stripeRequest = parsePersistedStripeRequest(
+        claim,
+        booking,
+        origins,
+        environment,
+      );
+      const persistedPackage = {
+        ...selectedPackage,
+        priceId: stripeRequest.priceId,
+      };
+      await retrieveStripePrice(
+        persistedPackage,
+        secretKey,
+        environment,
+        fetcher,
+      );
 
       let session: { id: string; url: string; expiresAt: string };
       try {
@@ -900,23 +1062,27 @@ export function createCheckoutHandler(
           fetcher,
           secretKey,
           environment,
-          selectedPackage,
-          booking,
+          stripeRequest,
           reference,
-          successUrl,
-          cancelUrl,
-          now(),
+          requestNow,
         );
       } catch (error) {
         if (
           error instanceof RequestError &&
-          error.code === "CHECKOUT_PROVIDER_ERROR"
+          error.code === "CHECKOUT_PROVIDER_REJECTED"
         ) {
           await failDraft(
             supabase,
             reference,
             payloadHash,
             "stripe_request_rejected",
+          );
+        }
+        if (error instanceof AmbiguousStripeError) {
+          throw new RequestError(
+            503,
+            "CHECKOUT_RETRY_PENDING",
+            "The payment provider response is still being confirmed. Please wait and try again.",
           );
         }
         throw error;
